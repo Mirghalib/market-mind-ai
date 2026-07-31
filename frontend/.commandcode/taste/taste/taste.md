@@ -13,3 +13,4 @@
 - Wants premium visual depth in landing sections: animated gradient-blur background blobs, scroll-triggered stat counters, and a floating mock-UI/illustration placeholder with motion effects. Confidence: 0.8
 - Prefers glassmorphism material for premium cards/panels — translucent blurred surfaces (backdrop-blur, border-white/low-opacity, bg-white/low-opacity) for dashboard mock-ups, stat cards, and badges. Confidence: 0.85
 - Explicitly forbids external images in UI components; all visuals must be built with CSS gradients, glass effects, and Lucide icons. Confidence: 0.9
+- When a section calls for logos/branding, prefers placeholder logos — Lucide icon marks paired with wordmark-style names — rather than real brand assets or external images. Confidence: 0.8
