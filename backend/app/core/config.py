@@ -33,6 +33,16 @@ class Settings(BaseSettings):
         "postgresql+asyncpg://postgres:postgres@localhost:5432/market_mind_ai"
     )
 
+    # --- AI (LLM provider) ---
+    AI_PROVIDER: str = "openai"
+    AI_MODEL: str = "gpt-4o-mini"
+    AI_API_KEY: str = ""  # set via env (OPENAI_API_KEY / ANTHROPIC_API_KEY)
+    AI_MAX_TOKENS: int = 4096
+    AI_TEMPERATURE: float = 0.2
+    AI_RETRY_ATTEMPTS: int = 3
+    AI_RETRY_BACKOFF_SECONDS: float = 1.0
+    AI_REQUEST_TIMEOUT_SECONDS: float = 60.0
+
     # --- Logging ---
     LOG_LEVEL: str = "INFO"
 
