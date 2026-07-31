@@ -44,6 +44,13 @@ async def app_client() -> AsyncIterator[AsyncClient]:
         await conn.run_sync(Base.metadata.drop_all)
 
 
+@pytest_asyncio.fixture
+async def db_session() -> AsyncIterator[AsyncSession]:
+    """Yield a direct session for seeding test data (same in-memory DB)."""
+    async with _TestSessionLocal() as session:
+        yield session
+
+
 async def _override_get_db() -> AsyncIterator[AsyncSession]:
     """Yield a fresh session for each request (in-memory SQLite)."""
     async with _TestSessionLocal() as session:
