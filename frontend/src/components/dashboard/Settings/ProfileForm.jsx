@@ -35,15 +35,15 @@ export default function ProfileForm() {
   return (
     <motion.form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-lg shadow-black/20 backdrop-blur sm:p-8"
+      className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur"
     >
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-400">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">
           <User size={19} strokeWidth={1.75} />
         </span>
         <div>
-          <h2 className="text-base font-semibold text-white">Profile</h2>
-          <p className="text-sm text-zinc-500">Update your personal information.</p>
+          <h2 className="text-base font-semibold text-zinc-900 dark:text-white">Profile</h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Update your personal information.</p>
         </div>
       </div>
 

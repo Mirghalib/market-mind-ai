@@ -18,12 +18,12 @@ export default function ChannelBreakdown({ channels = defaultChannels, className
   return (
     <div
       className={cn(
-        'rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-lg shadow-black/20 backdrop-blur',
+        'rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur',
         className
       )}
     >
-      <h3 className="text-base font-semibold text-white">Channel breakdown</h3>
-      <p className="mt-0.5 text-sm text-zinc-500">
+      <h3 className="text-base font-semibold text-zinc-900 dark:text-white">Channel breakdown</h3>
+      <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
         Where your audience comes from
       </p>
 
@@ -31,16 +31,16 @@ export default function ChannelBreakdown({ channels = defaultChannels, className
         {channels.map((channel, i) => (
           <li key={channel.label}>
             <div className="flex items-center justify-between text-sm">
-              <span className="flex items-center gap-2.5 text-zinc-300">
+              <span className="flex items-center gap-2.5 text-zinc-700 dark:text-zinc-300">
                 <span
                   className="h-2.5 w-2.5 rounded-full"
                   style={{ backgroundColor: channel.color }}
                 />
                 {channel.label}
               </span>
-              <span className="font-medium text-white">{channel.value}%</span>
+              <span className="font-medium text-zinc-900 dark:text-white">{channel.value}%</span>
             </div>
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/5">
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-white/5">
               <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: `${(channel.value / total) * 100}%` }}

@@ -4,12 +4,12 @@ import Button from '@/components/ui/Button'
 import { cn } from '@/utils/cn'
 
 const tones = {
-  indigo: 'bg-indigo-500/15 text-indigo-400',
-  purple: 'bg-purple-500/15 text-purple-400',
-  cyan: 'bg-cyan-500/15 text-cyan-400',
-  emerald: 'bg-emerald-500/15 text-emerald-400',
-  amber: 'bg-amber-500/15 text-amber-400',
-  rose: 'bg-rose-500/15 text-rose-400',
+  indigo: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400',
+  purple: 'bg-purple-500/15 text-purple-600 dark:text-purple-400',
+  cyan: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400',
+  emerald: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+  amber: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+  rose: 'bg-rose-500/15 text-rose-600 dark:text-rose-400',
 }
 
 const containerVariants = {
@@ -45,7 +45,7 @@ export default function ResultCards({
         <motion.article
           key={id}
           variants={cardVariants}
-          className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-lg shadow-black/20 backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:shadow-xl"
+          className="group relative flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-md dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur dark:hover:border-white/20 dark:hover:shadow-xl"
         >
           <div
             aria-hidden
@@ -92,18 +92,18 @@ export default function ResultCards({
             )}
           </div>
 
-          <h3 className="mt-4 text-base font-semibold tracking-tight text-white">
+          <h3 className="mt-4 text-base font-semibold tracking-tight text-zinc-900 dark:text-white">
             {title}
           </h3>
           {description && (
-            <p className="mt-1.5 text-sm leading-relaxed text-zinc-400">{description}</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">{description}</p>
           )}
 
           {items?.length > 0 && (
-            <ul className="mt-4 space-y-2 border-t border-white/5 pt-4">
+            <ul className="mt-4 space-y-2 border-t border-zinc-100 pt-4 dark:border-white/5">
               {items.map((item) => (
-                <li key={item} className="flex items-start gap-2 text-sm text-zinc-400">
-                  <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-indigo-400" />
+                <li key={item} className="flex items-start gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                  <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-indigo-500 dark:bg-indigo-400" />
                   {item}
                 </li>
               ))}

@@ -1,4 +1,5 @@
 export { default as Sidebar } from './Sidebar'
+export { default as TopBar } from './TopBar'
 export { default as DashboardHeader } from './DashboardHeader'
 export { default as WelcomeCard } from './WelcomeCard'
 export { default as StatsCard } from './StatsCard'

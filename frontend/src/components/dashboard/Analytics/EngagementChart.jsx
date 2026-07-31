@@ -17,12 +17,12 @@ const defaultData = [
 export default function EngagementChart({ data = defaultData, className }) {
   return (
     <div
-      className={`rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-lg shadow-black/20 backdrop-blur ${className ?? ''}`}
+      className={`rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur ${className ?? ''}`}
     >
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-base font-semibold text-white">Engagement over time</h3>
-          <p className="mt-0.5 text-sm text-zinc-500">
+          <h3 className="text-base font-semibold text-zinc-900 dark:text-white">Engagement over time</h3>
+          <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
             Monthly audience interaction
           </p>
         </div>

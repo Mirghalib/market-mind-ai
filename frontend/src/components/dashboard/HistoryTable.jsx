@@ -36,16 +36,16 @@ export default function HistoryTable({ rows = [], onView, className }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: 'easeOut' }}
       className={cn(
-        'overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-lg shadow-black/20 backdrop-blur',
+        'overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur',
         className
       )}
     >
       {/* Toolbar */}
-      <div className="flex flex-col gap-3 border-b border-white/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-zinc-100 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-white/5">
         <div className="relative w-full sm:max-w-xs">
           <Search
             size={15}
-            className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-zinc-500"
+            className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-zinc-400 dark:text-zinc-500"
           />
           <input
             type="search"
@@ -53,10 +53,10 @@ export default function HistoryTable({ rows = [], onView, className }) {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search analyses…"
             aria-label="Search analyses"
-            className="h-10 w-full rounded-lg border border-zinc-700 bg-zinc-900 pr-3.5 pl-9 text-sm text-zinc-100 placeholder-zinc-500 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+            className="h-10 w-full rounded-lg border border-zinc-200 bg-white pr-3.5 pl-9 text-sm text-zinc-900 placeholder-zinc-400 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder-zinc-500"
           />
         </div>
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">
           {filtered.length} of {rows.length} analyses
         </p>
       </div>
@@ -66,10 +66,10 @@ export default function HistoryTable({ rows = [], onView, className }) {
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.05] text-zinc-500">
             <FileText size={22} strokeWidth={1.75} />
           </span>
-          <p className="mt-4 text-sm font-medium text-white">
+          <p className="mt-4 text-sm font-medium text-zinc-900 dark:text-white">
             {rows.length === 0 ? 'No analyses yet' : 'No matches found'}
           </p>
-          <p className="mt-1 max-w-xs text-sm text-zinc-500">
+          <p className="mt-1 max-w-xs text-sm text-zinc-500 dark:text-zinc-400">
             {rows.length === 0
               ? 'Your saved marketing strategies will appear here.'
               : 'Try a different search term.'}
@@ -79,7 +79,7 @@ export default function HistoryTable({ rows = [], onView, className }) {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
-              <tr className="border-b border-white/5 text-xs tracking-wide text-zinc-500 uppercase">
+              <tr className="border-b border-zinc-100 text-xs tracking-wide text-zinc-500 uppercase dark:border-white/5 dark:text-zinc-500">
                 <th scope="col" className="px-4 py-3 font-medium sm:px-6">
                   Title
                 </th>
@@ -104,19 +104,19 @@ export default function HistoryTable({ rows = [], onView, className }) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: index * 0.05, duration: 0.3 }}
-                  className="border-b border-white/5 last:border-0"
+                  className="border-b border-zinc-100 last:border-0 dark:border-white/5"
                 >
                   <td className="px-4 py-4 sm:px-6">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
                         <FileText size={15} />
                       </span>
-                      <span className="font-medium text-white">{row.title}</span>
+                      <span className="font-medium text-zinc-900 dark:text-white">{row.title}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-zinc-400">{row.type}</td>
+                  <td className="px-4 py-4 text-zinc-500 dark:text-zinc-400">{row.type}</td>
                   <td className="px-4 py-4">
-                    <span className="flex items-center gap-1.5 text-zinc-400">
+                    <span className="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
                       <Clock size={13} />
                       {row.createdAt}
                     </span>

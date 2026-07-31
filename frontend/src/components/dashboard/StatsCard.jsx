@@ -4,20 +4,20 @@ import { cn } from '@/utils/cn'
 
 const tones = {
   indigo: {
-    icon: 'bg-indigo-500/15 text-indigo-400',
-    hover: 'hover:border-indigo-400/30 hover:shadow-indigo-500/10',
+    icon: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400',
+    hover: 'hover:border-indigo-400/40 hover:shadow-md hover:shadow-indigo-500/10 dark:hover:shadow-indigo-500/10',
   },
   purple: {
-    icon: 'bg-purple-500/15 text-purple-400',
-    hover: 'hover:border-purple-400/30 hover:shadow-purple-500/10',
+    icon: 'bg-purple-500/15 text-purple-600 dark:text-purple-400',
+    hover: 'hover:border-purple-400/40 hover:shadow-md hover:shadow-purple-500/10 dark:hover:shadow-purple-500/10',
   },
   cyan: {
-    icon: 'bg-cyan-500/15 text-cyan-400',
-    hover: 'hover:border-cyan-400/30 hover:shadow-cyan-500/10',
+    icon: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400',
+    hover: 'hover:border-cyan-400/40 hover:shadow-md hover:shadow-cyan-500/10 dark:hover:shadow-cyan-500/10',
   },
   emerald: {
-    icon: 'bg-emerald-500/15 text-emerald-400',
-    hover: 'hover:border-emerald-400/30 hover:shadow-emerald-500/10',
+    icon: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+    hover: 'hover:border-emerald-400/40 hover:shadow-md hover:shadow-emerald-500/10 dark:hover:shadow-emerald-500/10',
   },
 }
 
@@ -44,8 +44,7 @@ export default function StatsCard({
       transition={{ duration: 0.45, ease: 'easeOut' }}
       whileHover={{ y: -3 }}
       className={cn(
-        'rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg shadow-black/20 backdrop-blur',
-        'transition-colors duration-300',
+        'rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition-colors duration-300 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur',
         styles.hover,
         className
       )}
@@ -64,8 +63,8 @@ export default function StatsCard({
             className={cn(
               'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold',
               positive
-                ? 'bg-emerald-500/15 text-emerald-400'
-                : 'bg-red-500/15 text-red-400'
+                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                : 'bg-red-500/15 text-red-600 dark:text-red-400'
             )}
           >
             {positive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
@@ -75,9 +74,9 @@ export default function StatsCard({
         )}
       </div>
 
-      <p className="mt-4 text-2xl font-bold tracking-tight text-white">{value}</p>
-      <p className="mt-0.5 text-sm text-zinc-500">{label}</p>
-      {hint && <p className="mt-2 text-xs text-zinc-600">{hint}</p>}
+      <p className="mt-4 text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">{value}</p>
+      <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">{label}</p>
+      {hint && <p className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">{hint}</p>}
     </motion.div>
   )
 }

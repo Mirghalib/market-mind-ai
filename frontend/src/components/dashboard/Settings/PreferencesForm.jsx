@@ -9,8 +9,8 @@ function Toggle({ id, label, description, checked, onChange }) {
   return (
     <label htmlFor={id} className="flex cursor-pointer items-start justify-between gap-4">
       <div>
-        <span className="block text-sm font-medium text-white">{label}</span>
-        {description && <span className="mt-0.5 block text-sm text-zinc-500">{description}</span>}
+        <span className="block text-sm font-medium text-zinc-900 dark:text-white">{label}</span>
+        {description && <span className="mt-0.5 block text-sm text-zinc-500 dark:text-zinc-400">{description}</span>}
       </div>
       <input
         id={id}
@@ -23,7 +23,7 @@ function Toggle({ id, label, description, checked, onChange }) {
         aria-hidden
         className={cn(
           'relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200',
-          checked ? 'bg-indigo-500' : 'bg-zinc-700'
+          checked ? 'bg-indigo-500' : 'bg-zinc-300 dark:bg-zinc-700'
         )}
       >
         <span
@@ -63,19 +63,19 @@ export default function PreferencesForm() {
   return (
     <motion.form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-lg shadow-black/20 backdrop-blur sm:p-8"
+      className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur"
     >
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/15 text-purple-400">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400">
           <Sliders size={19} strokeWidth={1.75} />
         </span>
         <div>
-          <h2 className="text-base font-semibold text-white">Preferences</h2>
-          <p className="text-sm text-zinc-500">Customize your experience.</p>
+          <h2 className="text-base font-semibold text-zinc-900 dark:text-white">Preferences</h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Customize your experience.</p>
         </div>
       </div>
 
-      <div className="mt-6 divide-y divide-white/5">
+      <div className="mt-6 divide-y divide-zinc-100 dark:divide-white/5">
         <div className="py-4 first:pt-0">
           <Toggle
             id="pref-email-digest"

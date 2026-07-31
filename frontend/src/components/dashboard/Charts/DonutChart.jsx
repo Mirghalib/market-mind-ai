@@ -28,8 +28,9 @@ export default function DonutChart({
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="rgba(255,255,255,0.06)"
+            stroke="rgba(0,0,0,0.06)"
             strokeWidth={thickness}
+            className="dark:stroke-white/10"
           />
           {data.map((d, i) => {
             const fraction = d.value / total
@@ -60,12 +61,12 @@ export default function DonutChart({
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           {centerValue && (
-            <span className="text-2xl font-bold tracking-tight text-white">
+            <span className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
               {centerValue}
             </span>
           )}
           {centerLabel && (
-            <span className="text-xs text-zinc-500">{centerLabel}</span>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">{centerLabel}</span>
           )}
         </div>
       </div>
@@ -73,14 +74,14 @@ export default function DonutChart({
       <ul className="w-full space-y-3">
         {data.map((d) => (
           <li key={d.label} className="flex items-center justify-between gap-3 text-sm">
-            <span className="flex items-center gap-2.5 text-zinc-400">
+            <span className="flex items-center gap-2.5 text-zinc-600 dark:text-zinc-400">
               <span
                 className="h-2.5 w-2.5 rounded-full"
                 style={{ backgroundColor: d.color }}
               />
               {d.label}
             </span>
-            <span className="font-medium text-white">{d.value}</span>
+            <span className="font-medium text-zinc-900 dark:text-white">{d.value}</span>
           </li>
         ))}
       </ul>

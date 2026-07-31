@@ -5,7 +5,6 @@ import {
   History,
   LayoutDashboard,
   LogOut,
-  Menu,
   PanelLeft,
   Settings,
   Sparkles,
@@ -24,10 +23,11 @@ const ICONS = {
 const EXPANDED_WIDTH = 272
 const COLLAPSED_WIDTH = 72
 
-export default function Sidebar() {
+export default function Sidebar({ mobileOpen, onOpenChange }) {
   const [collapsed, setCollapsed] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
   const navigate = useNavigate()
+
+  const closeMobile = () => onOpenChange?.(false)
 
   const handleLogout = () => {
     removeToken()
@@ -36,26 +36,6 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile top bar */}
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-4 transition-colors dark:border-zinc-800 dark:bg-zinc-900 lg:hidden">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/25">
-            <Sparkles size={17} className="text-white" />
-          </span>
-          <span className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-white">
-            {APP_NAME}
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={() => setMobileOpen(true)}
-          aria-label="Open navigation"
-          className="flex h-10 w-10 items-center justify-center rounded-lg text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-        >
-          <Menu size={20} />
-        </button>
-      </header>
-
       {/* Desktop sidebar */}
       <aside
         aria-label="Dashboard navigation"
@@ -183,7 +163,7 @@ export default function Sidebar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setMobileOpen(false)}
+              onClick={closeMobile}
               className="absolute inset-0 w-full cursor-default bg-black/60 backdrop-blur-sm"
             />
             <motion.aside
@@ -204,7 +184,7 @@ export default function Sidebar() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setMobileOpen(false)}
+                  onClick={closeMobile}
                   aria-label="Close navigation"
                   className="flex h-10 w-10 items-center justify-center rounded-lg text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 >
@@ -219,7 +199,7 @@ export default function Sidebar() {
                     <NavLink
                       key={link.href}
                       to={link.href}
-                      onClick={() => setMobileOpen(false)}
+                      onClick={closeMobile}
                       className={({ isActive }) =>
                         cn(
                           'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
@@ -242,7 +222,7 @@ export default function Sidebar() {
                 <button
                   type="button"
                   onClick={() => {
-                    setMobileOpen(false)
+                    closeMobile()
                     handleLogout()
                   }}
                   className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"

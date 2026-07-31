@@ -65,18 +65,18 @@ export default function BusinessForm({ onSubmit, submitting = false, className }
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: 'easeOut' }}
       className={cn(
-        'rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-lg shadow-black/20 backdrop-blur sm:p-8',
+        'rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur',
         className
       )}
       noValidate
     >
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-400">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">
           <Building2 size={19} strokeWidth={1.75} />
         </span>
         <div>
-          <h2 className="text-base font-semibold text-white">Tell us about your business</h2>
-          <p className="text-sm text-zinc-500">
+          <h2 className="text-base font-semibold text-zinc-900 dark:text-white">Tell us about your business</h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
             We use this to tailor your marketing strategy.
           </p>
         </div>
@@ -149,7 +149,7 @@ export default function BusinessForm({ onSubmit, submitting = false, className }
             </>
           )}
         </Button>
-        <p className="flex items-center gap-1.5 text-xs text-zinc-500">
+        <p className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
           <Target size={12} />
           <Users size={12} />
           Your details stay private.
