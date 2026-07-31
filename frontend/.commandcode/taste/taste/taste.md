@@ -11,3 +11,5 @@
 - Standard landing-page section order: Hero → TrustedBy → Features → HowItWorks → Capabilities → Testimonials → Pricing → FAQ → CTA → Footer, with each section as a semantic `<section>` carrying a scroll-anchor `id`. Confidence: 0.75
 - Wants complete, ready-to-use React code output for every request (explicitly asks for "Output complete React code") — full components, not partial snippets or stubs. Confidence: 0.8
 - Wants premium visual depth in landing sections: animated gradient-blur background blobs, scroll-triggered stat counters, and a floating mock-UI/illustration placeholder with motion effects. Confidence: 0.8
+- Prefers glassmorphism material for premium cards/panels — translucent blurred surfaces (backdrop-blur, border-white/low-opacity, bg-white/low-opacity) for dashboard mock-ups, stat cards, and badges. Confidence: 0.85
+- Explicitly forbids external images in UI components; all visuals must be built with CSS gradients, glass effects, and Lucide icons. Confidence: 0.9
