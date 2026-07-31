@@ -7,4 +7,4 @@
 - Prefers a Vite + React + Tailwind CSS + React Router + Axios + Framer Motion + Lucide React frontend stack. Confidence: 0.7
 
 ## Communication
-- Wants the folder structure and architecture explained before code is generated. Confidence: 0.9
+- Wants the folder structure and architecture explained before code is generated, including where each file belongs. Confidence: 0.95

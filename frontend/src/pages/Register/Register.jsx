@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { APP_NAME } from '@/constants'
 import Button from '@/components/ui/Button'
-import Input from '@/components/forms/Input'
+import Input from '@/components/ui/Input'
 
 export default function Register() {
   const [name, setName] = useState('')

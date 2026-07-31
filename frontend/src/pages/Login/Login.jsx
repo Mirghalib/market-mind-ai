@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { APP_NAME } from '@/constants'
 import { setToken } from '@/utils/token'
 import Button from '@/components/ui/Button'
-import Input from '@/components/forms/Input'
+import Input from '@/components/ui/Input'
 
 export default function Login() {
   const [email, setEmail] = useState('')
