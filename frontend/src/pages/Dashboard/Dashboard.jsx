@@ -1,16 +1,13 @@
 import { useState } from 'react'
 import {
-  Building2,
   ClipboardList,
-  Mail,
   Search,
   Sparkles,
-  TrendingUp,
   Users,
 } from 'lucide-react'
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
 import WelcomeCard from '@/components/dashboard/WelcomeCard'
-import StatsCard from '@/components/dashboard/StatsCard'
+import AnalyticsCards from '@/components/dashboard/Analytics/AnalyticsCards'
 import BusinessForm from '@/components/dashboard/BusinessForm'
 import ResultCards from '@/components/dashboard/ResultCards'
 import { AreaChart } from '@/components/dashboard/Charts'
@@ -83,37 +80,8 @@ export default function Dashboard() {
         ctaTo="/dashboard"
       />
 
-      {/* KPI stats */}
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        <StatsCard
-          icon={TrendingUp}
-          label="Growth Score"
-          value="86"
-          delta="+9.2"
-          tone="indigo"
-        />
-        <StatsCard
-          icon={Users}
-          label="Audience Reach"
-          value="48.2k"
-          delta="+12.4"
-          tone="purple"
-        />
-        <StatsCard
-          icon={Building2}
-          label="Strategies"
-          value="12"
-          delta="+3"
-          tone="cyan"
-        />
-        <StatsCard
-          icon={Mail}
-          label="Campaigns Drafted"
-          value="24"
-          delta="-2.1"
-          tone="emerald"
-        />
-      </div>
+      {/* Analytics cards */}
+      <AnalyticsCards className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4" />
 
       <div className="grid gap-6 lg:grid-cols-5">
         {/* Strategy generator */}
