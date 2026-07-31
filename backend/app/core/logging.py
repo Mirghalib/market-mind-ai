@@ -13,6 +13,12 @@ from app.core.config import settings
 # Root logger for the app namespace; modules inherit handlers via propagation.
 logger = logging.getLogger("market_mind_ai")
 
+# Clean, structured access-log format used by request logging middleware.
+ACCESS_LOG_FORMAT = (
+    '%(asctime)s | %(levelname)-8s | request | '
+    '%(message)s | %(duration_ms)s ms | request_id=%(request_id)s'
+)
+
 
 def configure_logging() -> None:
     """Idempotently configure the root logger."""

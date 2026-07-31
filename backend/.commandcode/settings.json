@@ -1,6 +1,7 @@
 {
   "permissions": {
     "allow": [
+<<<<<<< HEAD
       "Shell(python -c \"import ast, pathlib; [ast.parse(p.read_text(encoding='utf-8')) for p in pathlib.Path('app/services/ai').rglob('*.py')]; print('all files parse OK')\")",
       "Shell(python -c \"from app.services.ai.ai_service import AIService; from app.services.ai.prompt_builder import PromptBuilder; from app.services.ai.parsers.response_parser import ResponseParser; from app.services.ai.validators.json_validator import JSONValidator; import app.services.ai.prompts, app.services.ai.models; print('imports OK')\")",
       "Shell(python -m pytest tests/test_prompt_builder.py -q)",
@@ -21,6 +22,13 @@
       "Shell(python probe_extra_field.py)",
       "Shell(del probe_extra_field.py 2>nul & python -m pytest tests/ -q 2>&1 | findstr /C:\"passed\" /C:\"failed\")",
       "Shell(dir:*)"
+=======
+      "Shell(.venvScriptspython.exe:*)",
+      "Shell(cd /d D:\\market-mind-ai\\backend && set PYTHONPATH=D:\\market-mind-ai\\backend && .venv\\Scripts\\python.exe -c \"import asyncio; from sqlalchemy import text; from app.database.session import engine; asyncio.run(_probe())\" 2>nul || echo FALLBACK)",
+      "Shell(.venv\\Scripts\\python.exe scripts\\db_probe.py 2>nul)",
+      "Shell(.venv\\Scripts\\python.exe -c \"import asyncio, sys; sys.path.insert(0, 'D:/market-mind-ai/backend'); from sqlalchemy import text; from app.database.session import engine; asyncio.run(_run())\" 2>nul)",
+      "Shell(findstr:*)"
+>>>>>>> dev
     ],
     "deny": [],
     "defaultMode": "default"

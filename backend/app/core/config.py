@@ -32,6 +32,40 @@ class Settings(BaseSettings):
     DATABASE_URL: str = (
         "postgresql+asyncpg://postgres:postgres@localhost:5432/market_mind_ai"
     )
+    # Session-mode pooler URL used by Alembic migrations (Supabase).
+    # Falls back to DATABASE_URL when unset.
+    DIRECT_URL: str | None = None
+
+    @property
+    def MIGRATION_URL(self) -> str:
+        """URL used by Alembic.
+
+        Prefers DIRECT_URL (session-mode pooler, safe for DDL). If it is
+        a bare postgresql:// URL, normalize it to the asyncpg driver used
+        by env.py; otherwise fall back to DATABASE_URL.
+        """
+        url = self.DIRECT_URL or self.DATABASE_URL
+        if url.startswith("postgresql://"):
+            return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return url
+
+    # --- CORS ---
+    CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
+    CORS_ALLOW_CREDENTIALS: bool = True
+    CORS_ALLOW_METHODS: list[str] = ["*"]
+    CORS_ALLOW_HEADERS: list[str] = ["*"]
+
+    # --- Uploads ---
+    UPLOAD_DIR: str = "uploads"
+    PROFILE_IMAGE_DIR: str = "uploads/profile_images"
+    UPLOAD_MAX_SIZE: int = 5 * 1024 * 1024  # 5 MB
+    PROFILE_IMAGE_ALLOWED_TYPES: dict[str, str] = {
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "webp": "image/webp",
+    }
+    PUBLIC_BASE_URL: str = "http://localhost:8000"
 
     # --- AI (LLM provider) ---
     AI_PROVIDER: str = "openai"

@@ -12,7 +12,10 @@ from app.core.config import settings
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=settings.APP_DEBUG,
-    pool_pre_ping=True,
+    # Supabase's transaction-mode pooler (pgbouncer) does not support
+    # asyncpg prepared statements nor server-side pings, so both must
+    # be disabled here.
+    connect_args={"statement_cache_size": 0},
 )
 
 SessionLocal = async_sessionmaker(

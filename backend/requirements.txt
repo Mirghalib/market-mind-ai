@@ -29,3 +29,4 @@ jsonschema==4.26.0
 pytest==9.1.1
 pytest-asyncio==1.4.0
 httpx==0.28.1
+aiosqlite==0.20.0
