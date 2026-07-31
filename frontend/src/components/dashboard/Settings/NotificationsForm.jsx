@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Save, Sliders, Loader2 } from 'lucide-react'
-import Select from '@/components/ui/Select'
+import { Bell, Loader2, Save } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { cn } from '@/utils/cn'
 
@@ -38,15 +37,15 @@ function Toggle({ id, label, description, checked, onChange }) {
 }
 
 /**
- * Presentational preferences form with toggle switches and a
- * dashboard density select. Local state only.
+ * Notification preferences with toggle switches.
+ * Local state only — no backend.
  */
-export default function PreferencesForm() {
+export default function NotificationsForm() {
   const [values, setValues] = useState({
     emailDigest: true,
     aiSuggestions: true,
     weeklyReports: false,
-    density: 'comfortable',
+    productUpdates: true,
   })
   const [saving, setSaving] = useState(false)
 
@@ -63,22 +62,27 @@ export default function PreferencesForm() {
   return (
     <motion.form
       onSubmit={handleSubmit}
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
       className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur"
     >
       <div className="flex items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400">
-          <Sliders size={19} strokeWidth={1.75} />
+          <Bell size={19} strokeWidth={1.75} />
         </span>
         <div>
-          <h2 className="text-base font-semibold text-zinc-900 dark:text-white">Preferences</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Customize your experience.</p>
+          <h2 className="text-base font-semibold text-zinc-900 dark:text-white">Notifications</h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            Choose what you want to hear about.
+          </p>
         </div>
       </div>
 
       <div className="mt-6 divide-y divide-zinc-100 dark:divide-white/5">
         <div className="py-4 first:pt-0">
           <Toggle
-            id="pref-email-digest"
+            id="notif-email-digest"
             label="Email digest"
             description="Receive a weekly summary of your insights."
             checked={values.emailDigest}
@@ -87,35 +91,30 @@ export default function PreferencesForm() {
         </div>
         <div className="py-4">
           <Toggle
-            id="pref-ai-suggestions"
+            id="notif-ai-suggestions"
             label="AI suggestions"
-            description="Show AI-generated recommendations in reports."
+            description="Get notified when new AI recommendations are ready."
             checked={values.aiSuggestions}
             onChange={handleToggle('aiSuggestions')}
           />
         </div>
         <div className="py-4">
           <Toggle
-            id="pref-weekly-reports"
+            id="notif-weekly-reports"
             label="Weekly reports"
-            description="Automatically generate a weekly performance report."
+            description="Automatically generate and notify about a weekly report."
             checked={values.weeklyReports}
             onChange={handleToggle('weeklyReports')}
           />
         </div>
         <div className="py-4 last:pb-0">
-          <Select
-            id="pref-density"
-            name="density"
-            label="Dashboard density"
-            value={values.density}
-            onChange={(e) =>
-              setValues((current) => ({ ...current, density: e.target.value }))
-            }
-          >
-            <option value="comfortable">Comfortable</option>
-            <option value="compact">Compact</option>
-          </Select>
+          <Toggle
+            id="notif-product-updates"
+            label="Product updates"
+            description="Be first to know about new features and improvements."
+            checked={values.productUpdates}
+            onChange={handleToggle('productUpdates')}
+          />
         </div>
       </div>
 
