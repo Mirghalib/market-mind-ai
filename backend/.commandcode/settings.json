@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(python -c \"import ast, pathlib; [ast.parse(p.read_text(encoding='utf-8')) for p in pathlib.Path('app/services/ai').rglob('*.py')]; print('all files parse OK')\")",
+      "Shell(python -c \"from app.services.ai.ai_service import AIService; from app.services.ai.prompt_builder import PromptBuilder; from app.services.ai.parsers.response_parser import ResponseParser; from app.services.ai.validators.json_validator import JSONValidator; import app.services.ai.prompts, app.services.ai.models; print('imports OK')\")"
+    ],
+    "deny": [],
+    "defaultMode": "default"
+  }
+}
