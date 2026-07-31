@@ -81,7 +81,7 @@ const defaultValues = {
   competitors: '',
 }
 
-export default function BusinessForm({ onSubmit, className }) {
+export default function BusinessForm({ onSubmit, loading = false, className }) {
   const {
     register,
     handleSubmit,
@@ -93,10 +93,12 @@ export default function BusinessForm({ onSubmit, className }) {
 
   const submitForm = async (data) => {
     setStatus('submitting')
-    // Simulated async submission — wire to your API here.
-    await new Promise((resolve) => setTimeout(resolve, 1200))
-    await onSubmit?.(data)
-    setStatus('success')
+    try {
+      await onSubmit?.(data)
+      setStatus('success')
+    } finally {
+      setStatus('idle')
+    }
   }
 
   // Reset the form back to editable state after showing the success message.
@@ -264,8 +266,8 @@ export default function BusinessForm({ onSubmit, className }) {
             Strategy generated successfully! Your results are ready below.
           </div>
         ) : (
-          <Button type="submit" size="lg" disabled={isSubmitting}>
-            {isSubmitting ? (
+          <Button type="submit" size="lg" disabled={isSubmitting || loading}>
+            {isSubmitting || loading ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
                 Generating strategy…

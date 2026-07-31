@@ -3,6 +3,10 @@
 The app_client fixture wires the app to an in-memory SQLite database
 (via aiosqlite) so tests exercise real persistence without needing
 PostgreSQL.
+
+Provider API keys are cleared for the whole test session so endpoint
+tests deterministically exercise the deterministic mock generation
+path instead of consuming live LLM tokens.
 """
 from collections.abc import AsyncIterator
 
@@ -14,6 +18,11 @@ from app.core.config import settings
 from app.database.base import Base
 from app.database.session import get_db
 from main import create_app
+
+# Never hit a live LLM provider from the endpoint test suite.
+settings.GROQ_API_KEY = ""
+settings.OPENAI_API_KEY = ""
+settings.ANTHROPIC_API_KEY = ""
 
 _test_engine = create_async_engine("sqlite+aiosqlite:///:memory:")
 _TestSessionLocal = async_sessionmaker(

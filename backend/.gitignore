@@ -15,6 +15,9 @@ env/
 .coverage
 htmlcov/
 
+# User uploads (never commit)
+uploads/
+
 # IDE / OS
 .idea/
 .vscode/

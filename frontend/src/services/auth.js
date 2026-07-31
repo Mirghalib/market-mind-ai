@@ -23,20 +23,29 @@ export function decodeJwt(token) {
 
 /**
  * Map a raw API user/token payload to a normalized auth user.
- * Accepts both `{ token, user }` and a flat `{ access_token, ... }` shape.
+ *
+ * The backend returns either:
+ *   - POST /auth/login  -> { access_token, token_type }  (JWT claims: sub, email, role)
+ *   - POST /auth/register -> UserRead  (id, email, full_name, role_name, profile_image)
  */
 export function normalizeAuthResponse(payload = {}) {
-  const token = payload.token || payload.access_token || null
-  const raw = payload.user || payload
+  const token = payload.access_token || payload.token || null
   const decoded = token ? decodeJwt(token) : null
+
+  // Prefer explicit user data (register response), fall back to JWT claims.
+  const raw = payload.user || payload
+  const role = raw.role_name ?? raw.role ?? decoded?.role ?? 'user'
+  const name =
+    raw.full_name ?? raw.name ?? decoded?.full_name ?? decoded?.name ?? 'User'
 
   return {
     token,
     user: {
       id: raw?.id ?? decoded?.sub ?? null,
-      name: raw?.name ?? decoded?.name ?? 'User',
+      name,
       email: raw?.email ?? decoded?.email ?? '',
-      role: raw?.role ?? decoded?.role ?? 'user',
+      role,
+      profileImage: raw?.profile_image ?? null,
     },
   }
 }

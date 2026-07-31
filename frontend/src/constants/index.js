@@ -1,6 +1,6 @@
 export const APP_NAME = 'Market Mind AI'
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1'
 
 export const TOKEN_STORAGE_KEY = 'market_mind_ai_token'
 

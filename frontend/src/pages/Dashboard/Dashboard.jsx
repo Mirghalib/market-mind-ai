@@ -1,12 +1,14 @@
-import { useState } from 'react'
-import { Sparkles } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Sparkles, TrendingDown, TrendingUp } from 'lucide-react'
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
 import WelcomeCard from '@/components/dashboard/WelcomeCard'
 import AnalyticsCards from '@/components/dashboard/Analytics/AnalyticsCards'
 import BusinessForm from '@/components/dashboard/BusinessForm'
-import ResultCards from '@/components/dashboard/ResultCards'
-import { RESULT_PRESETS } from '@/components/dashboard/ResultPresets'
+import { StrategyView } from '@/components/dashboard/StrategyView'
 import { AreaChart } from '@/components/dashboard/Charts'
+import { useAuth } from '@/context/AuthContext'
+import { dashboardService } from '@/services/dashboard'
+import { cn } from '@/utils/cn'
 
 const chartData = [
   { label: 'W1', value: 28 },
@@ -18,12 +20,57 @@ const chartData = [
 ]
 
 export default function Dashboard() {
-  const [generated, setGenerated] = useState(false)
+  const { userName } = useAuth()
+  const [stats, setStats] = useState(null)
+  const [strategy, setStrategy] = useState(null)
+  const [generating, setGenerating] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSubmit = (formData) => {
-    // Wire to your API here — form data is validated.
-    console.log('Strategy form data:', formData)
-    setGenerated(true)
+  // Load personal dashboard stats on mount.
+  useEffect(() => {
+    let cancelled = false
+    dashboardService
+      .getStats()
+      .then(({ data }) => {
+        if (!cancelled) setStats(data)
+      })
+      .catch(() => {
+        // Non-fatal: the dashboard still renders with zero states.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const handleSubmit = async (formData) => {
+    setGenerating(true)
+    setError('')
+    try {
+      const { data } = await dashboardService.generate({
+        project_name: formData.businessName,
+        industry: formData.industry,
+        target_audience: formData.targetAudience,
+        goals: [formData.marketingGoal],
+        tone: 'professional',
+      })
+      setStrategy(data)
+      // Refresh the stats so the counters reflect the new generation.
+      try {
+        const { data: fresh } = await dashboardService.getStats()
+        setStats(fresh)
+      } catch {
+        // Stats refresh is best-effort.
+      }
+    } catch (err) {
+      setError(
+        err.response?.data?.detail ||
+          err.response?.data?.message ||
+          err.message ||
+          'Strategy generation failed. Try again.'
+      )
+    } finally {
+      setGenerating(false)
+    }
   }
 
   return (
@@ -35,28 +82,40 @@ export default function Dashboard() {
       />
 
       <WelcomeCard
-        name="Alex"
+        name={userName ?? 'there'}
         message="Turn your business into a marketing strategy in seconds — your market analysis, personas, and campaigns are one prompt away."
         tip="Engage with your top 20% of customers this week — repeat buyers are 5x more likely to try a new product."
         ctaLabel="Generate Strategy"
         ctaTo="/dashboard"
       />
 
-      {/* Analytics cards */}
-      <AnalyticsCards className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4" />
+      {/* Analytics cards — driven by the live dashboard stats */}
+      <AnalyticsCards
+        className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4"
+        stats={stats}
+      />
 
       {/* Strategy generator */}
-      <BusinessForm onSubmit={handleSubmit} />
+      <BusinessForm onSubmit={handleSubmit} loading={generating} />
+
+      {error && (
+        <div
+          role="alert"
+          className="rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-400"
+        >
+          {error}
+        </div>
+      )}
 
       {/* Generated results */}
-      {generated && (
+      {strategy && (
         <div className="space-y-4">
           <DashboardHeader
             eyebrow="Your strategy"
             title="Generated results"
-            subtitle="Copy, download, or share each section of your strategy."
+            subtitle="Your AI-generated marketing strategy is ready below."
           />
-          <ResultCards results={RESULT_PRESETS} />
+          <StrategyView strategy={strategy} onReset={() => setStrategy(null)} />
         </div>
       )}
 

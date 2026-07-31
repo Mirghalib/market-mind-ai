@@ -38,7 +38,11 @@ from app.services.generation_history_service import (
     GenerationHistoryNotFoundError,
     GenerationHistoryService,
 )
-from app.services.generation_service import GenerationError, StrategyGenerationService
+from app.services.generation_service import (
+    GenerationError,
+    GenerationQuotaExceededError,
+    StrategyGenerationService,
+)
 from app.services.profile_image_service import profile_image_url
 from app.services.user_dashboard_service import UserDashboardService
 
@@ -141,6 +145,11 @@ async def user_generate(
     service = StrategyGenerationService()
     try:
         return await service.generate(request)
+    except GenerationQuotaExceededError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="The AI provider's rate limit was reached. Try again later.",
+        )
     except GenerationError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

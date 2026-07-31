@@ -21,7 +21,7 @@ export default function Register() {
     setError('')
     setSubmitting(true)
     try {
-      const user = await register({ name, email, password })
+      const user = await register({ full_name: name, email, password })
       navigate(user.role === 'admin' ? '/admin/dashboard' : '/dashboard', { replace: true })
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Registration failed. Try again.')

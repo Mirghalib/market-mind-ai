@@ -48,7 +48,7 @@ export default function TopBar({
   userRole,
   className,
 }) {
-  const { userName: authName, userRole: authRole, logout } = useAuth()
+  const { userName: authName, role: authRole, logout } = useAuth()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [openMenu, setOpenMenu] = useState(null) // 'notifications' | 'profile' | null

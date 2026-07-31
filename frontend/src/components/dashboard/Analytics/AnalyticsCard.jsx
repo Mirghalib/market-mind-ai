@@ -123,7 +123,8 @@ export default function AnalyticsCard({
   className,
 }) {
   const styles = tones[tone]
-  const positive = Number(delta) >= 0
+  const numericDelta = !Number.isNaN(Number(delta))
+  const positive = numericDelta ? Number(delta) >= 0 : true
 
   return (
     <motion.div
@@ -160,9 +161,15 @@ export default function AnalyticsCard({
                 : 'bg-red-500/15 text-red-600 dark:text-red-400'
             )}
           >
-            {positive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-            {positive ? '+' : ''}
-            {delta}%
+          {numericDelta ? (
+            <>
+              {positive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+              {positive ? '+' : ''}
+              {delta}%
+            </>
+          ) : (
+            <>{delta}</>
+          )}
           </span>
         )}
       </div>

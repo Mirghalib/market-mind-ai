@@ -27,11 +27,22 @@ export default function AuthProvider({ children }) {
   useEffect(() => {
     if (!state.token) return
     if (!state.user) {
-      const { user } = normalizeAuthResponse({ token: state.token })
+      const { user } = normalizeAuthResponse({ access_token: state.token })
       setState((current) => ({ ...current, user }))
     }
     window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(state.user))
   }, [state.token, state.user])
+
+  // A 401 from any API request (e.g. expired token) clears the session.
+  useEffect(() => {
+    const onUnauthorized = () => {
+      removeToken()
+      window.localStorage.removeItem(USER_STORAGE_KEY)
+      setState({ token: null, user: null })
+    }
+    window.addEventListener('auth:unauthorized', onUnauthorized)
+    return () => window.removeEventListener('auth:unauthorized', onUnauthorized)
+  }, [])
 
   const login = useCallback(async (credentials) => {
     const { data } = await authService.login(credentials)
@@ -44,7 +55,16 @@ export default function AuthProvider({ children }) {
 
   const register = useCallback(async (formData) => {
     const { data } = await authService.register(formData)
-    const { token, user } = normalizeAuthResponse(data)
+    // Registration returns the public profile (no token). Log the new
+    // user in by calling the login endpoint with the same credentials.
+    const { data: loginData } = await authService.login({
+      email: formData.email,
+      password: formData.password,
+    })
+    const { token, user } = normalizeAuthResponse({
+      ...loginData,
+      user: data,
+    })
     if (!token) throw new Error('No token received from server')
     setToken(token)
     setState({ token, user })
@@ -55,11 +75,23 @@ export default function AuthProvider({ children }) {
     try {
       await authService.logout()
     } catch {
-      // Clear local session regardless of server result.
+      // The backend is stateless JWT auth — the endpoint may not exist;
+      // always clear the local session.
     }
     removeToken()
     window.localStorage.removeItem(USER_STORAGE_KEY)
     setState({ token: null, user: null })
+  }, [])
+
+  const updateUser = useCallback((patch) => {
+    setState((current) => {
+      const next = {
+        ...current,
+        user: current.user ? { ...current.user, ...patch } : current.user,
+      }
+      window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(next.user))
+      return next
+    })
   }, [])
 
   const value = useMemo(
@@ -71,8 +103,9 @@ export default function AuthProvider({ children }) {
       login,
       register,
       logout,
+      updateUser,
     }),
-    [state, login, register, logout]
+    [state, login, register, logout, updateUser]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

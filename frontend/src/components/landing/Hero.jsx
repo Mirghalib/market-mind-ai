@@ -159,7 +159,9 @@ export default function Hero() {
               />
             </Button>
             <Button
-              onClick={() => console.log('Watch demo clicked')}
+              onClick={() => {
+                // Demo video opens in a future release.
+              }}
               variant="outline"
               size="lg"
             >

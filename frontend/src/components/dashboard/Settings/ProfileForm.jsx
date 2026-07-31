@@ -37,12 +37,13 @@ function validateImage(file) {
 }
 
 /**
- * Profile form with avatar upload. Supports drag-and-drop or file
- * selection, previews the image, validates type/size, submits the
- * avatar as multipart/form-data, and shows upload progress.
+ * Profile form with avatar upload. The backend stores the image under
+ * uploads/profile_images/ and returns its public URL in the profile
+ * response; the whole update (name + optional image) is one multipart
+ * PUT to /dashboard/profile.
  */
 export default function ProfileForm() {
-  const { user } = useAuth()
+  const { user, updateUser } = useAuth()
   const [values, setValues] = useState({
     name: user?.name ?? '',
     email: user?.email ?? '',
@@ -50,13 +51,12 @@ export default function ProfileForm() {
     role: '',
   })
 
-  const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl ?? user?.avatar ?? '')
+  const [avatarUrl, setAvatarUrl] = useState(user?.profileImage ?? user?.avatar ?? '')
   const [selectedFile, setSelectedFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
   const [fileError, setFileError] = useState('')
   const [dragging, setDragging] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [status, setStatus] = useState(null) // { type: 'success' | 'error', message }
   const inputRef = useRef(null)
@@ -108,38 +108,28 @@ export default function ProfileForm() {
   const handleSubmit = async (event) => {
     event.preventDefault()
     setStatus(null)
+    setProgress(0)
+
+    const payload = { full_name: values.name }
+    if (selectedFile) payload.profile_image = selectedFile
 
     try {
       setSaving(true)
-      await profileService.updateProfile(values)
+      const { data } = await profileService.updateProfile(payload, setProgress)
+      const profileImage = data?.profile_image ?? data?.profileImage ?? avatarUrl
+      setAvatarUrl(profileImage)
+      updateUser?.({ name: data?.full_name ?? values.name, profileImage })
+      setSelectedFile(null)
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
+      setPreviewUrl(null)
       setStatus({ type: 'success', message: 'Profile updated successfully.' })
     } catch (err) {
       setStatus({
         type: 'error',
-        message: err.response?.data?.message || err.message || 'Could not save profile.',
+        message: err.response?.data?.detail || err.response?.data?.message || err.message || 'Could not save profile.',
       })
     } finally {
       setSaving(false)
-    }
-
-    if (!selectedFile) return
-
-    try {
-      setUploading(true)
-      setProgress(0)
-      const { data } = await profileService.uploadAvatar(selectedFile, setProgress)
-      setSelectedFile(null)
-      if (previewUrl) URL.revokeObjectURL(previewUrl)
-      setPreviewUrl(null)
-      setAvatarUrl(data?.avatarUrl ?? data?.avatar ?? previewUrl ?? '')
-      setStatus({ type: 'success', message: 'Profile image uploaded successfully.' })
-    } catch (err) {
-      setStatus({
-        type: 'error',
-        message: err.response?.data?.message || err.message || 'Could not upload image.',
-      })
-    } finally {
-      setUploading(false)
     }
   }
 
@@ -266,7 +256,7 @@ export default function ProfileForm() {
           )}
 
           {/* Upload progress */}
-          {uploading && (
+          {saving && selectedFile && (
             <div className="mt-4">
               <div className="flex items-center justify-between text-xs text-muted-foreground dark:text-zinc-400">
                 <span className="flex items-center gap-1.5">
@@ -304,6 +294,7 @@ export default function ProfileForm() {
           placeholder="jane@company.com"
           value={values.email}
           onChange={handleChange}
+          disabled
         />
         <Input
           id="profile-company"
@@ -330,11 +321,11 @@ export default function ProfileForm() {
       </div>
 
       <div className="mt-6">
-        <Button type="submit" disabled={saving || uploading}>
-          {saving || uploading ? (
+        <Button type="submit" disabled={saving}>
+          {saving ? (
             <>
               <Loader2 size={16} className="animate-spin" />
-              {uploading ? 'Uploading…' : 'Saving…'}
+              {selectedFile ? 'Uploading…' : 'Saving…'}
             </>
           ) : (
             <>

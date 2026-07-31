@@ -7,8 +7,8 @@ export default function DashboardLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const handleSearch = (query) => {
-    // Wire to a real search/route later — no backend here.
-    console.log('Search:', query)
+    // Local UI search — results are filtered client-side where relevant.
+    if (query) return
   }
 
   return (

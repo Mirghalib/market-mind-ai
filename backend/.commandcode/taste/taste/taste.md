@@ -51,9 +51,15 @@
 - For file-upload features, expects multipart/form-data endpoints with strict validation: allowed extension + MIME type check (400 on unsupported), an explicit size cap (413 on oversized), UUID-based unique filenames, only the relative path persisted in the DB, and the public URL derived from a configurable base URL at response time. Confidence: 0.7
 - Uploaded files should be served statically (e.g. a `/uploads` static mount) so returned URLs actually resolve, with storage isolated behind a service layer so swapping to object storage later doesn't touch the API. Confidence: 0.6
 
+# --- Dependency management learnings ---
+- Expects dependency audits to be evidence-based and conservative: scan actual imports across the codebase, compare them against requirements.txt, add missing packages, and remove unused ones only after verifying real usage (checking the codebase for actual references) — never prune speculatively. Confidence: 0.8
+- Wants every dependency added or modified explained, and its compatibility verified against the project's declared stack (framework versions such as FastAPI, SQLAlchemy 2.x, Alembic, asyncpg, Pydantic, python-dotenv and the target Python version) before committing the change. Confidence: 0.75
+
 # --- Debugging session learnings ---
 - Wants evidence-based debugging rather than guessing: reproduce the failure first, inspect the actual project state (including library internals when needed) to confirm the root cause, then fix — explicitly instructed "Do NOT guess. Inspect the entire backend project. Perform a complete debugging session." Confidence: 0.9
 - When debugging, expects a structured fix report per issue: file name, line number, root cause, corrected code, and explanation. Confidence: 0.9
 - Expects autonomous, iterative debugging: if fixing one error reveals another, continue fixing automatically until the application starts successfully without exceptions. Confidence: 0.85
 - For dependency compatibility problems (e.g., a library incompatible with the current Python version), prefers upgrading to a compatible version over downgrading — explains why the dependency is incompatible, suggests the minimum required version, and only downgrades as a last resort. Confidence: 0.9
+
+roblems (e.g., a library incompatible with the current Python version), prefers upgrading to a compatible version over downgrading — explains why the dependency is incompatible, suggests the minimum required version, and only downgrades as a last resort. Confidence: 0.9
 

@@ -34,6 +34,7 @@ from app.services.ai.exceptions import (
     ProviderError,
     ValidationError,
 )
+from app.services.ai.normalizer import normalize_llm_output
 from app.services.ai.parsers.response_parser import ResponseParser
 from app.services.ai.prompt_builder import MarketingBrief, PromptBuilder
 from app.services.ai.providers.base import LLMProvider
@@ -95,6 +96,9 @@ class AIService:
                 f"LLM response parsed to {type(parsed).__name__}, expected an object.",
                 raw_response=raw_response,
             )
+
+        # --- 3b. Repair common LLM drift (extra keys, enum casing) -------------
+        parsed = normalize_llm_output(parsed)
 
         # --- 4. Validate -------------------------------------------------------
         try:
