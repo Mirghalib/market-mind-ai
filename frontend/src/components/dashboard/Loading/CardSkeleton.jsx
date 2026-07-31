@@ -9,8 +9,7 @@ export default function CardSkeleton({ className }) {
   return (
     <div
       aria-label="Loading card"
-      className={cn(
-        'rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur',
+      className={cn('rounded-2xl border border-border bg-card p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur' ,
         className
       )}
     >

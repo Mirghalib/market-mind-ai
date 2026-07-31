@@ -151,15 +151,15 @@ export default function ProfileForm() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur"
+      className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur"
     >
       <div className="flex items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">
           <User size={19} strokeWidth={1.75} />
         </span>
         <div>
-          <h2 className="text-base font-semibold text-zinc-900 dark:text-white">Profile</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Update your personal information.</p>
+          <h2 className="text-base font-semibold text-foreground dark:text-white">Profile</h2>
+          <p className="text-sm text-muted-foreground dark:text-zinc-400">Update your personal information.</p>
         </div>
       </div>
 
@@ -182,7 +182,7 @@ export default function ProfileForm() {
       <div className="mt-6 flex flex-col items-center gap-6 sm:flex-row sm:items-start">
         {/* Circular preview */}
         <div className="relative shrink-0">
-          <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border-4 border-zinc-200 bg-zinc-100 dark:border-white/10 dark:bg-zinc-800">
+          <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border-4 border-border bg-muted dark:border-white/10 dark:bg-zinc-800">
             {showImage ? (
               <img
                 src={showImage}
@@ -190,7 +190,7 @@ export default function ProfileForm() {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <span className="text-3xl font-semibold text-zinc-500 dark:text-zinc-400">
+              <span className="text-3xl font-semibold text-muted-foreground dark:text-zinc-400">
                 {getInitials(values.name)}
               </span>
             )}
@@ -221,18 +221,18 @@ export default function ProfileForm() {
               'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-6 text-center transition-colors',
               dragging
                 ? 'border-indigo-500 bg-indigo-500/[0.06]'
-                : 'border-zinc-300 hover:border-indigo-400 dark:border-zinc-700 dark:hover:border-indigo-500'
+                : 'border-border hover:border-indigo-400 dark:border-zinc-700 dark:hover:border-indigo-500'
             )}
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">
               <Upload size={18} strokeWidth={1.75} />
             </span>
             <div>
-              <p className="text-sm font-medium text-zinc-900 dark:text-white">
+              <p className="text-sm font-medium text-foreground dark:text-white">
                 Drag & drop or{' '}
                 <span className="text-indigo-600 dark:text-indigo-400">browse</span>
               </p>
-              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="mt-1 text-xs text-muted-foreground dark:text-zinc-400">
                 JPG, PNG, JPEG or WEBP · max {MAX_SIZE_MB} MB
               </p>
             </div>
@@ -268,14 +268,14 @@ export default function ProfileForm() {
           {/* Upload progress */}
           {uploading && (
             <div className="mt-4">
-              <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
+              <div className="flex items-center justify-between text-xs text-muted-foreground dark:text-zinc-400">
                 <span className="flex items-center gap-1.5">
                   <Loader2 size={13} className="animate-spin" />
                   Uploading…
                 </span>
                 <span className="font-medium">{progress}%</span>
               </div>
-              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-white/5">
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted dark:bg-white/5">
                 <motion.div
                   animate={{ width: `${progress}%` }}
                   transition={{ ease: 'easeOut' }}
@@ -287,7 +287,7 @@ export default function ProfileForm() {
         </div>
       </div>
 
-      <div className="mt-8 grid gap-5 border-t border-zinc-100 pt-6 sm:grid-cols-2 dark:border-white/5">
+      <div className="mt-8 grid gap-5 border-t border-border pt-6 sm:grid-cols-2 dark:border-white/5">
         <Input
           id="profile-name"
           name="name"

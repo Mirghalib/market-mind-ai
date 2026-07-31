@@ -102,7 +102,7 @@ function StepCard({ step, index, isLast }) {
           )}
         >
           <Icon size={22} strokeWidth={1.75} className="lg:size-6" />
-          <span className="absolute -top-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-zinc-900 text-xs font-semibold text-white shadow-md">
+          <span className="absolute -top-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900 text-xs font-semibold text-white shadow-md">
             {index + 1}
           </span>
         </motion.div>
@@ -110,7 +110,7 @@ function StepCard({ step, index, isLast }) {
 
       <motion.article
         variants={cardVariants}
-        className="group relative flex-1 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-lg shadow-black/20 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 hover:border-white/20 hover:shadow-xl lg:mt-8 hover:shadow-indigo-500/10"
+        className="group relative flex-1 overflow-hidden rounded-2xl border border-zinc-800 bg-white/[0.03] p-6 shadow-lg shadow-black/20 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 hover:border-white/20 hover:shadow-xl lg:mt-8 hover:shadow-indigo-500/10"
       >
         <div
           aria-hidden

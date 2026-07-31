@@ -52,7 +52,7 @@ export default function Settings({ className }) {
       {/* Section nav */}
       <nav
         aria-label="Settings sections"
-        className="top-24 self-start rounded-2xl border border-zinc-200 bg-white p-2 shadow-sm lg:sticky dark:border-white/10 dark:bg-white/[0.03] dark:shadow-none"
+        className="top-24 self-start rounded-2xl border border-border bg-card p-2 shadow-sm lg:sticky dark:border-white/10 dark:bg-white/[0.03] dark:shadow-none"
       >
         {SECTIONS.map(({ id, label, icon: Icon }) => (
           <button
@@ -64,7 +64,7 @@ export default function Settings({ className }) {
               'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
               activeSection === id
                 ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300'
-                : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white'
             )}
           >
             <Icon size={16} strokeWidth={1.75} />

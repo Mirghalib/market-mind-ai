@@ -61,12 +61,12 @@ export default function Dashboard() {
       )}
 
       {/* Insight preview */}
-      <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur">
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur">
         <div className="flex items-center gap-2">
           <Sparkles size={16} className="text-indigo-500 dark:text-indigo-400" />
-          <h2 className="text-base font-semibold text-zinc-900 dark:text-white">Weekly insight</h2>
+          <h2 className="text-base font-semibold text-foreground dark:text-white">Weekly insight</h2>
         </div>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground dark:text-zinc-400">
           Your engagement is trending up 9% this month. Consider doubling down
           on email campaigns — they convert 2.4x better than social for your
           industry.

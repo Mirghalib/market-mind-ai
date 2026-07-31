@@ -10,13 +10,12 @@ export default function HistorySkeleton({ rows = 5, className }) {
   return (
     <div
       aria-label="Loading history"
-      className={cn(
-        'overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur',
+      className={cn('overflow-hidden rounded-2xl border border-border bg-card shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur' ,
         className
       )}
     >
       {/* Toolbar */}
-      <div className="flex flex-col gap-3 border-b border-zinc-100 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-white/5">
+      <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between dark:border-white/5">
         <Skeleton className="h-10 w-full max-w-xs rounded-lg" />
         <div className="flex gap-2">
           <Skeleton className="h-7 w-14 rounded-lg" />
@@ -29,10 +28,10 @@ export default function HistorySkeleton({ rows = 5, className }) {
       <div className="overflow-x-auto">
         <table className="w-full min-w-[680px] text-left text-sm">
           <thead>
-            <tr className="border-b border-zinc-100 dark:border-white/5">
+            <tr className="border-b border-border dark:border-white/5">
               {['Title', 'Type', 'Created', 'Status', 'Actions'].map((heading, i) => (
                 <th key={heading} className="px-4 py-4 sm:px-6">
-                  <Skeleton className={cn('h-3', i === 0 ? 'w-16' : i === 4 ? 'ml-auto w-14' : 'w-10')} />
+                  <Skeleton className={cn('h-3' , i === 0 ? 'w-16' : i === 4 ? 'ml-auto w-14' : 'w-10')} />
                 </th>
               ))}
             </tr>
@@ -41,7 +40,7 @@ export default function HistorySkeleton({ rows = 5, className }) {
             {Array.from({ length: rows }).map((_, i) => (
               <tr
                 key={i}
-                className="border-b border-zinc-100 last:border-0 dark:border-white/5"
+                className="border-b border-border last:border-0 dark:border-white/5"
               >
                 <td className="px-4 py-4 sm:px-6">
                   <div className="flex items-center gap-3">
@@ -71,7 +70,7 @@ export default function HistorySkeleton({ rows = 5, className }) {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-3 dark:border-white/5">
+      <div className="flex items-center justify-between border-t border-border px-4 py-3 dark:border-white/5">
         <Skeleton className="h-3 w-40" />
         <div className="flex gap-1">
           <Skeleton className="h-8 w-8 rounded-lg" />

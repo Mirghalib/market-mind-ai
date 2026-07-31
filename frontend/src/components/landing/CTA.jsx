@@ -15,7 +15,7 @@ export default function CTA() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="relative overflow-hidden rounded-3xl border border-white/10 px-6 py-16 text-center shadow-2xl sm:px-12 sm:py-20"
+          className="relative overflow-hidden rounded-3xl border border-zinc-800 px-6 py-16 text-center shadow-2xl sm:px-12 sm:py-20"
         >
           {/* Gradient background */}
           <div
@@ -44,7 +44,7 @@ export default function CTA() {
           />
 
           <div className="relative">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium text-zinc-300 backdrop-blur">
+            <span className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-white/[0.03] px-4 py-1.5 text-xs font-medium text-zinc-400 backdrop-blur">
               <Sparkles size={14} className="text-indigo-400" />
               Start growing today
             </span>
@@ -77,7 +77,7 @@ export default function CTA() {
                 to="/login"
                 variant="outline"
                 size="lg"
-                className="w-full border-white/15 sm:w-auto"
+                className="w-full border-zinc-800 sm:w-auto"
               >
                 Login
               </Button>

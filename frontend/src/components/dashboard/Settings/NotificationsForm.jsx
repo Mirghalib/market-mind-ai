@@ -8,8 +8,8 @@ function Toggle({ id, label, description, checked, onChange }) {
   return (
     <label htmlFor={id} className="flex cursor-pointer items-start justify-between gap-4">
       <div>
-        <span className="block text-sm font-medium text-zinc-900 dark:text-white">{label}</span>
-        {description && <span className="mt-0.5 block text-sm text-zinc-500 dark:text-zinc-400">{description}</span>}
+        <span className="block text-sm font-medium text-foreground dark:text-white">{label}</span>
+        {description && <span className="mt-0.5 block text-sm text-muted-foreground dark:text-zinc-400">{description}</span>}
       </div>
       <input
         id={id}
@@ -20,14 +20,12 @@ function Toggle({ id, label, description, checked, onChange }) {
       />
       <span
         aria-hidden
-        className={cn(
-          'relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200',
-          checked ? 'bg-indigo-500' : 'bg-zinc-300 dark:bg-zinc-700'
+        className={cn('relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200' ,
+          checked ? 'bg-indigo-500' : 'bg-border dark:bg-zinc-700'
         )}
       >
         <span
-          className={cn(
-            'absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200',
+          className={cn('absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-card shadow transition-transform duration-200' ,
             checked && 'translate-x-5'
           )}
         />
@@ -65,21 +63,21 @@ export default function NotificationsForm() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur"
+      className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur"
     >
       <div className="flex items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400">
           <Bell size={19} strokeWidth={1.75} />
         </span>
         <div>
-          <h2 className="text-base font-semibold text-zinc-900 dark:text-white">Notifications</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <h2 className="text-base font-semibold text-foreground dark:text-white">Notifications</h2>
+          <p className="text-sm text-muted-foreground dark:text-zinc-400">
             Choose what you want to hear about.
           </p>
         </div>
       </div>
 
-      <div className="mt-6 divide-y divide-zinc-100 dark:divide-white/5">
+      <div className="mt-6 divide-y divide-border dark:divide-white/5">
         <div className="py-4 first:pt-0">
           <Toggle
             id="notif-email-digest"

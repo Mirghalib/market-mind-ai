@@ -7,7 +7,7 @@ export default function Select({ label, error, className, id, children, ...props
       {label && (
         <label
           htmlFor={id}
-          className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+          className="mb-1.5 block text-sm font-medium text-foreground dark:text-zinc-300"
         >
           {label}
         </label>
@@ -17,7 +17,7 @@ export default function Select({ label, error, className, id, children, ...props
           id={id}
           className={cn(
             'h-11 w-full cursor-pointer appearance-none rounded-lg border',
-            'border-zinc-300 bg-white px-3.5 pr-10 text-sm text-zinc-900',
+            'border-border bg-card px-3.5 pr-10 text-sm text-foreground',
             'shadow-sm transition-all duration-200',
             'hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900',
             'dark:text-zinc-100 dark:hover:border-zinc-600',
@@ -34,7 +34,7 @@ export default function Select({ label, error, className, id, children, ...props
         </select>
         <ChevronDown
           size={16}
-          className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500"
+          className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground dark:text-zinc-500"
         />
       </div>
       {error && <p className="mt-1.5 text-sm text-red-500 dark:text-red-400">{error}</p>}

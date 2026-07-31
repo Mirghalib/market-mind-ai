@@ -31,7 +31,7 @@ export default function Register() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-950 px-4 text-zinc-100">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -45,14 +45,14 @@ export default function Register() {
           <h1 className="text-2xl font-semibold text-white">
             Create your {APP_NAME} account
           </h1>
-          <p className="mt-2 text-sm text-zinc-400">
+          <p className="mt-2 text-sm text-muted-foreground">
             Start exploring the market in minutes
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-8"
+          className="space-y-5 rounded-2xl border border-border bg-muted/50 p-8"
         >
           {error && (
             <div
@@ -105,7 +105,7 @@ export default function Register() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-zinc-400">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{' '}
           <Link
             to="/login"

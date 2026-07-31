@@ -154,7 +154,7 @@ export default function Features() {
               <motion.article
                 key={title}
                 variants={cardVariants}
-                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-lg shadow-black/20 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 hover:border-white/20 hover:shadow-xl hover:shadow-indigo-500/10"
+                className="group relative overflow-hidden rounded-2xl border border-zinc-800 bg-white/[0.03] p-6 shadow-lg shadow-black/20 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 hover:border-white/20 hover:shadow-xl hover:shadow-indigo-500/10"
               >
                 {/* Hover glow */}
                 <div

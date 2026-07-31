@@ -63,7 +63,7 @@ export default function Footer() {
               </span>
             </Link>
 
-            <p className="mt-5 max-w-sm text-sm leading-relaxed text-zinc-500">
+            <p className="mt-5 max-w-sm text-sm leading-relaxed text-zinc-400">
               AI-powered marketing intelligence that turns your goals into
               ready-to-publish strategies — market analysis, personas, content,
               and campaigns in seconds.
@@ -75,7 +75,7 @@ export default function Footer() {
                   key={label}
                   href="#"
                   aria-label={label}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-zinc-400 transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-400/40 hover:bg-indigo-500/10 hover:text-indigo-300"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 bg-white/[0.03] text-zinc-400 transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-400/40 hover:bg-indigo-500/10 hover:text-indigo-300"
                 >
                   <Icon size={18} />
                 </a>
@@ -92,7 +92,7 @@ export default function Footer() {
                   <li key={link.label}>
                     <a
                       href={link.href}
-                      className="text-sm text-zinc-500 transition-colors duration-200 hover:text-white"
+                      className="text-sm text-zinc-400 transition-colors duration-200 hover:text-white"
                     >
                       {link.label}
                     </a>
@@ -105,10 +105,10 @@ export default function Footer() {
 
         {/* Copyright bar */}
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-zinc-800/80 pt-8 sm:flex-row">
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-zinc-400">
             &copy; {new Date().getFullYear()} {APP_NAME}. All rights reserved.
           </p>
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-zinc-400">
             Built for the hackathon
           </p>
         </div>

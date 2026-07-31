@@ -43,16 +43,14 @@ export default function StatsCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: 'easeOut' }}
       whileHover={{ y: -3 }}
-      className={cn(
-        'rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition-colors duration-300 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur',
+      className={cn('rounded-2xl border border-border bg-card p-5 shadow-sm transition-colors duration-300 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur' ,
         styles.hover,
         className
       )}
     >
       <div className="flex items-center justify-between">
         <span
-          className={cn(
-            'flex h-10 w-10 items-center justify-center rounded-xl',
+          className={cn('flex h-10 w-10 items-center justify-center rounded-xl' ,
             styles.icon
           )}
         >
@@ -60,8 +58,7 @@ export default function StatsCard({
         </span>
         {delta !== undefined && (
           <span
-            className={cn(
-              'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold',
+            className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold' ,
               positive
                 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
                 : 'bg-red-500/15 text-red-600 dark:text-red-400'
@@ -74,9 +71,9 @@ export default function StatsCard({
         )}
       </div>
 
-      <p className="mt-4 text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">{value}</p>
-      <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">{label}</p>
-      {hint && <p className="mt-2 text-xs text-zinc-400 dark:text-zinc-600">{hint}</p>}
+      <p className="mt-4 text-2xl font-bold tracking-tight text-foreground dark:text-white">{value}</p>
+      <p className="mt-0.5 text-sm text-muted-foreground dark:text-zinc-400">{label}</p>
+      {hint && <p className="mt-2 text-xs text-muted-foreground dark:text-zinc-600">{hint}</p>}
     </motion.div>
   )
 }

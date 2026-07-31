@@ -9,13 +9,12 @@ export default function FullPage({ label = 'Loading…', className }) {
     <div
       role="status"
       aria-live="polite"
-      className={cn(
-        'flex min-h-screen flex-col items-center justify-center gap-4 bg-zinc-950',
+      className={cn('flex min-h-screen flex-col items-center justify-center gap-4 bg-background' ,
         className
       )}
     >
       <Loader size="lg" />
-      <p className="text-sm text-zinc-500">{label}</p>
+      <p className="text-sm text-muted-foreground">{label}</p>
     </div>
   )
 }

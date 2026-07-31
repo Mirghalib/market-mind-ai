@@ -44,7 +44,7 @@ export default function WelcomeCard({
       transition={{ duration: 0.5, ease: 'easeOut' }}
       className={cn(
         'relative overflow-hidden rounded-2xl border px-6 py-8 sm:px-8',
-        'border-zinc-200 bg-white shadow-sm dark:border-white/10 dark:bg-zinc-900/50 dark:shadow-none',
+        'border-border bg-card shadow-sm dark:border-white/10 dark:bg-zinc-900/50 dark:shadow-none',
         className
       )}
     >
@@ -71,17 +71,17 @@ export default function WelcomeCard({
       <div className="relative">
         {/* Greeting + badge */}
         <div className="flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-medium text-zinc-600 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground dark:border-white/10 dark:bg-white/5 dark:text-zinc-300">
             <Sparkles size={12} className="text-indigo-500 dark:text-indigo-400" />
             AI-Powered Insights
           </span>
         </div>
 
-        <h2 className="mt-4 text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl dark:text-white">
+        <h2 className="mt-4 text-2xl font-bold tracking-tight text-foreground sm:text-3xl dark:text-white">
           {greeting}, <span className="text-indigo-600 dark:text-indigo-400">{name}</span> 👋
         </h2>
 
-        <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+        <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground dark:text-zinc-400">
           {message ?? getMotivationalMessage(name)}
         </p>
 

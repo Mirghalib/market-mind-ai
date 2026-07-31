@@ -46,14 +46,13 @@ export default function Sidebar({ mobileOpen, onOpenChange }) {
       {/* Desktop sidebar */}
       <aside
         aria-label="Dashboard navigation"
-        className={cn(
-          'sticky top-0 hidden h-screen shrink-0 flex-col border-r transition-colors lg:flex',
-          'border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900'
+        className={cn('sticky top-0 hidden h-screen shrink-0 flex-col border-r transition-colors lg:flex' ,
+          'border-border bg-card dark:border-zinc-800 dark:bg-zinc-900'
         )}
         style={{ width: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH }}
       >
         {/* Brand header */}
-        <div className="flex h-16 shrink-0 items-center border-b border-zinc-200 px-4 transition-colors dark:border-zinc-800">
+        <div className="flex h-16 shrink-0 items-center border-b border-border px-4 transition-colors dark:border-zinc-800">
           {collapsed ? (
             <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/25">
               <Sparkles size={17} className="text-white" />
@@ -63,7 +62,7 @@ export default function Sidebar({ mobileOpen, onOpenChange }) {
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/25">
                 <Sparkles size={17} className="text-white" />
               </span>
-              <span className="truncate text-sm font-semibold tracking-tight text-zinc-900 dark:text-white">
+              <span className="truncate text-sm font-semibold tracking-tight text-foreground dark:text-white">
                 {APP_NAME}
               </span>
             </div>
@@ -72,8 +71,7 @@ export default function Sidebar({ mobileOpen, onOpenChange }) {
 
         {/* Collapse toggle */}
         <div
-          className={cn(
-            'flex shrink-0 items-center border-b border-zinc-200 transition-colors dark:border-zinc-800',
+          className={cn('flex shrink-0 items-center border-b border-border transition-colors dark:border-zinc-800' ,
             collapsed ? 'justify-center py-2' : 'justify-end px-3 py-2'
           )}
         >
@@ -82,7 +80,7 @@ export default function Sidebar({ mobileOpen, onOpenChange }) {
             onClick={() => setCollapsed((v) => !v)}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
           >
             <motion.span
               animate={{ rotate: collapsed ? 180 : 0 }}
@@ -104,12 +102,11 @@ export default function Sidebar({ mobileOpen, onOpenChange }) {
                 to={link.href}
                 title={collapsed ? link.label : undefined}
                 className={({ isActive }) =>
-                  cn(
-                    'group relative flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition-colors',
+                  cn('group relative flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition-colors' ,
                     collapsed ? 'justify-center px-0' : 'px-3',
                     isActive
                       ? 'text-indigo-600 dark:text-indigo-300'
-                      : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white'
+                      : 'text-muted-foreground hover:text-foreground dark:text-zinc-400 dark:hover:text-white'
                   )
                 }
               >
@@ -123,8 +120,7 @@ export default function Sidebar({ mobileOpen, onOpenChange }) {
                       />
                     )}
                     <span
-                      className={cn(
-                        'relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors',
+                      className={cn('relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors' ,
                         !isActive &&
                           'group-hover:bg-zinc-100 group-hover:text-zinc-900 dark:group-hover:bg-zinc-800 dark:group-hover:text-white'
                       )}
@@ -142,13 +138,12 @@ export default function Sidebar({ mobileOpen, onOpenChange }) {
         </nav>
 
         {/* Footer */}
-        <div className="shrink-0 border-t border-zinc-200 p-3 transition-colors dark:border-zinc-800">
+        <div className="shrink-0 border-t border-border p-3 transition-colors dark:border-zinc-800">
           <button
             type="button"
             onClick={handleLogout}
             title={collapsed ? 'Log out' : undefined}
-            className={cn(
-              'group flex w-full items-center gap-3 rounded-xl py-2.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+            className={cn('group flex w-full items-center gap-3 rounded-xl py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white' ,
               collapsed ? 'justify-center px-0' : 'px-3'
             )}
           >
@@ -178,14 +173,14 @@ export default function Sidebar({ mobileOpen, onOpenChange }) {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', stiffness: 300, damping: 32 }}
-              className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col border-r border-zinc-200 bg-white shadow-2xl transition-colors dark:border-zinc-800 dark:bg-zinc-900"
+              className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col border-r border-border bg-card shadow-2xl transition-colors dark:border-zinc-800 dark:bg-zinc-900"
             >
-              <div className="flex h-16 shrink-0 items-center justify-between border-b border-zinc-200 px-4 transition-colors dark:border-zinc-800">
+              <div className="flex h-16 shrink-0 items-center justify-between border-b border-border px-4 transition-colors dark:border-zinc-800">
                 <div className="flex items-center gap-2.5">
                   <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/25">
                     <Sparkles size={17} className="text-white" />
                   </span>
-                  <span className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-white">
+                  <span className="text-sm font-semibold tracking-tight text-foreground dark:text-white">
                     {APP_NAME}
                   </span>
                 </div>
@@ -193,7 +188,7 @@ export default function Sidebar({ mobileOpen, onOpenChange }) {
                   type="button"
                   onClick={closeMobile}
                   aria-label="Close navigation"
-                  className="flex h-10 w-10 items-center justify-center rounded-lg text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 >
                   <X size={20} />
                 </button>
@@ -208,11 +203,10 @@ export default function Sidebar({ mobileOpen, onOpenChange }) {
                       to={link.href}
                       onClick={closeMobile}
                       className={({ isActive }) =>
-                        cn(
-                          'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
+                        cn('group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors' ,
                           isActive
                             ? 'bg-indigo-500/10 text-indigo-600 ring-1 ring-indigo-500/20 dark:text-indigo-300 dark:ring-indigo-400/20'
-                            : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white'
                         )
                       }
                     >
@@ -225,11 +219,11 @@ export default function Sidebar({ mobileOpen, onOpenChange }) {
                 })}
               </nav>
 
-              <div className="shrink-0 border-t border-zinc-200 p-3 transition-colors dark:border-zinc-800">
+              <div className="shrink-0 border-t border-border p-3 transition-colors dark:border-zinc-800">
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
                 >
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg">
                     <LogOut size={18} strokeWidth={1.75} />

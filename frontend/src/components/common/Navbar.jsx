@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
 import { APP_NAME, NAV_LINKS } from '@/constants'
 import Button from '@/components/ui/Button'
+import ThemeSwitcher from '@/components/common/ThemeSwitcher'
 import { cn } from '@/utils/cn'
 
 export default function Navbar({ transparent = true }) {
@@ -105,6 +106,7 @@ export default function Navbar({ transparent = true }) {
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
+          <ThemeSwitcher />
           <Button to="/login" variant="ghost" size="sm">
             Login
           </Button>
@@ -118,7 +120,7 @@ export default function Navbar({ transparent = true }) {
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
           aria-expanded={open}
-          className="flex h-10 w-10 items-center justify-center rounded-lg text-zinc-300 transition-colors hover:bg-white/5 hover:text-white md:hidden"
+          className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-white/5 hover:text-white md:hidden"
         >
           <motion.div
             animate={{ rotate: open ? 90 : 0 }}
@@ -148,7 +150,7 @@ export default function Navbar({ transparent = true }) {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="overflow-hidden border-t border-zinc-800/60 bg-zinc-950/95 backdrop-blur-md md:hidden"
+            className="overflow-hidden border-t border-zinc-800/60 bg-background/95 backdrop-blur-md md:hidden"
           >
             <div className="space-y-1 px-4 py-4">
               {NAV_LINKS.map((link, i) => (

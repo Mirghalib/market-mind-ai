@@ -38,7 +38,7 @@ export default function Modal({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             onClick={onClose}
-            className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-background/60 backdrop-blur-sm"
           />
 
           <motion.div
@@ -51,13 +51,13 @@ export default function Modal({
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className={cn(
               'relative w-full max-w-lg rounded-2xl border',
-              'border-zinc-200 bg-white p-6 shadow-2xl',
+              'border-border bg-card p-6 shadow-2xl',
               'dark:border-zinc-800 dark:bg-zinc-900',
               className
             )}
           >
             <div className="mb-4 flex items-center justify-between gap-4">
-              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+              <h2 className="text-lg font-semibold text-foreground dark:text-zinc-100">
                 {title}
               </h2>
               {!hideCloseButton && (
@@ -65,7 +65,7 @@ export default function Modal({
                   type="button"
                   onClick={onClose}
                   aria-label="Close dialog"
-                  className="rounded-lg p-1.5 text-zinc-400 transition-colors duration-200 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                  className="rounded-lg p-1.5 text-muted-foreground transition-colors duration-200 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
                 >
                   <X size={18} />
                 </button>

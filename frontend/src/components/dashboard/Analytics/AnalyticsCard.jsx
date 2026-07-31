@@ -87,7 +87,7 @@ function MiniSparkline({ points, color, className }) {
     <svg
       viewBox={`0 0 ${width} ${height}`}
       aria-hidden
-      className={cn('h-9 w-full', className)}
+      className={cn('h-9 w-full' , className)}
     >
       <motion.path
         d={line}
@@ -131,8 +131,7 @@ export default function AnalyticsCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: 'easeOut' }}
       whileHover={{ y: -4 }}
-      className={cn(
-        'group relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition-all duration-300 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur',
+      className={cn('group relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm transition-all duration-300 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur' ,
         styles.hover,
         className
       )}
@@ -140,16 +139,14 @@ export default function AnalyticsCard({
       {/* Hover glow */}
       <div
         aria-hidden
-        className={cn(
-          'pointer-events-none absolute -top-16 left-1/2 h-32 w-32 -translate-x-1/2 rounded-full blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100',
+        className={cn('pointer-events-none absolute -top-16 left-1/2 h-32 w-32 -translate-x-1/2 rounded-full blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100' ,
           styles.icon
         )}
       />
 
       <div className="relative flex items-start justify-between gap-3">
         <span
-          className={cn(
-            'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110',
+          className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110' ,
             styles.icon
           )}
         >
@@ -157,8 +154,7 @@ export default function AnalyticsCard({
         </span>
         {delta !== undefined && (
           <span
-            className={cn(
-              'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold',
+            className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold' ,
               positive
                 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
                 : 'bg-red-500/15 text-red-600 dark:text-red-400'
@@ -176,24 +172,24 @@ export default function AnalyticsCard({
           value={value}
           prefix={prefix}
           suffix={suffix}
-          className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white"
+          className="text-2xl font-bold tracking-tight text-foreground dark:text-white"
         />
-        <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">{label}</p>
+        <p className="mt-0.5 text-sm text-muted-foreground dark:text-zinc-400">{label}</p>
       </div>
 
       {/* Progress bar */}
       <div className="relative mt-4">
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-white/5">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted dark:bg-white/5">
           <motion.div
             initial={{ width: 0 }}
             whileInView={{ width: `${Math.min(progress, 100)}%` }}
             viewport={{ once: true }}
             transition={{ duration: 1, delay: 0.3, ease: 'easeOut' }}
-            className={cn('h-full rounded-full bg-gradient-to-r', styles.progress)}
+            className={cn('h-full rounded-full bg-gradient-to-r' , styles.progress)}
           />
         </div>
         {progressLabel && (
-          <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-500">{progressLabel}</p>
+          <p className="mt-1.5 text-xs text-muted-foreground dark:text-zinc-500">{progressLabel}</p>
         )}
       </div>
 

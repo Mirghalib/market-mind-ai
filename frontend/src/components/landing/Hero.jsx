@@ -107,7 +107,7 @@ export default function Hero() {
         {/* ===== Copy column ===== */}
         <div>
           <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0}>
-            <span className="inline-flex items-center gap-2 rounded-full border border-zinc-700/60 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-zinc-300 backdrop-blur">
+            <span className="inline-flex items-center gap-2 rounded-full border border-zinc-700/60 bg-white/[0.03] px-3.5 py-1.5 text-xs font-medium text-zinc-400 backdrop-blur">
               <Sparkles size={14} className="text-indigo-400" />
               AI-powered marketing intelligence
             </span>
@@ -196,7 +196,7 @@ export default function Hero() {
                 ))}
                 <span className="ml-1.5 text-sm font-medium text-white">4.9/5</span>
               </div>
-              <p className="mt-0.5 text-xs text-zinc-500">
+              <p className="mt-0.5 text-xs text-zinc-400">
                 Trusted by 1,200+ marketing teams
               </p>
             </div>
@@ -215,7 +215,7 @@ export default function Hero() {
                 <dd className="text-2xl font-semibold text-white sm:text-3xl">
                   <Counter value={stat.value} suffix={stat.suffix} />
                 </dd>
-                <dt className="mt-1 text-xs text-zinc-500 sm:text-sm">
+                <dt className="mt-1 text-xs text-zinc-400 sm:text-sm">
                   {stat.label}
                 </dt>
               </div>
@@ -234,9 +234,9 @@ export default function Hero() {
           <div className="absolute -inset-8 -z-10 rounded-[2.5rem] bg-gradient-to-tr from-indigo-500/20 via-purple-500/10 to-cyan-500/20 blur-3xl" />
 
           {/* Main glass panel */}
-          <div className="relative rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl backdrop-blur-xl">
+          <div className="relative rounded-3xl border border-zinc-800 bg-white/[0.04] p-6 shadow-2xl backdrop-blur-xl">
             {/* Window chrome */}
-            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
               <div className="flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded-full bg-red-400/80" />
                 <span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
@@ -267,14 +267,14 @@ export default function Hero() {
                 (label, i) => (
                   <div
                     key={label}
-                    className="flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.03] p-3.5"
+                    className="flex items-center gap-4 rounded-xl border border-zinc-800 bg-white/[0.03] p-3.5"
                   >
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-500/15">
                       <BarChart3 size={16} className="text-indigo-400" />
                     </span>
                     <div className="flex-1">
                       <p className="text-sm font-medium text-white">{label}</p>
-                      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+                      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.03]">
                         <motion.div
                           animate={{ width: ['35%', '88%', '55%'] }}
                           transition={{

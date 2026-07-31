@@ -25,10 +25,10 @@ export default function DashboardHeader({
             {eyebrow}
           </p>
         )}
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl dark:text-white">
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl dark:text-white">
           {title}
         </h1>
-        {subtitle && <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400">{subtitle}</p>}
+        {subtitle && <p className="mt-1.5 text-sm text-muted-foreground dark:text-zinc-400">{subtitle}</p>}
       </div>
       {actions && <div className="flex shrink-0 items-center gap-3">{actions}</div>}
     </motion.div>

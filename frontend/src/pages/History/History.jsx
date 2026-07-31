@@ -58,9 +58,9 @@ export default function History() {
             <AlertTriangle size={20} />
           </span>
           <div>
-            <p className="text-sm text-zinc-600 dark:text-zinc-300">
+            <p className="text-sm text-muted-foreground dark:text-zinc-300">
               Are you sure you want to delete{' '}
-              <span className="font-semibold text-zinc-900 dark:text-white">
+              <span className="font-semibold text-foreground dark:text-white">
                 {pendingDelete?.title}
               </span>
               ? This action cannot be undone.

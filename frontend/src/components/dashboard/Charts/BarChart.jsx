@@ -37,7 +37,7 @@ export default function BarChart({
                 <title>{`${d.label}: ${d.value}`}</title>
               </motion.div>
             </div>
-            <span className="w-full truncate text-center text-[10px] text-zinc-500 dark:text-zinc-400">
+            <span className="w-full truncate text-center text-[10px] text-muted-foreground dark:text-zinc-400">
               {d.label}
             </span>
           </div>

@@ -12,7 +12,7 @@ export default function DashboardLayout() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50 text-zinc-900 transition-colors lg:flex-row dark:bg-zinc-950 dark:text-zinc-100">
+    <div className="flex min-h-screen flex-col bg-muted text-foreground transition-colors lg:flex-row dark:bg-zinc-950 dark:text-zinc-100">
       <Sidebar mobileOpen={mobileOpen} onOpenChange={setMobileOpen} />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar onMenuClick={() => setMobileOpen(true)} onSearch={handleSearch} />

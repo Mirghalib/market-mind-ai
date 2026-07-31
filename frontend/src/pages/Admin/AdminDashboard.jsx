@@ -34,7 +34,7 @@ export default function AdminDashboard() {
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">
           <Shield size={18} />
         </span>
-        <p className="text-sm text-zinc-700 dark:text-zinc-300">
+        <p className="text-sm text-foreground dark:text-zinc-300">
           You are signed in with the <span className="font-semibold">Admin</span> role.
           Only admins can view this page.
         </p>

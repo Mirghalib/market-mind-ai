@@ -115,8 +115,7 @@ export default function BusinessForm({ onSubmit, className }) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: 'easeOut' }}
-      className={cn(
-        'rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur',
+      className={cn('rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur' ,
         className
       )}
       noValidate
@@ -126,10 +125,10 @@ export default function BusinessForm({ onSubmit, className }) {
           <Building2 size={19} strokeWidth={1.75} />
         </span>
         <div>
-          <h2 className="text-base font-semibold text-zinc-900 dark:text-white">
+          <h2 className="text-base font-semibold text-foreground dark:text-white">
             Tell us about your business
           </h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="text-sm text-muted-foreground dark:text-zinc-400">
             We use this to tailor your marketing strategy.
           </p>
         </div>
@@ -280,7 +279,7 @@ export default function BusinessForm({ onSubmit, className }) {
           </Button>
         )}
         {status !== 'success' && (
-          <p className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground dark:text-zinc-400">
             <Target size={12} />
             <Users size={12} />
             Your details stay private.
@@ -289,7 +288,7 @@ export default function BusinessForm({ onSubmit, className }) {
       </div>
 
       {/* Field legend */}
-      <div className="mt-6 grid grid-cols-2 gap-2 border-t border-zinc-100 pt-5 sm:grid-cols-3 dark:border-white/5">
+      <div className="mt-6 grid grid-cols-2 gap-2 border-t border-border pt-5 sm:grid-cols-3 dark:border-white/5">
         {[
           { icon: Package, label: 'Product' },
           { icon: Globe, label: 'Country' },
@@ -300,7 +299,7 @@ export default function BusinessForm({ onSubmit, className }) {
         ].map(({ icon: Icon, label }) => (
           <span
             key={label}
-            className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400"
+            className="flex items-center gap-2 text-xs text-muted-foreground dark:text-zinc-400"
           >
             <Icon size={13} className="shrink-0 text-indigo-500 dark:text-indigo-400" />
             {label}

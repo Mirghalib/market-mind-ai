@@ -9,8 +9,7 @@ export function ResultCardSkeletonItem({ className }) {
   return (
     <div
       aria-label="Loading result card"
-      className={cn(
-        'rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur',
+      className={cn('rounded-2xl border border-border bg-card p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur' ,
         className
       )}
     >
@@ -25,7 +24,7 @@ export function ResultCardSkeletonItem({ className }) {
       <Skeleton className="mt-4 h-5 w-40" />
       <Skeleton className="mt-2 h-4 w-full" />
       <Skeleton className="mt-2 h-4 w-2/3" />
-      <div className="mt-4 space-y-2 border-t border-zinc-100 pt-4 dark:border-white/5">
+      <div className="mt-4 space-y-2 border-t border-border pt-4 dark:border-white/5">
         <Skeleton className="h-3.5 w-full" />
         <Skeleton className="h-3.5 w-5/6" />
       </div>
@@ -41,7 +40,7 @@ export default function ResultCardSkeleton({ count = 3, className }) {
   return (
     <div
       aria-label="Loading results"
-      className={cn('grid gap-5 sm:grid-cols-2 xl:grid-cols-3', className)}
+      className={cn('grid gap-5 sm:grid-cols-2 xl:grid-cols-3' , className)}
     >
       {Array.from({ length: count }).map((_, i) => (
         <ResultCardSkeletonItem key={i} />

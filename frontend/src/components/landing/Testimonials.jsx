@@ -89,7 +89,7 @@ export default function Testimonials() {
             <motion.figure
               key={t.name}
               variants={cardVariants}
-              className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-7 shadow-lg shadow-black/20 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 hover:border-white/20 hover:shadow-xl hover:shadow-cyan-500/10"
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-white/[0.03] p-7 shadow-lg shadow-black/20 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 hover:border-white/20 hover:shadow-xl hover:shadow-cyan-500/10"
             >
               {/* Hover glow */}
               <div
@@ -106,11 +106,11 @@ export default function Testimonials() {
 
               <Stars />
 
-              <blockquote className="relative mt-5 flex-1 text-sm leading-relaxed text-zinc-300">
+              <blockquote className="relative mt-5 flex-1 text-sm leading-relaxed text-zinc-400">
                 “{t.quote}”
               </blockquote>
 
-              <figcaption className="relative mt-7 flex items-center gap-4 border-t border-white/5 pt-6">
+              <figcaption className="relative mt-7 flex items-center gap-4 border-t border-zinc-800 pt-6">
                 <span
                   aria-hidden
                   className={cn(
@@ -122,7 +122,7 @@ export default function Testimonials() {
                 </span>
                 <div>
                   <p className="text-sm font-semibold text-white">{t.name}</p>
-                  <p className="mt-0.5 text-xs text-zinc-500">{t.role}</p>
+                  <p className="mt-0.5 text-xs text-zinc-400">{t.role}</p>
                 </div>
               </figcaption>
             </motion.figure>

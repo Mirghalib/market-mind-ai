@@ -103,7 +103,7 @@ function TierCard({ tier, index }) {
           {tier.price}
         </span>
         {tier.period && (
-          <span className="text-sm text-zinc-500">{tier.period}</span>
+          <span className="text-sm text-zinc-400">{tier.period}</span>
         )}
       </div>
 
@@ -122,7 +122,7 @@ function TierCard({ tier, index }) {
             >
               <Check size={12} strokeWidth={3} />
             </span>
-            <span className="text-sm text-zinc-300">{feature}</span>
+            <span className="text-sm text-zinc-400">{feature}</span>
           </li>
         ))}
       </ul>
@@ -178,7 +178,7 @@ export default function Pricing() {
           ))}
         </motion.div>
 
-        <p className="mt-10 text-center text-xs text-zinc-600">
+        <p className="mt-10 text-center text-xs text-zinc-400">
           All plans include secure billing via our partners. No payment is
           required to get started.
         </p>

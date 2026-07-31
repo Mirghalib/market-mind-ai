@@ -135,7 +135,7 @@ export default function ResultCards({ results, className }) {
           <motion.article
             key={card.id}
             variants={cardVariants}
-            className="group relative flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-md dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur dark:hover:border-white/20 dark:hover:shadow-xl"
+            className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-zinc-300 hover:shadow-md dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur dark:hover:border-white/20 dark:hover:shadow-xl"
           >
             {/* Hover glow */}
             <div
@@ -181,11 +181,11 @@ export default function ResultCards({ results, className }) {
             </div>
 
             <div className="px-6">
-              <h3 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-white">
+              <h3 className="text-base font-semibold tracking-tight text-foreground dark:text-white">
                 {card.title}
               </h3>
               {card.description && (
-                <p className="mt-1.5 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground dark:text-zinc-400">
                   {card.description}
                 </p>
               )}
@@ -197,7 +197,7 @@ export default function ResultCards({ results, className }) {
                 {card.items.map((item) => (
                   <li
                     key={item}
-                    className="flex items-start gap-2 text-sm text-zinc-500 dark:text-zinc-400"
+                    className="flex items-start gap-2 text-sm text-muted-foreground dark:text-zinc-400"
                   >
                     <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-indigo-500 dark:bg-indigo-400" />
                     {item}
@@ -216,19 +216,19 @@ export default function ResultCards({ results, className }) {
                   transition={{ duration: 0.3, ease: 'easeInOut' }}
                   className="overflow-hidden"
                 >
-                  <div className="mt-4 space-y-4 border-t border-zinc-100 px-6 pt-4 dark:border-white/5">
+                  <div className="mt-4 space-y-4 border-t border-border px-6 pt-4 dark:border-white/5">
                     {card.content.map((section) => (
                       <div key={section.heading}>
-                        <p className="text-xs font-semibold tracking-wide text-zinc-700 uppercase dark:text-zinc-300">
+                        <p className="text-xs font-semibold tracking-wide text-foreground uppercase dark:text-zinc-300">
                           {section.heading}
                         </p>
                         <ul className="mt-2 space-y-1.5">
                           {section.points.map((point) => (
                             <li
                               key={point}
-                              className="flex items-start gap-2 text-sm text-zinc-500 dark:text-zinc-400"
+                              className="flex items-start gap-2 text-sm text-muted-foreground dark:text-zinc-400"
                             >
-                              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-600" />
+                              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-muted dark:bg-zinc-600" />
                               {point}
                             </li>
                           ))}
@@ -246,7 +246,7 @@ export default function ResultCards({ results, className }) {
                 type="button"
                 onClick={() => toggleExpand(card.id)}
                 aria-expanded={isExpanded}
-                className="mt-4 flex items-center justify-center gap-1.5 border-t border-zinc-100 py-3 text-sm font-medium text-indigo-600 transition-colors hover:bg-zinc-50 dark:border-white/5 dark:text-indigo-400 dark:hover:bg-white/[0.02]"
+                className="mt-4 flex items-center justify-center gap-1.5 border-t border-border py-3 text-sm font-medium text-indigo-600 transition-colors hover:bg-zinc-50 dark:border-white/5 dark:text-indigo-400 dark:hover:bg-white/[0.02]"
               >
                 {isExpanded ? 'Show less' : 'Show more'}
                 <motion.span
@@ -276,7 +276,7 @@ function ActionButton({ label, onClick, icon, active, activeIcon }) {
         'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
         active
           ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-          : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white'
+          : 'text-muted-foreground hover:bg-muted hover:text-foreground dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white'
       )}
     >
       {active ? activeIcon : icon}

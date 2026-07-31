@@ -7,13 +7,11 @@ import {
   HelpCircle,
   LogOut,
   Menu,
-  Moon,
   Search,
   Settings,
-  Sun,
   User,
 } from 'lucide-react'
-import useTheme from '@/hooks/useTheme'
+import ThemeSwitcher from '@/components/common/ThemeSwitcher'
 import { useAuth } from '@/context/AuthContext'
 import { cn } from '@/utils/cn'
 
@@ -50,7 +48,6 @@ export default function TopBar({
   userRole,
   className,
 }) {
-  const { theme, toggleTheme } = useTheme()
   const { userName: authName, userRole: authRole, logout } = useAuth()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
@@ -94,12 +91,11 @@ export default function TopBar({
   }
 
   const iconButton =
-    'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white'
+    'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white'
 
   return (
     <header
-      className={cn(
-        'sticky top-0 z-40 flex h-16 shrink-0 items-center gap-3 border-b bg-white/80 px-4 backdrop-blur transition-colors sm:px-6 dark:border-zinc-800 dark:bg-zinc-900/80',
+      className={cn('sticky top-0 z-40 flex h-16 shrink-0 items-center gap-3 border-b bg-subtle px-4 backdrop-blur transition-colors sm:px-6 dark:border-zinc-800 dark:bg-zinc-900/80' ,
         className
       )}
     >
@@ -117,7 +113,7 @@ export default function TopBar({
       <div className="relative w-full max-w-md">
         <Search
           size={16}
-          className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-zinc-400 dark:text-zinc-500"
+          className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-muted-foreground dark:text-zinc-500"
         />
         <input
           type="search"
@@ -125,31 +121,13 @@ export default function TopBar({
           onChange={handleSearchChange}
           placeholder="Search strategies, campaigns…"
           aria-label="Search"
-          className="h-10 w-full rounded-xl border border-zinc-200 bg-white pr-4 pl-10 text-sm text-zinc-900 placeholder-zinc-400 shadow-sm transition-all duration-200 hover:border-zinc-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder-zinc-500 dark:hover:border-zinc-600"
+          className="h-10 w-full rounded-xl border border-border bg-card pr-4 pl-10 text-sm text-foreground placeholder-zinc-400 shadow-sm transition-all duration-200 hover:border-zinc-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder-zinc-500 dark:hover:border-zinc-600"
         />
       </div>
 
       <div ref={shellRef} className="ml-auto flex shrink-0 items-center gap-2">
-        {/* Theme toggle */}
-        <button
-          type="button"
-          onClick={toggleTheme}
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          className={cn(iconButton, 'overflow-hidden')}
-        >
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.span
-              key={theme}
-              initial={{ y: 12, opacity: 0, rotate: -40 }}
-              animate={{ y: 0, opacity: 1, rotate: 0 }}
-              exit={{ y: -12, opacity: 0, rotate: 40 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="flex"
-            >
-              {theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
-            </motion.span>
-          </AnimatePresence>
-        </button>
+        {/* Theme switcher */}
+        <ThemeSwitcher />
 
         {/* Notifications */}
         <div className="relative">
@@ -176,10 +154,10 @@ export default function TopBar({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 8, scale: 0.98 }}
                 transition={{ duration: 0.18, ease: 'easeOut' }}
-                className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] origin-top-right overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl shadow-black/10 dark:border-zinc-700 dark:bg-zinc-900 dark:shadow-black/40"
+                className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] origin-top-right overflow-hidden rounded-2xl border border-border bg-card shadow-xl shadow-black/10 dark:border-zinc-700 dark:bg-zinc-900 dark:shadow-black/40"
               >
-                <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-3.5 dark:border-zinc-800">
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-white">
+                <div className="flex items-center justify-between border-b border-border px-5 py-3.5 dark:border-zinc-800">
+                  <p className="text-sm font-semibold text-foreground dark:text-white">
                     Notifications
                   </p>
                   <span className="rounded-full bg-indigo-500/15 px-2 py-0.5 text-xs font-semibold text-indigo-600 dark:text-indigo-300">
@@ -194,13 +172,13 @@ export default function TopBar({
                         onClick={() => setOpenMenu(null)}
                         className="flex w-full flex-col gap-0.5 px-5 py-3.5 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/60"
                       >
-                        <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                        <span className="text-sm font-medium text-foreground dark:text-white">
                           {notification.title}
                         </span>
-                        <span className="text-sm text-zinc-500 dark:text-zinc-400">
+                        <span className="text-sm text-muted-foreground dark:text-zinc-400">
                           {notification.message}
                         </span>
-                        <span className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+                        <span className="mt-0.5 text-xs text-muted-foreground dark:text-zinc-500">
                           {notification.time}
                         </span>
                       </button>
@@ -221,9 +199,7 @@ export default function TopBar({
             }
             aria-label="Account menu"
             aria-expanded={openMenu === 'profile'}
-            className={cn(
-              'flex items-center gap-2.5 rounded-xl p-1.5 pr-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800'
-            )}
+            className={cn('flex items-center gap-2.5 rounded-xl p-1.5 pr-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800' )}
           >
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 text-xs font-semibold text-white">
               {displayName
@@ -234,17 +210,16 @@ export default function TopBar({
                 .toUpperCase()}
             </span>
             <span className="hidden text-left sm:block">
-              <span className="block max-w-32 truncate text-sm font-medium text-zinc-900 dark:text-white">
+              <span className="block max-w-32 truncate text-sm font-medium text-foreground dark:text-white">
                 {displayName}
               </span>
-              <span className="block max-w-32 truncate text-xs capitalize text-zinc-500 dark:text-zinc-400">
+              <span className="block max-w-32 truncate text-xs capitalize text-muted-foreground dark:text-zinc-400">
                 {displayRole}
               </span>
             </span>
             <ChevronDown
               size={15}
-              className={cn(
-                'hidden text-zinc-400 transition-transform duration-200 sm:block dark:text-zinc-500',
+              className={cn('hidden text-muted-foreground transition-transform duration-200 sm:block dark:text-zinc-500' ,
                 openMenu === 'profile' && 'rotate-180'
               )}
             />
@@ -257,13 +232,13 @@ export default function TopBar({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 8, scale: 0.98 }}
                 transition={{ duration: 0.18, ease: 'easeOut' }}
-                className="absolute right-0 mt-2 w-56 origin-top-right overflow-hidden rounded-2xl border border-zinc-200 bg-white py-1.5 shadow-xl shadow-black/10 dark:border-zinc-700 dark:bg-zinc-900 dark:shadow-black/40"
+                className="absolute right-0 mt-2 w-56 origin-top-right overflow-hidden rounded-2xl border border-border bg-card py-1.5 shadow-xl shadow-black/10 dark:border-zinc-700 dark:bg-zinc-900 dark:shadow-black/40"
               >
-                <div className="border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-white">
+                <div className="border-b border-border px-4 py-3 dark:border-zinc-800">
+                  <p className="text-sm font-semibold text-foreground dark:text-white">
                     {displayName}
                   </p>
-                  <p className="text-xs capitalize text-zinc-500 dark:text-zinc-400">
+                  <p className="text-xs capitalize text-muted-foreground dark:text-zinc-400">
                     {displayRole}
                   </p>
                 </div>
@@ -280,14 +255,14 @@ export default function TopBar({
                         setOpenMenu(null)
                         navigate(to)
                       }}
-                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800/60 dark:hover:text-white"
+                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800/60 dark:hover:text-white"
                     >
-                      <Icon size={16} strokeWidth={1.75} className="text-zinc-400 dark:text-zinc-500" />
+                      <Icon size={16} strokeWidth={1.75} className="text-muted-foreground dark:text-zinc-500" />
                       {label}
                     </button>
                   ))}
                 </div>
-                <div className="border-t border-zinc-100 py-1 dark:border-zinc-800">
+                <div className="border-t border-border py-1 dark:border-zinc-800">
                   <button
                     type="button"
                     onClick={handleLogout}
