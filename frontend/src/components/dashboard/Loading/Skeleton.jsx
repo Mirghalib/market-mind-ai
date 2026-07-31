@@ -8,7 +8,7 @@ export default function Skeleton({ className }) {
     <span
       aria-hidden
       className={cn(
-        'block animate-pulse rounded-lg bg-zinc-800/80',
+        'block animate-pulse rounded-lg bg-zinc-200 dark:bg-zinc-800/80',
         className
       )}
     />
