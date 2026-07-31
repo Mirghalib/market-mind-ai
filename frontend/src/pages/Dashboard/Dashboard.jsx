@@ -1,46 +1,12 @@
 import { useState } from 'react'
-import {
-  ClipboardList,
-  Search,
-  Sparkles,
-  Users,
-} from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
 import WelcomeCard from '@/components/dashboard/WelcomeCard'
 import AnalyticsCards from '@/components/dashboard/Analytics/AnalyticsCards'
 import BusinessForm from '@/components/dashboard/BusinessForm'
 import ResultCards from '@/components/dashboard/ResultCards'
+import { RESULT_PRESETS } from '@/components/dashboard/ResultPresets'
 import { AreaChart } from '@/components/dashboard/Charts'
-
-const placeholderResults = [
-  {
-    id: 'personas',
-    title: 'Customer Personas',
-    description:
-      'Two core buyer personas to guide your messaging and channel choices.',
-    icon: Users,
-    tone: 'purple',
-    items: ['SaaS Marketers', 'Growth Founders'],
-  },
-  {
-    id: 'content',
-    title: 'Content Calendar',
-    description:
-      'A 4-week content plan mapped to your goals and audience behavior.',
-    icon: ClipboardList,
-    tone: 'cyan',
-    items: ['3 blog posts', '2 email campaigns', 'Weekly social cadence'],
-  },
-  {
-    id: 'seo',
-    title: 'SEO Opportunities',
-    description:
-      'High-intent keywords your competitors rank for but you do not.',
-    icon: Search,
-    tone: 'emerald',
-    items: ['12 keyword gaps found', '5 quick-win topics'],
-  },
-]
 
 const chartData = [
   { label: 'W1', value: 28 },
@@ -79,21 +45,20 @@ export default function Dashboard() {
       {/* Analytics cards */}
       <AnalyticsCards className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4" />
 
-      <div className="grid gap-6 lg:grid-cols-5">
-        {/* Strategy generator */}
-        <div className="lg:col-span-3">
-          <BusinessForm onSubmit={handleSubmit} />
-        </div>
+      {/* Strategy generator */}
+      <BusinessForm onSubmit={handleSubmit} />
 
-        {/* Generated results */}
-        <div className="lg:col-span-2">
-          <ResultCards
-            results={generated ? placeholderResults : []}
-            onCopy={() => undefined}
-            onRegenerate={() => undefined}
+      {/* Generated results */}
+      {generated && (
+        <div className="space-y-4">
+          <DashboardHeader
+            eyebrow="Your strategy"
+            title="Generated results"
+            subtitle="Copy, download, or share each section of your strategy."
           />
+          <ResultCards results={RESULT_PRESETS} />
         </div>
-      </div>
+      )}
 
       {/* Insight preview */}
       <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur">
