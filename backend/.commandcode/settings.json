@@ -14,7 +14,13 @@
       "Shell(python -c \"import app.services.ai as ai; print('exports:', ', '.join(ai.__all__)); from app.core.config import settings; from app.services.ai.providers.factory import get_llm_provider; from app.services.ai.exceptions import ProviderError; import os; os.environ.pop('OPENAI_API_KEY', None); os.environ.pop('ANTHROPIC_API_KEY', None); settings.AI_PROVIDER='openai'; try: get_llm_provider(settings); print('ERROR: expected ProviderError') except ProviderError as e: print('missing key ->', e, '| retryable =', e.retryable)\")",
       "Shell(python -c \"import os; os.environ.pop('OPENAI_API_KEY', None); os.environ.pop('ANTHROPIC_API_KEY', None); from app.core.config import settings; settings.AI_PROVIDER='openai'; from app.services.ai.providers.factory import get_llm_provider; from app.services.ai.exceptions import ProviderError; try: get_llm_provider(settings); print('ERROR: expected ProviderError') except ProviderError as e: print('missing key ->', e); print('retryable =', e.retryable)\")",
       "Shell(python -m pytest tests/ -q 2 >& 1)",
-      "Shell(findstr:*)"
+      "Shell(findstr:*)",
+      "Shell(python -c \"import re, pathlib; p = pathlib.Path('tests/test_ai_service.py'); s = p.read_text(encoding='utf-8'); s = s.replace('_VALID_JSON', 'VALID_MARKETING_STRATEGY_JSON'); p.write_text(s, encoding='utf-8'); print('replaced', s.count('VALID_MARKETING_STRATEGY_JSON'), 'refs')\")",
+      "Shell(python -m pytest tests/test_json_validator.py::test_unexpected_field_is_reported -q 2 >& 1)",
+      "Shell(python \"C:\\Users\\NewMoon\\AppData\\Local\\Temp\\commandcode\\C--Users-NewMoon-Desktop-market-mind-ai-backend\\055cb377-938a-4d76-a566-204b7dbb1f88\\scratchpad\\probe_extra_field.py\")",
+      "Shell(python probe_extra_field.py)",
+      "Shell(del probe_extra_field.py 2>nul & python -m pytest tests/ -q 2>&1 | findstr /C:\"passed\" /C:\"failed\")",
+      "Shell(dir:*)"
     ],
     "deny": [],
     "defaultMode": "default"

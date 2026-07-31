@@ -14,3 +14,4 @@
 - Wants retry logic for temporary failures: exponential backoff applied only to retryable errors (rate limits, timeouts, connection errors, 5xx), never retrying auth or bad-request failures. Confidence: 0.9
 - Wants logging at each pipeline stage and a clear exception hierarchy — a base error type with specific subclasses that carry context (status code, raw response, validation errors, retryable flag) so callers can catch exactly what they need. Confidence: 0.9
 - Wants runtime secrets (API keys) read from environment variables via config settings, never hardcoded in code. Confidence: 0.85
+- Wants validation to be exhaustive and structured: every missing required field reported individually (nothing silently dropped), with machine-readable details per error — dotted field path, stable error type, human message, offending value, and expected constraint — not a single generic failure message. Confidence: 0.9
