@@ -5,3 +5,6 @@
 - Prefers a Vite + React + Tailwind CSS + React Router + Axios + Framer Motion + Lucide React frontend stack. Confidence: 0.8
 - Prefers reusable components that compose from the shared design system — built on existing primitives (ui/ components, cn utility) and driven by centralized constants (e.g., NAV_LINKS) rather than hard-coded one-off markup. Confidence: 0.8
 - Wants the folder structure and architecture explained before code is generated, including where each file belongs. Confidence: 0.95
+- Prefers to build the landing page incrementally, one section at a time — each request delivers a single reusable section component (Navbar, then Hero, etc.) with precise specs, wired into the page rather than written as one giant file. Confidence: 0.75
+- Wants complete, ready-to-use React code output for every request (explicitly asks for "Output complete React code") — full components, not partial snippets or stubs. Confidence: 0.8
+- Wants premium visual depth in landing sections: animated gradient-blur background blobs, scroll-triggered stat counters, and a floating mock-UI/illustration placeholder with motion effects. Confidence: 0.8
