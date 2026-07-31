@@ -31,6 +31,21 @@ class StrategyGenerationRequest(BaseModel):
         default="professional",
         description="Desired tone of the generated strategy",
     )
+    country: str | None = Field(
+        default=None,
+        max_length=100,
+        description="Country / market of operation (optional)",
+    )
+    budget: str | None = Field(
+        default=None,
+        max_length=255,
+        description="Budget for the campaign or period (optional)",
+    )
+    competitors: list[str] = Field(
+        default_factory=list,
+        max_length=10,
+        description="Known competitor names (optional)",
+    )
 
 
 class StrategySection(BaseModel):
@@ -39,7 +54,7 @@ class StrategySection(BaseModel):
 
 
 class StrategyGenerationResponse(BaseModel):
-    """Structured mock output of the generation service."""
+    """Structured output of the generation service."""
 
     strategy_id: str
     summary: str

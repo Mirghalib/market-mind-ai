@@ -115,6 +115,65 @@ async def admin_delete_user(
         )
 
 
+@router.get(
+    "/user/{user_id}",
+    summary="Get a user with per-user aggregates",
+)
+async def admin_get_user(
+    user_id: uuid.UUID,
+    _: AdminRole,
+    __: ManageUsers,
+    db: DbDep,
+) -> dict:
+    """Return a user's profile plus strategy/export counts (admin only)."""
+    user = await db.get(User, user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    detail = await AdminService(db).get_user_detail(user_id)
+    return {
+        **UserRead.model_validate(user).model_dump(),
+        **detail,
+    }
+
+
+@router.patch(
+    "/user/{user_id}/status",
+    response_model=UserRead,
+    summary="Block or unblock a user",
+)
+async def admin_set_user_status(
+    user_id: uuid.UUID,
+    payload: dict[str, bool],
+    current_user: Annotated[User, Depends(get_current_user)],
+    _: AdminRole,
+    __: ManageUsers,
+    db: DbDep,
+) -> User:
+    """Block (is_active=false) or unblock (is_active=true) a user."""
+    is_active = payload.get("is_active")
+    if not isinstance(is_active, bool):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Field 'is_active' must be a boolean",
+        )
+    if current_user.id == user_id and not is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Admins cannot block their own account",
+        )
+    updated = await AdminService(db).set_user_active(user_id, is_active)
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    user = await db.get(User, user_id)
+    return user
+
+
 @router.delete(
     "/strategy/{strategy_id}",
     status_code=status.HTTP_204_NO_CONTENT,

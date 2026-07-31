@@ -104,6 +104,42 @@ async def test_export_unknown_strategy(app_client, db_session) -> None:
 
 
 @pytest.mark.asyncio
+async def test_export_all_formats(app_client, db_session) -> None:
+    """Every registered format renders a downloadable file."""
+    user = await _register_user(db_session)
+    strategy = await _create_strategy(db_session, user)
+
+    login = await app_client.post(
+        "/auth/login",
+        json={"email": USER_PAYLOAD["email"], "password": USER_PAYLOAD["password"]},
+    )
+    token = login.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    expected = {
+        "json": ("application/json", ".json"),
+        "markdown": ("text/markdown", ".md"),
+        "html": ("text/html", ".html"),
+        "pdf": ("application/pdf", ".pdf"),
+        "docx": (
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ".docx",
+        ),
+    }
+    for fmt, (media_type, ext) in expected.items():
+        response = await app_client.post(
+            "/export",
+            json={"strategy_id": str(strategy.id), "format": fmt},
+            headers=headers,
+        )
+        assert response.status_code == 200, fmt
+        assert response.headers["content-type"].startswith(media_type), fmt
+        assert "attachment" in response.headers["content-disposition"], fmt
+        assert response.headers["content-disposition"].endswith(f'{ext}"'), fmt
+        assert len(response.content) > 0, fmt
+
+
+@pytest.mark.asyncio
 async def test_export_invalid_format(app_client, db_session) -> None:
     user = await _register_user(db_session)
     strategy = await _create_strategy(db_session, user)
@@ -118,11 +154,10 @@ async def test_export_invalid_format(app_client, db_session) -> None:
     # Valid enum value but no renderer registered yet
     response = await app_client.post(
         "/export",
-        json={"strategy_id": str(strategy.id), "format": "pdf"},
+        json={"strategy_id": str(strategy.id), "format": "xlsx"},
         headers=headers,
     )
-    assert response.status_code == 400
-    assert response.json()["detail"] == "Unsupported export format: pdf"
+    assert response.status_code == 422  # not a valid enum value
 
 
 @pytest.mark.asyncio

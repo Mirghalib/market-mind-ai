@@ -29,6 +29,8 @@ from app.schemas.dashboard import ProfileResponse, UserDashboardStats
 from app.schemas.export import ExportCreateRequest
 from app.schemas.generation_history import GenerationHistoryPage
 from app.schemas.strategy import StrategyGenerationRequest, StrategyGenerationResponse
+from app.core.security import hash_password, verify_password
+from app.schemas.user import ChangePasswordRequest
 from app.services.export_service import (
     ExportService,
     StrategyNotFoundError,
@@ -131,6 +133,32 @@ async def update_profile(
 
 
 @router.post(
+    "/change-password",
+    status_code=status.HTTP_200_OK,
+    summary="Change the own password",
+)
+async def change_password(
+    payload: ChangePasswordRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: DbDep,
+) -> dict[str, str]:
+    """Verify the current password and set a new one."""
+    if not verify_password(payload.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+    if payload.new_password == payload.current_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must differ from the current password",
+        )
+    current_user.hashed_password = hash_password(payload.new_password)
+    await db.commit()
+    return {"message": "Password updated successfully"}
+
+
+@router.post(
     "/generate",
     response_model=StrategyGenerationResponse,
     status_code=status.HTTP_200_OK,
@@ -144,7 +172,7 @@ async def user_generate(
     """Generate a strategy (user role). Same service as POST /generate."""
     service = StrategyGenerationService()
     try:
-        return await service.generate(request)
+        return await service.generate(request, db=db, user=current_user)
     except GenerationQuotaExceededError:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

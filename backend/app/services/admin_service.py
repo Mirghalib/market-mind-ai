@@ -55,6 +55,36 @@ class AdminService:
         await self.db.commit()
         return True
 
+    async def set_user_active(self, user_id: uuid.UUID, is_active: bool) -> bool:
+        """Block (is_active=False) or unblock (is_active=True) a user."""
+        user = await self.db.get(User, user_id)
+        if user is None:
+            return False
+        user.is_active = is_active
+        await self.db.commit()
+        return True
+
+    async def get_user_detail(self, user_id: uuid.UUID) -> dict | None:
+        """Per-user aggregates for the admin panel (strategies, exports)."""
+        user = await self.db.get(User, user_id)
+        if user is None:
+            return None
+        total_strategies = await self.db.scalar(
+            select(func.count(MarketingStrategy.id))
+            .join(MarketingStrategy.project)
+            .where(MarketingStrategy.project.has(user_id=user_id))
+        )
+        total_exports = await self.db.scalar(
+            select(func.count(Export.id))
+            .join(Export.strategy)
+            .join(MarketingStrategy.project)
+            .where(MarketingStrategy.project.has(user_id=user_id))
+        )
+        return {
+            "total_strategies": total_strategies or 0,
+            "total_exports": total_exports or 0,
+        }
+
     async def delete_strategy(self, strategy_id: uuid.UUID) -> bool:
         strategy = await self.db.get(MarketingStrategy, strategy_id)
         if strategy is None:
