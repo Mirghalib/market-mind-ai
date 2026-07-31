@@ -4,7 +4,10 @@
       "Shell(python -c \"import ast, pathlib; [ast.parse(p.read_text(encoding='utf-8')) for p in pathlib.Path('app/services/ai').rglob('*.py')]; print('all files parse OK')\")",
       "Shell(python -c \"from app.services.ai.ai_service import AIService; from app.services.ai.prompt_builder import PromptBuilder; from app.services.ai.parsers.response_parser import ResponseParser; from app.services.ai.validators.json_validator import JSONValidator; import app.services.ai.prompts, app.services.ai.models; print('imports OK')\")",
       "Shell(python -m pytest tests/test_prompt_builder.py -q)",
-      "Shell(python -m pip install asyncpg==0.31.0)"
+      "Shell(python -m pip install asyncpg==0.31.0)",
+      "Shell(python -c  import json, urllib.request from jsonschema import Draft7Validator with open('app/services/ai/schemas/marketing_strategist_output.schema.json', encoding='utf-8') as f: schema = json.load(f) # 1. Valid JSON + draft-07 metaschema conformance Draft7Validator.check_schema(schema) print('schema is valid draft-07') # 2. Round-trip all required section titles for React display titles = [schema['properties'][k].get('title') for k in schema['required']] print('titles:', titles) # 3. Validate a minimal instance against the schema Draft7Validator(schema).validate({k: _min_instance(schema['properties'][k]) for k in schema['required']}) print('minimal instance validates')  2 >& 1)",
+      "Shell(python -c  import json with open('app/services/ai/schemas/marketing_strategist_output.schema.json', encoding='utf-8') as f: schema = json.load(f) sections = {k: v.get('title') for k, v in schema['properties'].items()} print('sections:', sections) print('required count:', len(schema['required'])) )",
+      "Shell(python \"C:\\Users\\NewMoon\\AppData\\Local\\Temp\\commandcode\\C--Users-NewMoon-Desktop-market-mind-ai-backend\\055cb377-938a-4d76-a566-204b7dbb1f88\\scratchpad\\validate_schema.py\")"
     ],
     "deny": [],
     "defaultMode": "default"
