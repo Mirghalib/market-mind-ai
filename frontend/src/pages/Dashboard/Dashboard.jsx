@@ -76,8 +76,11 @@ export default function Dashboard() {
       />
 
       <WelcomeCard
-        title="Turn your business into a marketing strategy in seconds"
-        description="Enter your business details below and let AI draft your market analysis, personas, SEO ideas, and campaigns."
+        name="Alex"
+        message="Turn your business into a marketing strategy in seconds — your market analysis, personas, and campaigns are one prompt away."
+        tip="Engage with your top 20% of customers this week — repeat buyers are 5x more likely to try a new product."
+        ctaLabel="Generate Strategy"
+        ctaTo="/dashboard"
       />
 
       {/* KPI stats */}
