@@ -1,9 +1,12 @@
 """Alembic environment: async engine + autogenerate discovery.
 
 The synchronous engine here runs inside asyncpg's event loop via
-asyncio.run(), which lets migrations use the same
-postgresql+asyncpg URL as the app. For Supabase, run migrations
-against DIRECT_URL (session-mode pooler), not the transaction pooler.
+asyncio.run(). Migrations run against DIRECT_URL when present (the
+session-mode pooler, recommended for Alembic on Supabase) and fall
+back to the application DATABASE_URL otherwise.
+
+Override the target explicitly with:
+    alembic -x url=postgresql+asyncpg://... upgrade head
 """
 import asyncio
 from logging.config import fileConfig
@@ -24,10 +27,13 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Use the application DATABASE_URL if alembic.ini has no sqlalchemy.url,
-# or if a DATABASE_URL is set explicitly. Override with:
-#   alembic -x url=postgresql+asyncpg://... upgrade head
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Migration target URL: explicit -x url= override wins, then
+# settings.MIGRATION_URL (DIRECT_URL normalized to asyncpg, else
+# DATABASE_URL).
+override_url = context.get_x_argument(as_dictionary=True).get("url")
+config.set_main_option(
+    "sqlalchemy.url", override_url or settings.MIGRATION_URL
+)
 
 target_metadata = Base.metadata
 

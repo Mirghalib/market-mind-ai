@@ -3,6 +3,28 @@ import pytest
 
 
 @pytest.mark.asyncio
+async def test_swagger_uses_http_bearer_security() -> None:
+    """Swagger Authorize must show a single HTTP Bearer "Value" field.
+
+    The OAuth2 password flow (username/password dialog) is not used;
+    the API authenticates with JWT bearer tokens.
+    """
+    from main import app
+
+    openapi = app.openapi()
+
+    # HTTPBearer security scheme, not OAuth2 password flow
+    scheme_name = "HTTPBearer"
+    assert scheme_name in openapi["components"]["securitySchemes"]
+    scheme = openapi["components"]["securitySchemes"][scheme_name]
+    assert scheme == {"type": "http", "scheme": "bearer"}
+
+    # No OAuth2 flows remain
+    assert "OAuth2PasswordBearer" not in openapi["components"]["securitySchemes"]
+    assert "flows" not in scheme
+
+
+@pytest.mark.asyncio
 async def test_register_success(app_client) -> None:
     response = await app_client.post(
         "/auth/register",

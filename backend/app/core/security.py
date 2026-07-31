@@ -40,6 +40,11 @@ def create_access_token(
         subject: Stable identifier of the token owner (user id, etc.).
         expires_delta: Optional override of the default lifetime.
         extra_claims: Optional custom claims merged into the payload.
+
+    The token always carries ``sub`` (user id), ``exp`` and ``iat``.
+    RBAC claims (user_id, email, role) are added by the caller for
+    frontend routing; the backend re-validates against the database
+    on every request, so stale claims are harmless.
     """
     expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)

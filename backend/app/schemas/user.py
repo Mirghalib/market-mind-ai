@@ -18,5 +18,12 @@ class UserRead(BaseModel):
     email: EmailStr
     full_name: str | None
     is_active: bool
+    role_name: str | None
     created_at: datetime
     updated_at: datetime
+
+
+class UserUpdateProfile(BaseModel):
+    """Editable profile fields for PUT /dashboard/profile."""
+
+    full_name: str | None = Field(default=None, max_length=255)

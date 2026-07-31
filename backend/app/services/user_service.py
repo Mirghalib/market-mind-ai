@@ -7,10 +7,14 @@ import uuid
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.security import hash_password, verify_password
+from app.models.role import Role
 from app.models.user import User
 from app.schemas.user import UserCreate
+
+DEFAULT_USER_ROLE = "user"
 
 
 class EmailAlreadyRegisteredError(Exception):
@@ -42,10 +46,16 @@ class UserService:
         if await self.get_by_email(email):
             raise EmailAlreadyRegisteredError(email)
 
+        # New accounts get the "user" role so permission checks apply.
+        role = await self.db.scalar(
+            select(Role).where(Role.name == DEFAULT_USER_ROLE)
+        )
+
         user = User(
             email=email,
             full_name=data.full_name,
             hashed_password=hash_password(data.password),
+            role_id=role.id if role else None,
         )
         self.db.add(user)
         await self.db.commit()
@@ -53,7 +63,12 @@ class UserService:
         return user
 
     async def authenticate(self, email: str, password: str) -> User:
-        user = await self.get_by_email(email.lower())
+        result = await self.db.execute(
+            select(User).options(selectinload(User.role)).where(
+                User.email == email.lower()
+            )
+        )
+        user = result.scalar_one_or_none()
         if user is None or not verify_password(password, user.hashed_password):
             raise InvalidCredentialsError()
         return user

@@ -32,6 +32,22 @@ class Settings(BaseSettings):
     DATABASE_URL: str = (
         "postgresql+asyncpg://postgres:postgres@localhost:5432/market_mind_ai"
     )
+    # Session-mode pooler URL used by Alembic migrations (Supabase).
+    # Falls back to DATABASE_URL when unset.
+    DIRECT_URL: str | None = None
+
+    @property
+    def MIGRATION_URL(self) -> str:
+        """URL used by Alembic.
+
+        Prefers DIRECT_URL (session-mode pooler, safe for DDL). If it is
+        a bare postgresql:// URL, normalize it to the asyncpg driver used
+        by env.py; otherwise fall back to DATABASE_URL.
+        """
+        url = self.DIRECT_URL or self.DATABASE_URL
+        if url.startswith("postgresql://"):
+            return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return url
 
     # --- CORS ---
     CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]

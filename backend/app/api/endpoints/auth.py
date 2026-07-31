@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import create_access_token
+from app.core.tokens import create_user_access_token
 from app.database.session import get_db
 from app.dependencies.auth import get_current_user
 from app.models.user import User
@@ -62,7 +62,7 @@ async def login(
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return Token(access_token=create_access_token(subject=user.id))
+    return Token(access_token=create_user_access_token(user))
 
 
 @router.post(
@@ -74,7 +74,7 @@ async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: DbDep,
 ) -> Token:
-    """OAuth2 password form endpoint backing the Swagger Authorize flow."""
+    """OAuth2 password form endpoint (kept for backwards compatibility)."""
     service = UserService(db)
     try:
         user = await service.authenticate(form_data.username, form_data.password)
@@ -84,7 +84,7 @@ async def login_for_access_token(
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return Token(access_token=create_access_token(subject=user.id))
+    return Token(access_token=create_user_access_token(user))
 
 
 @router.get(

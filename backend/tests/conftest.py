@@ -51,6 +51,38 @@ async def db_session() -> AsyncIterator[AsyncSession]:
         yield session
 
 
+@pytest_asyncio.fixture
+async def seeded_db_session() -> AsyncIterator[AsyncSession]:
+    """DB session with the RBAC baseline seeded (roles, permissions, admin)."""
+    from app.seeders.seed_roles import seed_roles
+    from app.seeders.seed_permissions import seed_permissions
+    from app.seeders.seed_admin import seed_admin
+
+    async with _test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    async with _TestSessionLocal() as session:
+        await seed_roles(session)
+        await seed_permissions(session)
+        await seed_admin(session)
+        yield session
+
+
+@pytest_asyncio.fixture
+async def seeded_app_client(seeded_db_session) -> AsyncIterator[AsyncClient]:
+    """App client whose dependency override shares the seeded in-memory DB."""
+    app = create_app()
+    app.dependency_overrides[get_db] = _override_get_db
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url=f"http://test{settings.API_V1_STR}",
+    ) as client:
+        yield client
+
+    app.dependency_overrides.clear()
+
+
 async def _override_get_db() -> AsyncIterator[AsyncSession]:
     """Yield a fresh session for each request (in-memory SQLite)."""
     async with _TestSessionLocal() as session:
