@@ -1,0 +1,36 @@
+# Taste
+- Wants the assistant to explain the folder structure and architecture *before* generating code, and explicitly asks for file-placement explanations. Confidence: 0.95
+- Prefers scaffolding projects with starter files only, explicitly deferring business logic to later stages ("create starter files only", "do not implement business logic yet"). Confidence: 0.9
+- Prefers clean, layered architecture for backend applications (clear separation of API/presentation, core/config, database, models, schemas, services, middleware). Confidence: 0.9
+- Wants production-ready code even in scaffolds: pinned dependencies, env-driven config, tests, README, and a runnable/verified result. Confidence: 0.9
+- Prefers database schemas built on normalized relational tables with UUID primary keys, `created_at`/`updated_at` timestamps, and soft-delete support (nullable `deleted_at`). Confidence: 0.8
+- Prefers each schema design task to include per-table explanations alongside the generated models. Confidence: 0.7
+- Frames build requests as role assignments ("You are a Senior Backend Engineer", "You are a Senior Database Architect", "You are a Senior FastAPI Engineer", "You are a Senior FastAPI Security Architect") and expects the assistant to respond in that expert capacity. Confidence: 0.9
+- Prefers task prompts with explicit, enumerated requirement checklists (endpoints, password hashing, JWT validation, Pydantic schemas, error handling, Swagger docs, etc.) that should each be delivered. Confidence: 0.9
+- Wants external/AI integration logic isolated in a dedicated service module decoupled from HTTP (e.g. `services/generation_service.py`) so a real provider can be swapped in without touching the endpoint. Confidence: 0.9
+- Prefers mock implementations behind a stable schema contract when a real integration isn't ready yet ("return mock response for now"), keeping the API contract unchanged for later swaps. Confidence: 0.8
+- Expects REST list endpoints to support pagination (e.g., `limit`/`offset` query params with a page envelope including `total` and `has_more`), listing "pagination support" as an explicit deliverable. Confidence: 0.7
+- Expects proper HTTP status codes in API responses (e.g., 200 on success, 204 on delete, 404 on missing resources) as an explicit deliverable. Confidence: 0.8
+- Expects Swagger/OpenAPI documentation to be generated (and verified) for all endpoints — listed as a requirement in multiple feature requests. Confidence: 0.8
+- Expects endpoints integrated with SQLAlchemy (async ORM sessions via dependency injection) rather than in-memory stores — "SQLAlchemy integration" is a stated deliverable. Confidence: 0.7
+- Wants format/output logic built on an extensible abstraction (e.g., a renderer protocol + registry keyed by format) so new formats like PDF/DOCX can be added without touching the endpoint or service — explicitly requested ("design code to easily extend to PDF and DOCX"). Confidence: 0.85
+- Expects file-export endpoints to return a proper file response: correct media type/Content-Type and a `Content-Disposition: attachment` header with a filename. Confidence: 0.8
+- Prefers cross-cutting concerns (request logging, CORS, global error handling, request timing) implemented as reusable, composable FastAPI middleware rather than inline per-endpoint logic. Confidence: 0.85
+- Explicitly requests a clean, structured API log format — one access-log line per request with method, path, status, duration, request ID, and client IP. Confidence: 0.8
+- Prefers a global error handler that returns a clean JSON 500 response to clients while logging the full traceback server-side (no internal details leaked). Confidence: 0.75
+- Wants per-request execution time/duration and request-ID correlation included in logs as part of API observability. Confidence: 0.7
+- Prefers minimal, targeted fixes when resolving bugs: explicitly forbids removing existing endpoints, breaking API contracts, or changing unrelated architecture/business logic ("Do NOT remove either endpoint", "Do not change unrelated project architecture or business logic"). Confidence: 0.9
+- Expects an explicit explanation of exactly which files were changed and why after completing a fix or feature ("Explain every file you changed and why"). Confidence: 0.9
+- After applying fixes, expects the app to be run and verified end-to-end: no startup errors, and the affected flow working live (e.g., Swagger Authorize → token endpoint → authenticated endpoint). Confidence: 0.9
+- Prefers Swagger UI authentication via HTTP Bearer with a single "Value" field for pasting a JWT over the OAuth2 password-flow dialog (username/password/client_id/client_secret) — explicitly requested and enforced ("I do NOT want Swagger UI to use OAuth2 Password Flow"). Confidence: 0.95
+- Keeps endpoint changes non-breaking and backwards-compatible when refactoring auth: leaves the JSON login and the legacy form `/token` endpoint intact (hidden from docs) while switching the Swagger scheme. Confidence: 0.9
+- Wants a regression test asserting the OpenAPI security scheme (e.g., `HTTPBearer` present, no OAuth2 flows) so the Swagger config can't silently drift. Confidence: 0.85
+- Wants authorization implemented as reusable dependency factories (`RequireRole("admin")`, `RequirePermission("manage_users")`) backed by a central authorization service that is the single source of truth for the role→permission policy, so auth logic is not duplicated across endpoints. Confidence: 0.85
+- Wants JWTs to carry identity + role claims (`user_id`, `email`, `role`) so the frontend can route by role (admin vs user dashboards), while the backend still re-validates against the database on every request. Confidence: 0.8
+- Wants baseline data (roles, permissions, admin user) created via idempotent, run-once seeders that check for existing rows before inserting and store passwords hashed. Confidence: 0.8
+- Wants implementation delivered step by step rather than all at once ("Generate the implementation step by step. Do not generate everything in one response"). Confidence: 0.7
+- Explicitly requires that every generated file be explained before it is created ("Explain every generated file before creating it"). Confidence: 0.9
+- When adding infrastructure to an existing codebase, explicitly forbids recreating existing models or modifying the current architecture ("Do NOT recreate existing models", "Do NOT modify the current architecture") — expects the assistant to first verify what already exists and build only the missing pieces. Confidence: 0.9
+- Expects delivered migration/database tooling to come with operational usage instructions: how to run migrations, how to roll back, and how to create new migrations in the future. Confidence: 0.6
+- For file-upload features, expects multipart/form-data endpoints with strict validation: allowed extension + MIME type check (400 on unsupported), an explicit size cap (413 on oversized), UUID-based unique filenames, only the relative path persisted in the DB, and the public URL derived from a configurable base URL at response time. Confidence: 0.7
+- Uploaded files should be served statically (e.g. a `/uploads` static mount) so returned URLs actually resolve, with storage isolated behind a service layer so swapping to object storage later doesn't touch the API. Confidence: 0.6
