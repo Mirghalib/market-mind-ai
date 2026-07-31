@@ -6,3 +6,7 @@
 - Explicitly requires deliverables to be reusable and easy to extend (lists these as hard requirements, with documented extension points like overridable templates/hooks). Confidence: 0.95
 - Wants code to be well documented — module/class docstrings covering usage examples, input/output contracts, and how to extend. Confidence: 0.9
 - Prefers pure, self-contained components with no side effects where the task allows (e.g., prompt building explicitly must make no API calls, keeping it decoupled from LLM provider I/O). Confidence: 0.7
+- Wants AI output/data contracts designed to be easy for a React frontend to render — flat top-level sections, an `id` on every array item for list keys, `title`/`description` on fields for labels/tooltips, stable enums, and table-ready shapes. Confidence: 0.9
+- Wants the AI pipeline to return structured JSON validated against strict schemas (typed contracts) rather than freeform text output — explicitly demands prompts that instruct "Return ONLY valid JSON", no markdown, no explanations outside the JSON, and following the provided response schema exactly. Confidence: 0.9
+- Frames each coding task by assigning a senior expert role to the assistant (e.g., "You are a Senior Prompt Engineer", "You are a Senior AI Engineer"). Confidence: 0.6
+- Wants the LLM system prompt and the validation logic to share a single source of truth — e.g., the response schema is loaded into the prompt module once and reused, so prompt, parser, and validator can't drift apart. Confidence: 0.8

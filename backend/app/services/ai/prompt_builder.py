@@ -27,6 +27,11 @@ from typing import Sequence
 
 from pydantic import BaseModel, Field
 
+from app.services.ai.prompts.marketing_prompt import (
+    MARKETING_SYSTEM_PROMPT_TEMPLATE,
+    RESPONSE_SCHEMA_JSON,
+)
+
 # --- Input contract -----------------------------------------------------------
 
 
@@ -50,35 +55,7 @@ class MarketingBrief(BaseModel):
 # --- Default marketing template ----------------------------------------------
 
 
-MARKETING_PROMPT_TEMPLATE = """You are a senior marketing strategist for the business described below.
-
-# Business
-- Business name: {business_name}
-- Industry: {industry}
-- Product / service: {product}
-- Country / market: {country}
-
-# Audience
-{audience}
-
-# Goal
-{goal}
-
-# Budget
-{budget}
-
-# Brand tone
-{brand_tone}
-
-# Competitors
-{competitors}
-
-# Task
-Act as the marketing strategist for this business and produce a complete
-marketing strategy: target audience, positioning, marketing channels,
-campaign ideas, and KPIs to track success.
-
-{output_section}"""
+MARKETING_PROMPT_TEMPLATE = MARKETING_SYSTEM_PROMPT_TEMPLATE
 
 
 # --- Builder ------------------------------------------------------------------
@@ -132,12 +109,17 @@ class PromptBuilder:
 
     def _build_output_section(self) -> str:
         """Compose the output contract section of the prompt."""
-        parts: list[str] = []
+        parts: list[str] = [
+            "Return ONLY valid JSON.",
+            "Do not return markdown.",
+            "Do not include explanations outside the JSON.",
+            "Follow the provided response schema exactly.",
+            "Response schema:",
+            RESPONSE_SCHEMA_JSON,
+        ]
         if self._output_format:
             parts.append(f"Return your answer in the following format:\n{self._output_format}")
         if self._extra_rules:
             rules = "\n".join(f"- {rule}" for rule in self._extra_rules)
             parts.append(f"Additional rules:\n{rules}")
-        if not parts:
-            return "Provide clear, actionable, well-structured recommendations."
-        return "\n\n".join(parts)
+        return "\n".join(parts)

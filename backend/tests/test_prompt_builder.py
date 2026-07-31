@@ -96,4 +96,43 @@ def test_custom_template_via_subclass(brief: MarketingBrief) -> None:
 def test_default_template_is_complete(brief: MarketingBrief) -> None:
     prompt = PromptBuilder().build(brief)
 
-    assert all(section in MARKETING_PROMPT_TEMPLATE for section in ("# Business", "# Audience", "# Goal", "# Budget", "# Brand tone", "# Competitors", "# Task"))
+    assert all(section in MARKETING_PROMPT_TEMPLATE for section in ("# Business", "# Audience", "# Goal", "# Budget", "# Brand tone", "# Competitors", "# Responsibilities"))
+
+
+def test_default_prompt_contains_strict_json_rules(brief: MarketingBrief) -> None:
+    prompt = PromptBuilder().build(brief)
+
+    assert "Return ONLY valid JSON." in prompt
+    assert "Do not return markdown." in prompt
+    assert "Do not include explanations outside the JSON." in prompt
+    assert "Follow the provided response schema exactly." in prompt
+
+
+def test_default_prompt_embeds_response_schema(brief: MarketingBrief) -> None:
+    prompt = PromptBuilder().build(brief)
+
+    assert '"title":"AI Marketing Strategist Output"' in prompt
+    assert '"marketingStrategy"' in prompt
+    assert '"competitorAnalysis"' in prompt
+    assert '"recommendedTools"' in prompt
+
+
+def test_all_responsibilities_present(brief: MarketingBrief) -> None:
+    prompt = PromptBuilder().build(brief)
+
+    responsibilities = [
+        "Analyze the business.",
+        "Identify the target audience.",
+        "Create a customer persona.",
+        "Generate a SWOT analysis.",
+        "Recommend marketing channels.",
+        "Suggest SEO keywords.",
+        "Create a 30-day content calendar.",
+        "Generate social media campaign ideas.",
+        "Write a marketing email.",
+        "Recommend advertisement ideas.",
+        "Suggest competitor positioning.",
+        "Allocate the marketing budget.",
+    ]
+    for responsibility in responsibilities:
+        assert responsibility in prompt
