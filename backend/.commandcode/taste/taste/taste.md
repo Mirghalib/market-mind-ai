@@ -15,3 +15,7 @@
 - Expects endpoints integrated with SQLAlchemy (async ORM sessions via dependency injection) rather than in-memory stores — "SQLAlchemy integration" is a stated deliverable. Confidence: 0.7
 - Wants format/output logic built on an extensible abstraction (e.g., a renderer protocol + registry keyed by format) so new formats like PDF/DOCX can be added without touching the endpoint or service — explicitly requested ("design code to easily extend to PDF and DOCX"). Confidence: 0.85
 - Expects file-export endpoints to return a proper file response: correct media type/Content-Type and a `Content-Disposition: attachment` header with a filename. Confidence: 0.8
+- Prefers cross-cutting concerns (request logging, CORS, global error handling, request timing) implemented as reusable, composable FastAPI middleware rather than inline per-endpoint logic. Confidence: 0.85
+- Explicitly requests a clean, structured API log format — one access-log line per request with method, path, status, duration, request ID, and client IP. Confidence: 0.8
+- Prefers a global error handler that returns a clean JSON 500 response to clients while logging the full traceback server-side (no internal details leaked). Confidence: 0.75
+- Wants per-request execution time/duration and request-ID correlation included in logs as part of API observability. Confidence: 0.7

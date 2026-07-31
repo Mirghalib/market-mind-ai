@@ -7,7 +7,11 @@ from fastapi import FastAPI
 
 from app.api.router import api_router
 from app.core.config import settings
+from app.core.logging import configure_logging
+from app.middleware.cors import create_cors_middleware
+from app.middleware.error_handler import GlobalErrorHandlerMiddleware
 from app.middleware.request_context import RequestContextMiddleware
+from app.middleware.request_logging import RequestLoggingMiddleware
 
 
 def create_app() -> FastAPI:
@@ -22,7 +26,15 @@ def create_app() -> FastAPI:
         redoc_url=None,
     )
 
+    # Middleware order: Starlette builds the stack with the LAST
+    # add_middleware call outermost, so it runs first on the way in.
+    # RequestLoggingMiddleware (outermost) -> GlobalErrorHandler ->
+    # CORS -> RequestContext (innermost, sets request id + timing).
+    app.add_middleware(RequestLoggingMiddleware)
+    app.add_middleware(GlobalErrorHandlerMiddleware)
+    app.add_middleware(create_cors_middleware())
     app.add_middleware(RequestContextMiddleware)
+
     app.include_router(api_router, prefix=settings.API_V1_STR)
 
     @app.get("/", tags=["system"])
@@ -31,5 +43,7 @@ def create_app() -> FastAPI:
 
     return app
 
+
+configure_logging()
 
 app = create_app()
