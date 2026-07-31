@@ -13,6 +13,7 @@ from app.models.mixins import UUIDPrimaryKeyTimestampMixin
 
 
 class ExportFormat(str, Enum):
+    JSON = "json"
     PDF = "pdf"
     DOCX = "docx"
     MARKDOWN = "markdown"
