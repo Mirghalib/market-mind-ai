@@ -59,8 +59,15 @@ class UserService:
         )
         self.db.add(user)
         await self.db.commit()
-        await self.db.refresh(user)
-        return user
+
+        # Reload with the role eager-loaded so response serialization
+        # (role_name, profile_image) never triggers an async lazy load.
+        result = await self.db.execute(
+            select(User)
+            .options(selectinload(User.role))
+            .where(User.id == user.id)
+        )
+        return result.scalar_one()
 
     async def authenticate(self, email: str, password: str) -> User:
         result = await self.db.execute(

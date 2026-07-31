@@ -1,4 +1,5 @@
 """User dashboard domain logic: profile update and personal aggregates."""
+from fastapi import UploadFile
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -6,7 +7,10 @@ from app.models.export import Export
 from app.models.generation_history import GenerationHistory
 from app.models.marketing_strategy import MarketingStrategy
 from app.models.user import User
-from app.schemas.user import UserUpdateProfile
+from app.services.profile_image_service import (
+    delete_profile_image,
+    save_profile_image,
+)
 
 
 class UserDashboardService:
@@ -47,9 +51,26 @@ class UserDashboardService:
         }
 
     async def update_profile(
-        self, user: User, data: UserUpdateProfile
+        self,
+        user: User,
+        *,
+        full_name: str | None = None,
+        profile_image: UploadFile | None = None,
     ) -> User:
-        user.full_name = data.full_name
+        """Update profile fields; saves a new image and drops the old one."""
+        if full_name is not None:
+            user.full_name = full_name
+
+        if profile_image is not None:
+            new_path = await save_profile_image(profile_image)
+            old_path = user.profile_image
+            user.profile_image = new_path
+            # Commit first so the DB never points at a missing file.
+            await self.db.commit()
+            await self.db.refresh(user)
+            delete_profile_image(old_path)
+            return user
+
         await self.db.commit()
         await self.db.refresh(user)
         return user

@@ -201,7 +201,7 @@ async def test_user_can_update_profile(seeded_app_client) -> None:
 
     response = await seeded_app_client.put(
         "/dashboard/profile",
-        json={"full_name": "New Name"},
+        data={"full_name": "New Name"},
         headers=_auth(token),
     )
     assert response.status_code == 200

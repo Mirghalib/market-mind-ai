@@ -3,7 +3,10 @@
 Run locally:
     uvicorn main:app --reload --port 8000
 """
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from app.api.router import api_router
 from app.core.config import settings
@@ -36,6 +39,15 @@ def create_app() -> FastAPI:
     app.add_middleware(RequestContextMiddleware)
 
     app.include_router(api_router, prefix=settings.API_V1_STR)
+
+    # Serve uploaded files (e.g. profile images) at /uploads/...
+    uploads_dir = Path(settings.UPLOAD_DIR)
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    app.mount(
+        "/uploads",
+        StaticFiles(directory=str(uploads_dir)),
+        name="uploads",
+    )
 
     @app.get("/", tags=["system"])
     async def root() -> dict[str, str]:

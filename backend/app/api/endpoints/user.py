@@ -9,7 +9,16 @@ duplicated.
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Response,
+    UploadFile,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.session import get_db
@@ -20,7 +29,6 @@ from app.schemas.dashboard import ProfileResponse, UserDashboardStats
 from app.schemas.export import ExportCreateRequest
 from app.schemas.generation_history import GenerationHistoryPage
 from app.schemas.strategy import StrategyGenerationRequest, StrategyGenerationResponse
-from app.schemas.user import UserUpdateProfile
 from app.services.export_service import (
     ExportService,
     StrategyNotFoundError,
@@ -31,6 +39,7 @@ from app.services.generation_history_service import (
     GenerationHistoryService,
 )
 from app.services.generation_service import GenerationError, StrategyGenerationService
+from app.services.profile_image_service import profile_image_url
 from app.services.user_dashboard_service import UserDashboardService
 
 router = APIRouter()
@@ -68,23 +77,53 @@ async def get_profile(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> ProfileResponse:
     """Return the authenticated user's profile (includes role)."""
-    return ProfileResponse.model_validate(current_user)
+    return ProfileResponse(
+        id=current_user.id,
+        email=current_user.email,
+        full_name=current_user.full_name,
+        role_name=current_user.role_name,
+        is_active=current_user.is_active,
+        profile_image=profile_image_url(current_user.profile_image),
+        created_at=current_user.created_at,
+    )
 
 
 @router.put(
     "/profile",
     response_model=ProfileResponse,
-    summary="Update the own profile",
+    summary="Update the own profile (multipart)",
 )
 async def update_profile(
-    payload: UserUpdateProfile,
     current_user: Annotated[User, Depends(get_current_user)],
     _: UpdateProfile,
     db: DbDep,
+    full_name: Annotated[str | None, Form(max_length=255)] = None,
+    profile_image: Annotated[
+        UploadFile | None, File(description="JPG/PNG/WEBP, max 5 MB")
+    ] = None,
 ) -> ProfileResponse:
-    """Update editable profile fields for the current user."""
-    user = await UserDashboardService(db).update_profile(current_user, payload)
-    return ProfileResponse.model_validate(user)
+    """Update the own profile via multipart/form-data.
+
+    Accepts an optional ``full_name`` and an optional ``profile_image``
+    (jpg/jpeg/png/webp, max 5 MB). The image is stored under
+    ``uploads/profile_images/`` and its relative path is saved on the
+    user; the response returns the public image URL.
+    """
+    service = UserDashboardService(db)
+    user = await service.update_profile(
+        current_user,
+        full_name=full_name,
+        profile_image=profile_image,
+    )
+    return ProfileResponse(
+        id=user.id,
+        email=user.email,
+        full_name=user.full_name,
+        role_name=user.role_name,
+        is_active=user.is_active,
+        profile_image=profile_image_url(user.profile_image),
+        created_at=user.created_at,
+    )
 
 
 @router.post(

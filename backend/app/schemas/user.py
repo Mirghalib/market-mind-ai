@@ -19,6 +19,7 @@ class UserRead(BaseModel):
     full_name: str | None
     is_active: bool
     role_name: str | None
+    profile_image: str | None
     created_at: datetime
     updated_at: datetime
 

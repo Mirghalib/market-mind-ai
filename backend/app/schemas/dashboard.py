@@ -80,4 +80,5 @@ class ProfileResponse(BaseModel):
     full_name: str | None
     role_name: str | None
     is_active: bool
+    profile_image: str | None
     created_at: datetime

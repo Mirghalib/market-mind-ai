@@ -26,6 +26,11 @@ class User(UUIDPrimaryKeyTimestampMixin, SoftDeleteMixin, Base):
         nullable=True,
         comment="RBAC role; None until a seeder/admin assigns one",
     )
+    profile_image: Mapped[str | None] = mapped_column(
+        String(512),
+        nullable=True,
+        comment="Relative path of the profile image, e.g. uploads/profile_images/<uuid>.jpg",
+    )
 
     role: Mapped["Role | None"] = relationship(back_populates="users")
 

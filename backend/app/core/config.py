@@ -55,6 +55,18 @@ class Settings(BaseSettings):
     CORS_ALLOW_METHODS: list[str] = ["*"]
     CORS_ALLOW_HEADERS: list[str] = ["*"]
 
+    # --- Uploads ---
+    UPLOAD_DIR: str = "uploads"
+    PROFILE_IMAGE_DIR: str = "uploads/profile_images"
+    UPLOAD_MAX_SIZE: int = 5 * 1024 * 1024  # 5 MB
+    PROFILE_IMAGE_ALLOWED_TYPES: dict[str, str] = {
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "webp": "image/webp",
+    }
+    PUBLIC_BASE_URL: str = "http://localhost:8000"
+
     # --- Logging ---
     LOG_LEVEL: str = "INFO"
 
