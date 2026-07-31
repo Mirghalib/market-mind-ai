@@ -14,7 +14,7 @@ import {
   User,
 } from 'lucide-react'
 import useTheme from '@/hooks/useTheme'
-import { removeToken } from '@/utils/token'
+import { useAuth } from '@/context/AuthContext'
 import { cn } from '@/utils/cn'
 
 const notifications = [
@@ -46,15 +46,19 @@ const notifications = [
 export default function TopBar({
   onMenuClick,
   onSearch,
-  userName = 'Alex Morgan',
-  userRole = 'Marketing Lead',
+  userName,
+  userRole,
   className,
 }) {
   const { theme, toggleTheme } = useTheme()
+  const { userName: authName, userRole: authRole, logout } = useAuth()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [openMenu, setOpenMenu] = useState(null) // 'notifications' | 'profile' | null
   const shellRef = useRef(null)
+
+  const displayName = userName ?? authName ?? 'User'
+  const displayRole = userRole ?? authRole ?? 'Member'
 
   // Close menus on outside click / Escape
   useEffect(() => {
@@ -85,7 +89,7 @@ export default function TopBar({
 
   const handleLogout = () => {
     setOpenMenu(null)
-    removeToken()
+    logout()
     navigate('/login')
   }
 
@@ -222,7 +226,7 @@ export default function TopBar({
             )}
           >
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 text-xs font-semibold text-white">
-              {userName
+              {displayName
                 .split(' ')
                 .map((part) => part[0])
                 .slice(0, 2)
@@ -231,10 +235,10 @@ export default function TopBar({
             </span>
             <span className="hidden text-left sm:block">
               <span className="block max-w-32 truncate text-sm font-medium text-zinc-900 dark:text-white">
-                {userName}
+                {displayName}
               </span>
-              <span className="block max-w-32 truncate text-xs text-zinc-500 dark:text-zinc-400">
-                {userRole}
+              <span className="block max-w-32 truncate text-xs capitalize text-zinc-500 dark:text-zinc-400">
+                {displayRole}
               </span>
             </span>
             <ChevronDown
@@ -257,9 +261,11 @@ export default function TopBar({
               >
                 <div className="border-b border-zinc-100 px-4 py-3 dark:border-zinc-800">
                   <p className="text-sm font-semibold text-zinc-900 dark:text-white">
-                    {userName}
+                    {displayName}
                   </p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{userRole}</p>
+                  <p className="text-xs capitalize text-zinc-500 dark:text-zinc-400">
+                    {displayRole}
+                  </p>
                 </div>
                 <div className="py-1">
                   {[

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
 import { APP_NAME, NAV_LINKS } from '@/constants'
@@ -9,6 +9,7 @@ import { cn } from '@/utils/cn'
 export default function Navbar({ transparent = true }) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [activeSection, setActiveSection] = useState('home')
   const location = useLocation()
   const isHome = location.pathname === '/'
 
@@ -19,10 +20,41 @@ export default function Navbar({ transparent = true }) {
     return () => window.removeEventListener('scroll', onScroll)
   })
 
-  const solid = !transparent || scrolled || open
+  // Scroll-spy: highlight the nav link for the section in view.
+  useEffect(() => {
+    const sections = NAV_LINKS.map((link) =>
+      document.getElementById(link.href.slice(1))
+    ).filter(Boolean)
 
-  const getHref = (link) =>
-    link.href === '/' || isHome ? link.href : `/#${link.label.toLowerCase()}`
+    if (!sections.length) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id)
+          }
+        })
+      },
+      { rootMargin: '-40% 0px -55% 0px' }
+    )
+
+    sections.forEach((section) => observer.observe(section))
+    return () => observer.disconnect()
+  }, [isHome])
+
+  const handleNavClick = (event, href) => {
+    // Close the mobile menu on any nav click.
+    setOpen(false)
+
+    // On the landing page, anchor-scroll; otherwise navigate home then scroll.
+    if (isHome) return
+
+    event.preventDefault()
+    window.location.href = `/#${href.slice(1)}`
+  }
+
+  const solid = !transparent || scrolled || open
 
   return (
     <motion.header
@@ -53,21 +85,22 @@ export default function Navbar({ transparent = true }) {
 
         <div className="hidden items-center gap-1 md:flex">
           {NAV_LINKS.map((link) => (
-            <NavLink
+            <a
               key={link.label}
-              to={link.href}
-              end={link.href === '/'}
-              className={({ isActive }) =>
-                cn(
-                  'rounded-lg px-3.5 py-2 text-sm font-medium transition-colors duration-200',
-                  isActive
-                    ? 'text-white'
-                    : 'text-zinc-400 hover:bg-white/5 hover:text-white'
-                )
+              href={link.href}
+              onClick={(e) => handleNavClick(e, link.href)}
+              aria-current={
+                isHome && activeSection === link.href.slice(1) ? 'true' : undefined
               }
+              className={cn(
+                'rounded-lg px-3.5 py-2 text-sm font-medium transition-colors duration-200',
+                isHome && activeSection === link.href.slice(1)
+                  ? 'text-white'
+                  : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+              )}
             >
               {link.label}
-            </NavLink>
+            </a>
           ))}
         </div>
 
@@ -125,21 +158,21 @@ export default function Navbar({ transparent = true }) {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.05 * i, duration: 0.2 }}
                 >
-                  <NavLink
-                    to={getHref(link)}
-                    end={link.href === '/'}
-                    onClick={() => setOpen(false)}
-                    className={({ isActive }) =>
-                      cn(
-                        'block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                        isActive
-                          ? 'bg-white/5 text-white'
-                          : 'text-zinc-400 hover:bg-white/5 hover:text-white'
-                      )
+                  <a
+                    href={link.href}
+                    onClick={(e) => handleNavClick(e, link.href)}
+                    aria-current={
+                      isHome && activeSection === link.href.slice(1) ? 'true' : undefined
                     }
+                    className={cn(
+                      'block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                      isHome && activeSection === link.href.slice(1)
+                        ? 'bg-white/5 text-white'
+                        : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                    )}
                   >
                     {link.label}
-                  </NavLink>
+                  </a>
                 </motion.div>
               ))}
 

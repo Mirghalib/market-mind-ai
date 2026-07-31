@@ -7,17 +7,19 @@ import {
   LogOut,
   PanelLeft,
   Settings,
+  Shield,
   Sparkles,
   X,
 } from 'lucide-react'
-import { APP_NAME, DASHBOARD_LINKS } from '@/constants'
-import { removeToken } from '@/utils/token'
+import { ADMIN_LINKS, APP_NAME, DASHBOARD_LINKS } from '@/constants'
+import { useAuth } from '@/context/AuthContext'
 import { cn } from '@/utils/cn'
 
 const ICONS = {
   LayoutDashboard,
   History,
   Settings,
+  Shield,
 }
 
 const EXPANDED_WIDTH = 272
@@ -25,12 +27,17 @@ const COLLAPSED_WIDTH = 72
 
 export default function Sidebar({ mobileOpen, onOpenChange }) {
   const [collapsed, setCollapsed] = useState(false)
+  const { role, logout } = useAuth()
   const navigate = useNavigate()
+
+  const isAdmin = role === 'admin'
+  const links = isAdmin ? [...DASHBOARD_LINKS, ...ADMIN_LINKS] : DASHBOARD_LINKS
 
   const closeMobile = () => onOpenChange?.(false)
 
   const handleLogout = () => {
-    removeToken()
+    closeMobile()
+    logout()
     navigate('/login')
   }
 
@@ -89,7 +96,7 @@ export default function Sidebar({ mobileOpen, onOpenChange }) {
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 overflow-y-auto overflow-x-hidden p-3">
-          {DASHBOARD_LINKS.map((link) => {
+          {links.map((link) => {
             const Icon = ICONS[link.icon] ?? LayoutDashboard
             return (
               <NavLink
@@ -193,7 +200,7 @@ export default function Sidebar({ mobileOpen, onOpenChange }) {
               </div>
 
               <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-                {DASHBOARD_LINKS.map((link) => {
+                {links.map((link) => {
                   const Icon = ICONS[link.icon] ?? LayoutDashboard
                   return (
                     <NavLink
@@ -221,10 +228,7 @@ export default function Sidebar({ mobileOpen, onOpenChange }) {
               <div className="shrink-0 border-t border-zinc-200 p-3 transition-colors dark:border-zinc-800">
                 <button
                   type="button"
-                  onClick={() => {
-                    closeMobile()
-                    handleLogout()
-                  }}
+                  onClick={handleLogout}
                   className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white"
                 >
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg">

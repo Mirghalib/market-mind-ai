@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { Loader2 } from 'lucide-react'
 import { APP_NAME } from '@/constants'
+import { useAuth } from '@/context/AuthContext'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 
@@ -9,12 +11,23 @@ export default function Register() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const { register } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // TODO: call authService.register, then setToken and navigate to /dashboard.
-    navigate('/dashboard')
+    setError('')
+    setSubmitting(true)
+    try {
+      const user = await register({ name, email, password })
+      navigate(user.role === 'admin' ? '/admin/dashboard' : '/dashboard', { replace: true })
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Registration failed. Try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -41,6 +54,14 @@ export default function Register() {
           onSubmit={handleSubmit}
           className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-8"
         >
+          {error && (
+            <div
+              role="alert"
+              className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+            >
+              {error}
+            </div>
+          )}
           <Input
             id="name"
             label="Full name"
@@ -48,6 +69,7 @@ export default function Register() {
             placeholder="John Doe"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            autoComplete="name"
             required
           />
           <Input
@@ -57,6 +79,7 @@ export default function Register() {
             placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
             required
           />
           <Input
@@ -66,10 +89,19 @@ export default function Register() {
             placeholder="At least 8 characters"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
+            minLength={8}
             required
           />
-          <Button type="submit" className="w-full">
-            Create account
+          <Button type="submit" className="w-full" disabled={submitting}>
+            {submitting ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                Creating account…
+              </>
+            ) : (
+              'Create account'
+            )}
           </Button>
         </form>
 

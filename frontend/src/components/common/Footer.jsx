@@ -49,7 +49,7 @@ const socials = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-zinc-800/80 bg-zinc-950">
+    <footer id="about" className="border-t border-zinc-800/80 bg-zinc-950">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-6 lg:gap-8">
           {/* Brand column */}
