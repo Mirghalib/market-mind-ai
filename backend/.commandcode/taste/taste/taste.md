@@ -1,5 +1,4 @@
 # Taste
-<<<<<<< HEAD
 - Wants the assistant to explain the folder structure and architecture *before* generating code. Confidence: 0.95
 - Prefers scaffolding projects with starter files only, explicitly deferring business logic to later stages ("create starter files only", "do not implement business logic yet"). Confidence: 0.95
 - Prefers clean, layered architecture for backend applications (clear separation of API/presentation, core/config, database, models, schemas, services, middleware). Confidence: 0.9
@@ -16,7 +15,6 @@
 - Wants logging at each pipeline stage and a clear exception hierarchy — a base error type with specific subclasses that carry context (status code, raw response, validation errors, retryable flag) so callers can catch exactly what they need. Confidence: 0.9
 - Wants runtime secrets (API keys) read from environment variables via config settings, never hardcoded in code. Confidence: 0.85
 - Wants validation to be exhaustive and structured: every missing required field reported individually (nothing silently dropped), with machine-readable details per error — dotted field path, stable error type, human message, offending value, and expected constraint — not a single generic failure message. Confidence: 0.9
-=======
 - Wants the assistant to explain the folder structure and architecture *before* generating code, and explicitly asks for file-placement explanations. Confidence: 0.95
 - Prefers scaffolding projects with starter files only, explicitly deferring business logic to later stages ("create starter files only", "do not implement business logic yet"). Confidence: 0.9
 - Prefers clean, layered architecture for backend applications (clear separation of API/presentation, core/config, database, models, schemas, services, middleware). Confidence: 0.9
@@ -52,10 +50,10 @@
 - Expects delivered migration/database tooling to come with operational usage instructions: how to run migrations, how to roll back, and how to create new migrations in the future. Confidence: 0.6
 - For file-upload features, expects multipart/form-data endpoints with strict validation: allowed extension + MIME type check (400 on unsupported), an explicit size cap (413 on oversized), UUID-based unique filenames, only the relative path persisted in the DB, and the public URL derived from a configurable base URL at response time. Confidence: 0.7
 - Uploaded files should be served statically (e.g. a `/uploads` static mount) so returned URLs actually resolve, with storage isolated behind a service layer so swapping to object storage later doesn't touch the API. Confidence: 0.6
->>>>>>> dev
 
 # --- Debugging session learnings ---
 - Wants evidence-based debugging rather than guessing: reproduce the failure first, inspect the actual project state (including library internals when needed) to confirm the root cause, then fix — explicitly instructed "Do NOT guess. Inspect the entire backend project. Perform a complete debugging session." Confidence: 0.9
 - When debugging, expects a structured fix report per issue: file name, line number, root cause, corrected code, and explanation. Confidence: 0.9
 - Expects autonomous, iterative debugging: if fixing one error reveals another, continue fixing automatically until the application starts successfully without exceptions. Confidence: 0.85
 - For dependency compatibility problems (e.g., a library incompatible with the current Python version), prefers upgrading to a compatible version over downgrading — explains why the dependency is incompatible, suggests the minimum required version, and only downgrades as a last resort. Confidence: 0.9
+
