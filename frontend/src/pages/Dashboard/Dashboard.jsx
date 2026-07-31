@@ -52,16 +52,12 @@ const chartData = [
 ]
 
 export default function Dashboard() {
-  const [submitting, setSubmitting] = useState(false)
   const [generated, setGenerated] = useState(false)
 
   const handleSubmit = (formData) => {
-    setSubmitting(true)
-    // Simulated generation — replace with your API call.
-    window.setTimeout(() => {
-      setSubmitting(false)
-      setGenerated(true)
-    }, 1200)
+    // Wire to your API here — form data is validated.
+    console.log('Strategy form data:', formData)
+    setGenerated(true)
   }
 
   return (
@@ -86,7 +82,7 @@ export default function Dashboard() {
       <div className="grid gap-6 lg:grid-cols-5">
         {/* Strategy generator */}
         <div className="lg:col-span-3">
-          <BusinessForm onSubmit={handleSubmit} submitting={submitting} />
+          <BusinessForm onSubmit={handleSubmit} />
         </div>
 
         {/* Generated results */}

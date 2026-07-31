@@ -1,6 +1,20 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
-import { Building2, Loader2, Target, Users, Wand2 } from 'lucide-react'
+import {
+  Building2,
+  CheckCircle2,
+  Globe,
+  Loader2,
+  Megaphone,
+  Package,
+  Palette,
+  Swords,
+  Target,
+  Users,
+  Wallet,
+  Wand2,
+} from 'lucide-react'
 import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import Textarea from '@/components/ui/Textarea'
@@ -18,49 +32,86 @@ export const INDUSTRIES = [
   'Other',
 ]
 
-const initialValues = {
+export const COUNTRIES = [
+  'United States',
+  'United Kingdom',
+  'Canada',
+  'Australia',
+  'Germany',
+  'France',
+  'India',
+  'Other',
+]
+
+export const BUDGETS = [
+  'Under $1,000 / mo',
+  '$1,000 – $5,000 / mo',
+  '$5,000 – $20,000 / mo',
+  '$20,000 – $50,000 / mo',
+  '$50,000+ / mo',
+]
+
+export const GOALS = [
+  'Increase brand awareness',
+  'Generate more leads',
+  'Drive online sales',
+  'Grow email list',
+  'Improve engagement',
+  'Launch a new product',
+]
+
+export const TONES = [
+  'Professional',
+  'Friendly',
+  'Bold',
+  'Playful',
+  'Luxury',
+  'Minimal',
+]
+
+const defaultValues = {
   businessName: '',
   industry: '',
+  product: '',
   targetAudience: '',
-  goals: '',
+  country: '',
+  budget: '',
+  marketingGoal: '',
+  brandTone: '',
+  competitors: '',
 }
 
-export default function BusinessForm({ onSubmit, submitting = false, className }) {
-  const [values, setValues] = useState(initialValues)
-  const [errors, setErrors] = useState({})
+export default function BusinessForm({ onSubmit, className }) {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting, isSubmitSuccessful },
+  } = useForm({ defaultValues, mode: 'onTouched' })
 
-  const handleChange = (event) => {
-    const { name, value } = event.target
-    setValues((current) => ({ ...current, [name]: value }))
-    setErrors((current) => ({ ...current, [name]: undefined }))
+  const [status, setStatus] = useState('idle') // 'idle' | 'submitting' | 'success'
+
+  const submitForm = async (data) => {
+    setStatus('submitting')
+    // Simulated async submission — wire to your API here.
+    await new Promise((resolve) => setTimeout(resolve, 1200))
+    await onSubmit?.(data)
+    setStatus('success')
   }
 
-  const handleSubmit = (event) => {
-    event.preventDefault()
-
-    const nextErrors = {}
-    if (!values.businessName.trim()) {
-      nextErrors.businessName = 'Business name is required'
-    }
-    if (!values.industry) {
-      nextErrors.industry = 'Select your industry'
-    }
-    if (!values.targetAudience.trim()) {
-      nextErrors.targetAudience = 'Describe your target audience'
-    }
-    if (!values.goals.trim()) {
-      nextErrors.goals = 'Tell us your marketing goals'
-    }
-    setErrors(nextErrors)
-
-    if (Object.keys(nextErrors).length > 0) return
-
-    onSubmit(values)
-  }
+  // Reset the form back to editable state after showing the success message.
+  useEffect(() => {
+    if (!isSubmitSuccessful) return
+    const timer = setTimeout(() => {
+      reset()
+      setStatus('idle')
+    }, 4000)
+    return () => clearTimeout(timer)
+  }, [isSubmitSuccessful, reset])
 
   return (
     <motion.form
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(submitForm)}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: 'easeOut' }}
@@ -75,7 +126,9 @@ export default function BusinessForm({ onSubmit, submitting = false, className }
           <Building2 size={19} strokeWidth={1.75} />
         </span>
         <div>
-          <h2 className="text-base font-semibold text-zinc-900 dark:text-white">Tell us about your business</h2>
+          <h2 className="text-base font-semibold text-zinc-900 dark:text-white">
+            Tell us about your business
+          </h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
             We use this to tailor your marketing strategy.
           </p>
@@ -85,20 +138,19 @@ export default function BusinessForm({ onSubmit, submitting = false, className }
       <div className="mt-6 grid gap-5 sm:grid-cols-2">
         <Input
           id="businessName"
-          name="businessName"
           label="Business name"
           placeholder="Acme Inc."
-          value={values.businessName}
-          onChange={handleChange}
-          error={errors.businessName}
+          error={errors.businessName?.message}
+          {...register('businessName', {
+            required: 'Business name is required',
+            minLength: { value: 2, message: 'Business name must be at least 2 characters' },
+          })}
         />
         <Select
           id="industry"
-          name="industry"
           label="Industry"
-          value={values.industry}
-          onChange={handleChange}
-          error={errors.industry}
+          error={errors.industry?.message}
+          {...register('industry', { required: 'Select your industry' })}
         >
           <option value="">Select industry</option>
           {INDUSTRIES.map((industry) => (
@@ -108,52 +160,152 @@ export default function BusinessForm({ onSubmit, submitting = false, className }
           ))}
         </Select>
 
-        <div className="sm:col-span-2">
-          <Textarea
-            id="targetAudience"
-            name="targetAudience"
-            label="Target audience"
-            rows={3}
-            placeholder="e.g. Small business owners in the US looking to automate their marketing"
-            value={values.targetAudience}
-            onChange={handleChange}
-            error={errors.targetAudience}
-          />
-        </div>
+        <Input
+          id="product"
+          label="Product"
+          placeholder="What are you selling?"
+          error={errors.product?.message}
+          {...register('product', {
+            required: 'Tell us about your product',
+            minLength: { value: 3, message: 'Product must be at least 3 characters' },
+          })}
+        />
 
         <div className="sm:col-span-2">
           <Textarea
-            id="goals"
-            name="goals"
-            label="Marketing goals"
+            id="targetAudience"
+            label="Target audience"
             rows={3}
-            placeholder="e.g. Increase leads by 30% and grow our email list this quarter"
-            value={values.goals}
-            onChange={handleChange}
-            error={errors.goals}
+            placeholder="e.g. Small business owners in the US looking to automate their marketing"
+            error={errors.targetAudience?.message}
+            {...register('targetAudience', {
+              required: 'Describe your target audience',
+              minLength: { value: 10, message: 'Give us a bit more detail (10+ characters)' },
+            })}
+          />
+        </div>
+
+        <Select
+          id="country"
+          label="Country"
+          error={errors.country?.message}
+          {...register('country', { required: 'Select your country' })}
+        >
+          <option value="">Select country</option>
+          {COUNTRIES.map((country) => (
+            <option key={country} value={country}>
+              {country}
+            </option>
+          ))}
+        </Select>
+        <Select
+          id="budget"
+          label="Monthly budget"
+          error={errors.budget?.message}
+          {...register('budget', { required: 'Select a budget range' })}
+        >
+          <option value="">Select budget</option>
+          {BUDGETS.map((budget) => (
+            <option key={budget} value={budget}>
+              {budget}
+            </option>
+          ))}
+        </Select>
+
+        <Select
+          id="marketingGoal"
+          label="Marketing goal"
+          error={errors.marketingGoal?.message}
+          {...register('marketingGoal', { required: 'Select a marketing goal' })}
+        >
+          <option value="">Select goal</option>
+          {GOALS.map((goal) => (
+            <option key={goal} value={goal}>
+              {goal}
+            </option>
+          ))}
+        </Select>
+        <Select
+          id="brandTone"
+          label="Brand tone"
+          error={errors.brandTone?.message}
+          {...register('brandTone', { required: 'Select a brand tone' })}
+        >
+          <option value="">Select tone</option>
+          {TONES.map((tone) => (
+            <option key={tone} value={tone}>
+              {tone}
+            </option>
+          ))}
+        </Select>
+
+        <div className="sm:col-span-2">
+          <Textarea
+            id="competitors"
+            label="Competitors"
+            rows={2}
+            placeholder="e.g. Competitor A, Competitor B (comma-separated)"
+            error={errors.competitors?.message}
+            {...register('competitors', {
+              required: 'List at least one competitor',
+              minLength: { value: 3, message: 'Competitor names must be at least 3 characters' },
+            })}
           />
         </div>
       </div>
 
+      {/* Footer */}
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        <Button type="submit" size="lg" disabled={submitting}>
-          {submitting ? (
-            <>
-              <Loader2 size={18} className="animate-spin" />
-              Generating strategy…
-            </>
-          ) : (
-            <>
-              <Wand2 size={18} />
-              Generate Strategy
-            </>
-          )}
-        </Button>
-        <p className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-          <Target size={12} />
-          <Users size={12} />
-          Your details stay private.
-        </p>
+        {status === 'success' ? (
+          <div
+            role="status"
+            className="flex w-full items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400"
+          >
+            <CheckCircle2 size={18} />
+            Strategy generated successfully! Your results are ready below.
+          </div>
+        ) : (
+          <Button type="submit" size="lg" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                Generating strategy…
+              </>
+            ) : (
+              <>
+                <Wand2 size={18} />
+                Generate Strategy
+              </>
+            )}
+          </Button>
+        )}
+        {status !== 'success' && (
+          <p className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+            <Target size={12} />
+            <Users size={12} />
+            Your details stay private.
+          </p>
+        )}
+      </div>
+
+      {/* Field legend */}
+      <div className="mt-6 grid grid-cols-2 gap-2 border-t border-zinc-100 pt-5 sm:grid-cols-3 dark:border-white/5">
+        {[
+          { icon: Package, label: 'Product' },
+          { icon: Globe, label: 'Country' },
+          { icon: Wallet, label: 'Budget' },
+          { icon: Megaphone, label: 'Goal' },
+          { icon: Palette, label: 'Tone' },
+          { icon: Swords, label: 'Competitors' },
+        ].map(({ icon: Icon, label }) => (
+          <span
+            key={label}
+            className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400"
+          >
+            <Icon size={13} className="shrink-0 text-indigo-500 dark:text-indigo-400" />
+            {label}
+          </span>
+        ))}
       </div>
     </motion.form>
   )
