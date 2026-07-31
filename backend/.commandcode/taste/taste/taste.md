@@ -1,4 +1,20 @@
 # Taste
+- Wants the assistant to explain the folder structure and architecture *before* generating code. Confidence: 0.95
+- Prefers scaffolding projects with starter files only, explicitly deferring business logic to later stages ("create starter files only", "do not implement business logic yet"). Confidence: 0.95
+- Prefers clean, layered architecture for backend applications (clear separation of API/presentation, core/config, database, models, schemas, services, middleware). Confidence: 0.9
+- Wants production-ready code even in scaffolds: pinned dependencies, env-driven config, tests, README, and a runnable/verified result. Confidence: 0.9
+- Explicitly requires deliverables to be reusable and easy to extend (lists these as hard requirements, with documented extension points like overridable templates/hooks). Confidence: 0.95
+- Wants code to be well documented — module/class docstrings covering usage examples, input/output contracts, and how to extend. Confidence: 0.9
+- Prefers pure, self-contained components with no side effects where the task allows (e.g., prompt building explicitly must make no API calls, keeping it decoupled from LLM provider I/O). Confidence: 0.7
+- Wants AI output/data contracts designed to be easy for a React frontend to render — flat top-level sections, an `id` on every array item for list keys, `title`/`description` on fields for labels/tooltips, stable enums, and table-ready shapes. Confidence: 0.9
+- Wants the AI pipeline to return structured JSON validated against strict schemas (typed contracts) rather than freeform text output — explicitly demands prompts that instruct "Return ONLY valid JSON", no markdown, no explanations outside the JSON, and following the provided response schema exactly. Confidence: 0.9
+- Frames each coding task by assigning a senior expert role to the assistant (e.g., "You are a Senior Prompt Engineer", "You are a Senior AI Engineer"). Confidence: 0.6
+- Wants the LLM system prompt and the validation logic to share a single source of truth — e.g., the response schema is loaded into the prompt module once and reused, so prompt, parser, and validator can't drift apart. Confidence: 0.8
+- Wants provider/vendor-specific code isolated behind a small abstraction (e.g., an `LLMProvider` ABC with per-vendor implementations and a factory) so swapping LLM vendors is a config change, not a code change — explicitly requires "separate provider-specific code from business logic". Confidence: 0.9
+- Wants retry logic for temporary failures: exponential backoff applied only to retryable errors (rate limits, timeouts, connection errors, 5xx), never retrying auth or bad-request failures. Confidence: 0.9
+- Wants logging at each pipeline stage and a clear exception hierarchy — a base error type with specific subclasses that carry context (status code, raw response, validation errors, retryable flag) so callers can catch exactly what they need. Confidence: 0.9
+- Wants runtime secrets (API keys) read from environment variables via config settings, never hardcoded in code. Confidence: 0.85
+- Wants validation to be exhaustive and structured: every missing required field reported individually (nothing silently dropped), with machine-readable details per error — dotted field path, stable error type, human message, offending value, and expected constraint — not a single generic failure message. Confidence: 0.9
 - Wants the assistant to explain the folder structure and architecture *before* generating code, and explicitly asks for file-placement explanations. Confidence: 0.95
 - Prefers scaffolding projects with starter files only, explicitly deferring business logic to later stages ("create starter files only", "do not implement business logic yet"). Confidence: 0.9
 - Prefers clean, layered architecture for backend applications (clear separation of API/presentation, core/config, database, models, schemas, services, middleware). Confidence: 0.9
@@ -21,7 +37,7 @@
 - Wants per-request execution time/duration and request-ID correlation included in logs as part of API observability. Confidence: 0.7
 - Prefers minimal, targeted fixes when resolving bugs: explicitly forbids removing existing endpoints, breaking API contracts, or changing unrelated architecture/business logic ("Do NOT remove either endpoint", "Do not change unrelated project architecture or business logic"). Confidence: 0.9
 - Expects an explicit explanation of exactly which files were changed and why after completing a fix or feature ("Explain every file you changed and why"). Confidence: 0.9
-- After applying fixes, expects the app to be run and verified end-to-end: no startup errors, and the affected flow working live (e.g., Swagger Authorize → token endpoint → authenticated endpoint). Confidence: 0.9
+- After applying fixes, expects the app to be run and verified end-to-end: no startup errors, and the affected flow working live (e.g., Swagger Authorize → token endpoint → authenticated endpoint); for startup issues specifically, requires `python -m compileall app` plus a real `uvicorn main:app --reload` boot that responds. Confidence: 0.95
 - Prefers Swagger UI authentication via HTTP Bearer with a single "Value" field for pasting a JWT over the OAuth2 password-flow dialog (username/password/client_id/client_secret) — explicitly requested and enforced ("I do NOT want Swagger UI to use OAuth2 Password Flow"). Confidence: 0.95
 - Keeps endpoint changes non-breaking and backwards-compatible when refactoring auth: leaves the JSON login and the legacy form `/token` endpoint intact (hidden from docs) while switching the Swagger scheme. Confidence: 0.9
 - Wants a regression test asserting the OpenAPI security scheme (e.g., `HTTPBearer` present, no OAuth2 flows) so the Swagger config can't silently drift. Confidence: 0.85
@@ -34,3 +50,10 @@
 - Expects delivered migration/database tooling to come with operational usage instructions: how to run migrations, how to roll back, and how to create new migrations in the future. Confidence: 0.6
 - For file-upload features, expects multipart/form-data endpoints with strict validation: allowed extension + MIME type check (400 on unsupported), an explicit size cap (413 on oversized), UUID-based unique filenames, only the relative path persisted in the DB, and the public URL derived from a configurable base URL at response time. Confidence: 0.7
 - Uploaded files should be served statically (e.g. a `/uploads` static mount) so returned URLs actually resolve, with storage isolated behind a service layer so swapping to object storage later doesn't touch the API. Confidence: 0.6
+
+# --- Debugging session learnings ---
+- Wants evidence-based debugging rather than guessing: reproduce the failure first, inspect the actual project state (including library internals when needed) to confirm the root cause, then fix — explicitly instructed "Do NOT guess. Inspect the entire backend project. Perform a complete debugging session." Confidence: 0.9
+- When debugging, expects a structured fix report per issue: file name, line number, root cause, corrected code, and explanation. Confidence: 0.9
+- Expects autonomous, iterative debugging: if fixing one error reveals another, continue fixing automatically until the application starts successfully without exceptions. Confidence: 0.85
+- For dependency compatibility problems (e.g., a library incompatible with the current Python version), prefers upgrading to a compatible version over downgrading — explains why the dependency is incompatible, suggests the minimum required version, and only downgrades as a last resort. Confidence: 0.9
+
