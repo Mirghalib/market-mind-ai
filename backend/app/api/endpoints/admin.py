@@ -41,6 +41,7 @@ from app.services.invitation_service import (
     DuplicateInviteError,
     InvitationService,
 )
+from app.services.profile_image_service import profile_image_url
 from app.services.user_service import EmailAlreadyRegisteredError
 
 router = APIRouter()
@@ -64,7 +65,7 @@ def _to_admin_item(user: User, aggregates: dict) -> AdminUserItem:
         full_name=user.full_name,
         is_active=user.is_active,
         role_name=user.role_name,
-        profile_image=user.profile_image,
+        profile_image=profile_image_url(user.profile_image),
         created_at=user.created_at,
         updated_at=user.updated_at,
         last_login_at=user.last_login_at,

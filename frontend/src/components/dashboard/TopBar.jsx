@@ -29,7 +29,7 @@ export default function TopBar({
   userRole,
   className,
 }) {
-  const { userName: authName, role: authRole, logout } = useAuth()
+  const { userName: authName, role: authRole, profileImage, logout } = useAuth()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [openMenu, setOpenMenu] = useState(null) // 'notifications' | 'profile' | null
@@ -37,6 +37,7 @@ export default function TopBar({
 
   const displayName = userName ?? authName ?? 'User'
   const displayRole = userRole ?? authRole ?? 'Member'
+  const displayImage = profileImage
 
   // Close menus on outside click / Escape
   useEffect(() => {
@@ -190,14 +191,22 @@ export default function TopBar({
             aria-expanded={openMenu === 'profile'}
             className={cn('flex items-center gap-2.5 rounded-xl p-1.5 pr-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800' )}
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 text-xs font-semibold text-white">
-              {displayName
-                .split(' ')
-                .map((part) => part[0])
-                .slice(0, 2)
-                .join('')
-                .toUpperCase()}
-            </span>
+            {displayImage ? (
+              <img
+                src={displayImage}
+                alt={displayName}
+                className="h-8 w-8 shrink-0 rounded-lg object-cover"
+              />
+            ) : (
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 text-xs font-semibold text-white">
+                {displayName
+                  .split(' ')
+                  .map((part) => part[0])
+                  .slice(0, 2)
+                  .join('')
+                  .toUpperCase()}
+              </span>
+            )}
             <span className="hidden text-left sm:block">
               <span className="block max-w-32 truncate text-sm font-medium text-foreground dark:text-white">
                 {displayName}
@@ -223,13 +232,22 @@ export default function TopBar({
                 transition={{ duration: 0.18, ease: 'easeOut' }}
                 className="absolute right-0 mt-2 w-56 origin-top-right overflow-hidden rounded-2xl border border-border bg-card py-1.5 shadow-xl shadow-black/10 dark:border-zinc-700 dark:bg-zinc-900 dark:shadow-black/40"
               >
-                <div className="border-b border-border px-4 py-3 dark:border-zinc-800">
-                  <p className="text-sm font-semibold text-foreground dark:text-white">
-                    {displayName}
-                  </p>
-                  <p className="text-xs capitalize text-muted-foreground dark:text-zinc-400">
-                    {displayRole}
-                  </p>
+                <div className="flex items-center gap-3 border-b border-border px-4 py-3 dark:border-zinc-800">
+                  {displayImage && (
+                    <img
+                      src={displayImage}
+                      alt={displayName}
+                      className="h-9 w-9 shrink-0 rounded-full object-cover"
+                    />
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground dark:text-white">
+                      {displayName}
+                    </p>
+                    <p className="truncate text-xs capitalize text-muted-foreground dark:text-zinc-400">
+                      {displayRole}
+                    </p>
+                  </div>
                 </div>
                 <div className="py-1">
                   {[

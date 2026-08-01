@@ -17,6 +17,7 @@ from app.models.marketing_strategy import MarketingStrategy
 from app.models.project import Project
 from app.models.role import Role
 from app.models.user import User
+from app.services.profile_image_service import profile_image_url
 
 
 class UserNotFoundError(Exception):
@@ -142,7 +143,7 @@ class AdminService:
                     "full_name": user.full_name,
                     "is_active": user.is_active,
                     "role_name": user.role_name,
-                    "profile_image": user.profile_image,
+                    "profile_image": profile_image_url(user.profile_image),
                     "created_at": user.created_at,
                     "updated_at": user.updated_at,
                     "last_login_at": user.last_login_at,

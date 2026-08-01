@@ -515,15 +515,15 @@ export default function AdminHistory() {
 
             <div className="flex flex-wrap justify-end gap-3 pt-1">
               {detailRow.file_url && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  to={detailRow.file_url}
-                  className="inline-flex items-center gap-1.5"
+                <a
+                  href={detailRow.file_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-border px-4 text-sm font-medium text-foreground transition-all duration-200 hover:bg-muted dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
                 >
                   <ExternalLink size={14} />
                   Open file
-                </Button>
+                </a>
               )}
               <Button variant="outline" size="sm" onClick={() => handleDownload(detailRow)}>
                 {downloadingId === detailRow.id ? (

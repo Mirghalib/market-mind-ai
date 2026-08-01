@@ -27,7 +27,7 @@ const COLLAPSED_WIDTH = 72
 
 export default function Sidebar({ mobileOpen, onOpenChange }) {
   const [collapsed, setCollapsed] = useState(false)
-  const { role, logout } = useAuth()
+  const { role, userName, profileImage, logout } = useAuth()
   const navigate = useNavigate()
 
   const isAdmin = role === 'admin'
@@ -59,9 +59,17 @@ export default function Sidebar({ mobileOpen, onOpenChange }) {
             </span>
           ) : (
             <div className="flex flex-1 items-center gap-2.5 overflow-hidden">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/25">
-                <Sparkles size={17} className="text-white" />
-              </span>
+              {profileImage ? (
+                <img
+                  src={profileImage}
+                  alt={userName ?? 'Profile'}
+                  className="h-9 w-9 shrink-0 rounded-xl object-cover"
+                />
+              ) : (
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/25">
+                  <Sparkles size={17} className="text-white" />
+                </span>
+              )}
               <span className="truncate text-sm font-semibold tracking-tight text-foreground dark:text-white">
                 {APP_NAME}
               </span>
@@ -177,9 +185,17 @@ export default function Sidebar({ mobileOpen, onOpenChange }) {
             >
               <div className="flex h-16 shrink-0 items-center justify-between border-b border-border px-4 transition-colors dark:border-zinc-800">
                 <div className="flex items-center gap-2.5">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/25">
-                    <Sparkles size={17} className="text-white" />
-                  </span>
+                  {profileImage ? (
+                    <img
+                      src={profileImage}
+                      alt={userName ?? 'Profile'}
+                      className="h-9 w-9 shrink-0 rounded-xl object-cover"
+                    />
+                  ) : (
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/25">
+                      <Sparkles size={17} className="text-white" />
+                    </span>
+                  )}
                   <span className="text-sm font-semibold tracking-tight text-foreground dark:text-white">
                     {APP_NAME}
                   </span>

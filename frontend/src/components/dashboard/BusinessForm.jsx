@@ -92,13 +92,18 @@ export default function BusinessForm({ onSubmit, loading = false, className, foc
   } = useForm({ defaultValues, mode: 'onTouched' })
 
   const [status, setStatus] = useState('idle') // 'idle' | 'submitting' | 'success'
+  const [highlighted, setHighlighted] = useState(false)
 
   // When the top "Generate Strategy" CTA is clicked, the dashboard
-  // scrolls here and bumps `focusKey` so the first input takes focus.
+  // scrolls here, bumps `focusKey`, focuses the first input and briefly
+  // highlights the card so the user knows where to start.
   useEffect(() => {
     if (!focusKey) return
     const el = document.getElementById('businessName')
     el?.focus({ preventScroll: true })
+    setHighlighted(true)
+    const timer = window.setTimeout(() => setHighlighted(false), 1600)
+    return () => window.clearTimeout(timer)
   }, [focusKey])
 
   const submitForm = async (data) => {
@@ -125,9 +130,19 @@ export default function BusinessForm({ onSubmit, loading = false, className, foc
     <motion.form
       onSubmit={handleSubmit(submitForm)}
       initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: 'easeOut' }}
-      className={cn('rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur' ,
+      animate={{
+        opacity: 1,
+        y: 0,
+        boxShadow: highlighted
+          ? '0 0 0 3px var(--color-accent-500), 0 8px 30px -6px rgba(99,102,241,0.35)'
+          : '0 0 0 0px rgba(99,102,241,0)',
+      }}
+      transition={{ duration: highlighted ? 0.35 : 0.45, ease: 'easeOut' }}
+      className={cn(
+        'rounded-2xl border bg-card p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-lg dark:shadow-black/20 dark:backdrop-blur',
+        highlighted
+          ? 'border-accent-500/70 ring-2 ring-accent-500/40'
+          : 'border-border',
         className
       )}
       noValidate

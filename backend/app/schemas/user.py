@@ -3,6 +3,9 @@ import uuid
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic.functional_serializers import field_serializer
+
+from app.core.config import settings
 
 
 class UserCreate(BaseModel):
@@ -25,6 +28,16 @@ class UserRead(BaseModel):
     last_login_at: datetime | None = None
     is_email_verified: bool = False
     email_verified_at: datetime | None = None
+
+    @field_serializer("profile_image")
+    def _profile_image_url(self, value: str | None) -> str | None:
+        """Expose the stored relative path as a publicly reachable URL."""
+        if not value:
+            return None
+        if value.startswith(("http://", "https://")):
+            return value
+        base = settings.PUBLIC_BASE_URL.rstrip("/")
+        return f"{base}/{value}"
 
 
 class UserUpdateProfile(BaseModel):

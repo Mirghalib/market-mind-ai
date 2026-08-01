@@ -49,7 +49,7 @@ export default function Button({
 
   if (to) {
     return (
-      <Link to={to} className={classes}>
+      <Link to={to} className={classes} {...props}>
         {content}
       </Link>
     )

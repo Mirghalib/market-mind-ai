@@ -56,6 +56,13 @@ export default function ProfileForm() {
   const [status, setStatus] = useState(null) // { type: 'success' | 'error', message }
   const inputRef = useRef(null)
 
+  // Keep the preview in sync when the context hydrates/refreshes the
+  // profile image (e.g. after login or a page refresh on this route).
+  useEffect(() => {
+    const latest = user?.profileImage ?? user?.avatar ?? ''
+    setAvatarUrl((current) => current || latest)
+  }, [user?.profileImage, user?.avatar])
+
   // Revoke object URLs to avoid memory leaks.
   useEffect(() => {
     return () => {
