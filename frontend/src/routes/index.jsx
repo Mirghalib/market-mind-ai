@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import DashboardLayout from '@/layouts/DashboardLayout'
 import ProtectedRoute from './ProtectedRoute'
 import Loader from '@/components/ui/Loader'
+import { useAuth } from '@/context/AuthContext'
 
 // Code-split every page so the initial bundle stays lean.
 const Landing = lazy(() => import('@/pages/Landing/Landing'))
@@ -13,6 +14,7 @@ const Dashboard = lazy(() => import('@/pages/Dashboard/Dashboard'))
 const History = lazy(() => import('@/pages/History/History'))
 const Settings = lazy(() => import('@/pages/Settings/Settings'))
 const AdminDashboard = lazy(() => import('@/pages/Admin/AdminDashboard'))
+const AdminHistory = lazy(() => import('@/pages/Admin/AdminHistory'))
 
 function PageLoader() {
   return (
@@ -20,6 +22,15 @@ function PageLoader() {
       <Loader size="lg" />
     </div>
   )
+}
+
+/**
+ * The History route is shared by both roles but renders a completely
+ * different page for admins (all-platform exports vs personal history).
+ */
+function RoleHistory() {
+  const { role } = useAuth()
+  return role === 'admin' ? <AdminHistory /> : <History />
 }
 
 export default function AppRoutes() {
@@ -35,7 +46,7 @@ export default function AppRoutes() {
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/history" element={<History />} />
+            <Route path="/history" element={<RoleHistory />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
         </Route>

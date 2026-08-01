@@ -2,11 +2,13 @@
 import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core.config import settings
 from app.core.security import hash_password
 from app.models.export import Export
 from app.models.generation_history import GenerationHistory
@@ -118,7 +120,41 @@ class AdminService:
             "strategy_success": await self._strategy_success(),
             "ai_requests_today": ai_requests_today,
             "recent_activity": await self._recent_activity(),
+            "latest_users": await self.latest_users(limit=6),
         }
+
+    async def latest_users(self, limit: int = 6) -> list[dict]:
+        """Newest registered users, with per-user aggregates."""
+        result = await self.db.execute(
+            select(User)
+            .options(selectinload(User.role))
+            .where(User.deleted_at.is_(None))
+            .order_by(User.created_at.desc())
+            .limit(limit)
+        )
+        items = []
+        for user in result.scalars().all():
+            agg = await self.user_aggregates(user.id)
+            items.append(
+                {
+                    "id": str(user.id),
+                    "email": user.email,
+                    "full_name": user.full_name,
+                    "is_active": user.is_active,
+                    "role_name": user.role_name,
+                    "profile_image": user.profile_image,
+                    "created_at": user.created_at,
+                    "updated_at": user.updated_at,
+                    "last_login_at": user.last_login_at,
+                    "is_email_verified": user.is_email_verified,
+                    "email_verified_at": user.email_verified_at,
+                    "total_strategies": agg.get("total_strategies", 0),
+                    "total_exports": agg.get("total_exports", 0),
+                    "total_projects": agg.get("total_projects", 0),
+                    "storage_used": agg.get("storage_used", 0),
+                }
+            )
+        return items
 
     async def _growth(self) -> dict[str, float | None]:
         """30-day % change for the headline cards.
@@ -567,5 +603,129 @@ class AdminService:
         if strategy is None:
             return False
         await self.db.delete(strategy)
+        await self.db.commit()
+        return True
+
+    # --- Exports (admin) ---------------------------------------------------
+
+    async def list_all_exports(
+        self,
+        *,
+        search: str | None = None,
+        export_format: str | None = None,
+        date_from: datetime | None = None,
+        date_to: datetime | None = None,
+        sort_dir: str = "desc",
+        limit: int = 20,
+        offset: int = 0,
+    ) -> tuple[list[dict], int]:
+        """Return (rows, total) of every export across all users.
+
+        Rows are joined through strategy -> project -> user so the admin
+        history page can show the owning user, strategy title, format,
+        status and (where available) the file size on disk.
+        """
+        filters = []
+        if search:
+            pattern = f"%{search.lower()}%"
+            filters.append(
+                or_(
+                    func.lower(User.email).like(pattern),
+                    func.lower(User.full_name).like(pattern),
+                    func.lower(MarketingStrategy.name).like(pattern),
+                )
+            )
+        if export_format:
+            filters.append(Export.format == export_format)
+        if date_from is not None:
+            filters.append(Export.created_at >= date_from)
+        if date_to is not None:
+            filters.append(Export.created_at <= date_to)
+
+        base = (
+            select(Export)
+            .join(Export.strategy)
+            .join(MarketingStrategy.project)
+            .join(Project.user)
+            .options(
+                selectinload(Export.strategy).selectinload(
+                    MarketingStrategy.project
+                ).selectinload(Project.user)
+            )
+        )
+        total = await self.db.scalar(
+            select(func.count(Export.id)).join(Export.strategy).join(
+                MarketingStrategy.project
+            ).join(Project.user).where(*filters)
+        )
+
+        column = Export.created_at
+        order = column.desc() if sort_dir == "desc" else column.asc()
+        result = await self.db.execute(
+            base.where(*filters).order_by(order, Export.id.desc()).limit(limit).offset(offset)
+        )
+        exports = list(result.scalars().all())
+
+        rows = []
+        for export in exports:
+            user = (
+                export.strategy.project.user
+                if export.strategy and export.strategy.project
+                else None
+            )
+            rows.append(
+                {
+                    "id": export.id,
+                    "strategy_id": export.strategy_id,
+                    "strategy_name": export.strategy.name if export.strategy else None,
+                    "format": export.format.value,
+                    "status": export.status.value,
+                    "file_key": export.file_key,
+                    "file_url": export.file_url,
+                    "file_size": self._export_file_size(export),
+                    "created_at": export.created_at,
+                    "user_id": user.id if user else None,
+                    "user_name": user.full_name if user else None,
+                    "user_email": user.email if user else None,
+                }
+            )
+        return rows, total or 0
+
+    @staticmethod
+    def _export_file_size(export: Export) -> int | None:
+        """Byte size of the rendered file on disk, if present."""
+        if not export.file_key:
+            return None
+        path = Path(settings.EXPORT_DIR) / export.file_key
+        try:
+            if path.is_file():
+                return path.stat().st_size
+        except OSError:
+            return None
+        return None
+
+    async def get_export_for_admin(self, export_id: uuid.UUID) -> Export | None:
+        """Load a single export regardless of owner (admin only)."""
+        result = await self.db.execute(
+            select(Export)
+            .join(Export.strategy)
+            .options(selectinload(Export.strategy))
+            .where(Export.id == export_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def delete_export(self, export_id: uuid.UUID) -> bool:
+        """Permanently delete an export record and its file on disk."""
+        export = await self.db.get(Export, export_id)
+        if export is None:
+            return False
+        if export.file_key:
+            path = Path(settings.EXPORT_DIR) / export.file_key
+            try:
+                if path.is_file():
+                    path.unlink()
+            except OSError:
+                pass
+        await self.db.delete(export)
         await self.db.commit()
         return True

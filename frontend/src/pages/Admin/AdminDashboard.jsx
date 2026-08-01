@@ -788,6 +788,7 @@ export default function AdminDashboard() {
   const topUsers = analytics?.top_users ?? []
   const strategyTrend = analytics?.strategy_trend ?? []
   const activityEvents = analytics?.recent_activity ?? []
+  const latestUsers = analytics?.latest_users ?? []
 
   const handleExportAnalytics = () => {
     const ok = exportAnalyticsCsv(analytics)
@@ -989,16 +990,66 @@ export default function AdminDashboard() {
               </AdminChartCard>
             </div>
 
-            {/* Recent activity */}
-            <AdminChartCard title="Recent activity" subtitle="Latest platform events" delay={0.3}>
-              {activityEvents.length > 0 ? (
-                <RecentActivity events={activityEvents} />
-              ) : (
-                <p className="py-10 text-center text-sm text-muted-foreground dark:text-zinc-400">
-                  No activity yet.
-                </p>
-              )}
-            </AdminChartCard>
+            {/* Recent activity + Latest users */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              <AdminChartCard title="Recent activity" subtitle="Latest platform events" delay={0.3}>
+                {activityEvents.length > 0 ? (
+                  <RecentActivity events={activityEvents} />
+                ) : (
+                  <p className="py-10 text-center text-sm text-muted-foreground dark:text-zinc-400">
+                    No activity yet.
+                  </p>
+                )}
+              </AdminChartCard>
+
+              <AdminChartCard title="Latest users" subtitle="Newest registrations" delay={0.35}>
+                {latestUsers.length > 0 ? (
+                  <ul className="space-y-1">
+                    {latestUsers.map((user) => (
+                      <li
+                        key={user.id}
+                        className="flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-muted/50 dark:hover:bg-white/[0.02]"
+                      >
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-xs font-semibold text-white">
+                          {(user.full_name || user.email || '?')
+                            .split(' ')
+                            .map((p) => p[0])
+                            .slice(0, 2)
+                            .join('')
+                            .toUpperCase()}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-foreground dark:text-zinc-200">
+                            {user.full_name || '—'}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground dark:text-zinc-500">
+                            {user.email}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 flex-col items-end gap-0.5">
+                          <Badge
+                            variant={
+                              user.is_active
+                                ? 'success'
+                                : 'danger'
+                            }
+                          >
+                            {user.is_active ? 'Active' : 'Blocked'}
+                          </Badge>
+                          <span className="text-[10px] text-muted-foreground dark:text-zinc-500">
+                            {formatDate(user.created_at)}
+                          </span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="py-10 text-center text-sm text-muted-foreground dark:text-zinc-400">
+                    No users yet.
+                  </p>
+                )}
+              </AdminChartCard>
+            </div>
           </>
         ) : (
           !error && (

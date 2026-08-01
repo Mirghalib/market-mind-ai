@@ -30,6 +30,7 @@ class AdminAnalytics(BaseModel):
     strategy_success: list[ChartPoint]
     ai_requests_today: int
     recent_activity: list[ActivityEvent]
+    latest_users: list[AdminUserItem]
 
 
 class ActivityEvent(BaseModel):
@@ -161,6 +162,31 @@ class StrategyRead(BaseModel):
 class AdminStrategiesResponse(BaseModel):
     items: list[StrategyRead]
     total: int
+
+
+class AdminExportItem(BaseModel):
+    """An export row for the admin history page (all users)."""
+
+    id: uuid.UUID
+    strategy_id: uuid.UUID
+    strategy_name: str | None
+    format: str
+    status: str
+    file_key: str | None
+    file_url: str | None
+    file_size: int | None
+    created_at: datetime
+    user_id: uuid.UUID | None
+    user_name: str | None
+    user_email: str | None
+
+
+class AdminExportsResponse(BaseModel):
+    items: list[AdminExportItem]
+    total: int
+    limit: int
+    offset: int
+    has_more: bool
 
 
 class ProfileResponse(BaseModel):

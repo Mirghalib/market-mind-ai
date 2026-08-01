@@ -21,4 +21,6 @@ export const DASHBOARD_LINKS = [
 
 export const ADMIN_LINKS = [
   { label: 'Admin Dashboard', href: '/admin/dashboard', icon: 'Shield' },
+  { label: 'History', href: '/history', icon: 'History' },
+  { label: 'Settings', href: '/settings', icon: 'Settings' },
 ]

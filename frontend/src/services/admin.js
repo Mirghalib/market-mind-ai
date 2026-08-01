@@ -47,6 +47,15 @@ export const adminService = {
   /** GET /admin/strategies — all strategies. */
   getStrategies: () => api.get('/admin/strategies'),
 
+  /** GET /admin/exports — all exports across users (search/filter/sort/pagination). */
+  getExports: (params) => api.get('/admin/exports', { params }),
+
+  /** GET /admin/exports/{id}/download — download any export (blob). */
+  downloadExport: (id) => api.get(`/admin/exports/${id}/download`, { responseType: 'blob' }),
+
+  /** DELETE /admin/exports/{id} — permanently delete an export. */
+  deleteExport: (id) => api.delete(`/admin/exports/${id}`),
+
   /** GET /admin/analytics — full platform analytics (stats, charts, activity). */
   getAnalytics: () => api.get('/admin/analytics'),
 

@@ -104,3 +104,89 @@ async def test_admin_analytics_requires_admin(seeded_app_client, db_session) -> 
 
     response = await seeded_app_client.get("/admin/analytics", headers=headers)
     assert response.status_code == 403
+
+
+# --- Admin exports (history) -----------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_admin_list_exports(seeded_app_client, db_session) -> None:
+    user = await _create_user(db_session, f"exp-{uuid.uuid4().hex[:8]}@example.com")
+    strategy = await _make_strategy(db_session, user, "Export List Strategy")
+    db_session.add(
+        Export(
+            strategy_id=strategy.id,
+            format=ExportFormat.PDF,
+            status=ExportStatus.COMPLETED,
+        )
+    )
+    await db_session.commit()
+
+    headers = await _admin_login(seeded_app_client)
+    response = await seeded_app_client.get("/admin/exports", headers=headers)
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["total"] >= 1
+    assert body["items"][0]["user_email"] == user.email
+    assert body["items"][0]["strategy_name"] == "Export List Strategy"
+    assert body["items"][0]["format"] == "pdf"
+    assert body["items"][0]["status"] == "completed"
+
+    # Filter by format.
+    filtered = await seeded_app_client.get(
+        "/admin/exports", params={"export_format": "pdf"}, headers=headers
+    )
+    assert filtered.status_code == 200
+    assert filtered.json()["total"] >= 1
+
+    # Search by user email.
+    searched = await seeded_app_client.get(
+        "/admin/exports", params={"search": user.email}, headers=headers
+    )
+    assert searched.status_code == 200
+    assert searched.json()["total"] >= 1
+
+
+@pytest.mark.asyncio
+async def test_admin_delete_export(seeded_app_client, db_session) -> None:
+    user = await _create_user(db_session, f"del-{uuid.uuid4().hex[:8]}@example.com")
+    strategy = await _make_strategy(db_session, user, "Delete Export Strategy")
+    db_session.add(
+        Export(
+            strategy_id=strategy.id,
+            format=ExportFormat.DOCX,
+            status=ExportStatus.COMPLETED,
+        )
+    )
+    await db_session.commit()
+
+    from sqlalchemy import select as sa_select
+
+    export = (
+        await db_session.execute(sa_select(Export).limit(1))
+    ).scalar_one()
+
+    headers = await _admin_login(seeded_app_client)
+    deleted = await seeded_app_client.delete(
+        f"/admin/exports/{export.id}", headers=headers
+    )
+    assert deleted.status_code == 204
+
+    # The record is gone.
+    remaining = await db_session.scalar(
+        sa_select(Export).where(Export.id == export.id)
+    )
+    assert remaining is None
+
+
+@pytest.mark.asyncio
+async def test_admin_exports_requires_admin(seeded_app_client, db_session) -> None:
+    user = await _create_user(db_session, "exp-user@example.com")
+    login = await seeded_app_client.post(
+        "/auth/login", json={"email": user.email, "password": "supersecret"}
+    )
+    assert login.status_code == 200
+    headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+
+    response = await seeded_app_client.get("/admin/exports", headers=headers)
+    assert response.status_code == 403

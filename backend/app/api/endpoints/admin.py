@@ -1,9 +1,12 @@
 """Admin dashboard endpoints — restricted to the admin role."""
 import logging
 import uuid
+from datetime import datetime
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -18,6 +21,8 @@ from app.models.user import User
 from app.schemas.dashboard import (
     AdminAnalytics,
     AdminDashboardStats,
+    AdminExportItem,
+    AdminExportsResponse,
     AdminStrategiesResponse,
     AdminUserCreate,
     AdminUserItem,
@@ -549,4 +554,101 @@ async def admin_delete_strategy(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Strategy not found",
+        )
+
+
+# --- Exports (admin) -------------------------------------------------------
+
+
+@router.get(
+    "/exports",
+    response_model=AdminExportsResponse,
+    summary="List every export across all users",
+)
+async def admin_list_exports(
+    _: AdminRole,
+    __: ViewAnalytics,
+    db: DbDep,
+    search: str | None = Query(default=None),
+    export_format: str | None = Query(default=None, description="pdf|docx|pptx|markdown|html|json"),
+    date_from: datetime | None = Query(default=None),
+    date_to: datetime | None = Query(default=None),
+    sort_dir: str = Query(default="desc", pattern="^(asc|desc)$"),
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+) -> AdminExportsResponse:
+    """Return every export on the platform, newest first (admin only)."""
+    service = AdminService(db)
+    rows, total = await service.list_all_exports(
+        search=search,
+        export_format=export_format,
+        date_from=date_from,
+        date_to=date_to,
+        sort_dir=sort_dir,
+        limit=limit,
+        offset=offset,
+    )
+    return AdminExportsResponse(
+        items=[AdminExportItem(**row) for row in rows],
+        total=total,
+        limit=limit,
+        offset=offset,
+        has_more=offset + len(rows) < total,
+    )
+
+
+@router.get(
+    "/exports/{export_id}/download",
+    summary="Download any export file (admin only)",
+)
+async def admin_download_export(
+    export_id: uuid.UUID,
+    _: AdminRole,
+    __: ViewAnalytics,
+    db: DbDep,
+) -> FileResponse:
+    """Stream the rendered file for any export on the platform."""
+    service = AdminService(db)
+    export = await service.get_export_for_admin(export_id)
+    if export is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Export not found",
+        )
+    if not export.file_key:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Export file is missing",
+        )
+    file_path = Path(settings.EXPORT_DIR) / export.file_key
+    if not file_path.is_file():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Export file is missing",
+        )
+    name = export.strategy.name if export.strategy else "strategy"
+    return FileResponse(
+        path=str(file_path),
+        filename=f"{name}-{export.format.value}.{file_path.suffix.lstrip('.')}",
+        media_type="application/octet-stream",
+    )
+
+
+@router.delete(
+    "/exports/{export_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Permanently delete an export (admin only)",
+)
+async def admin_delete_export(
+    export_id: uuid.UUID,
+    _: AdminRole,
+    __: ViewAnalytics,
+    db: DbDep,
+) -> None:
+    """Permanently delete an export record and its file on disk."""
+    deleted = await AdminService(db).delete_export(export_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Export not found",
         )

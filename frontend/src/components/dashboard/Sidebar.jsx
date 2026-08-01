@@ -31,7 +31,7 @@ export default function Sidebar({ mobileOpen, onOpenChange }) {
   const navigate = useNavigate()
 
   const isAdmin = role === 'admin'
-  const links = isAdmin ? [...DASHBOARD_LINKS, ...ADMIN_LINKS] : DASHBOARD_LINKS
+  const links = isAdmin ? ADMIN_LINKS : DASHBOARD_LINKS
 
   const closeMobile = () => onOpenChange?.(false)
 
