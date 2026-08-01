@@ -83,7 +83,7 @@ const defaultValues = {
   competitors: '',
 }
 
-export default function BusinessForm({ onSubmit, loading = false, className }) {
+export default function BusinessForm({ onSubmit, loading = false, className, focusKey }) {
   const {
     register,
     handleSubmit,
@@ -92,6 +92,14 @@ export default function BusinessForm({ onSubmit, loading = false, className }) {
   } = useForm({ defaultValues, mode: 'onTouched' })
 
   const [status, setStatus] = useState('idle') // 'idle' | 'submitting' | 'success'
+
+  // When the top "Generate Strategy" CTA is clicked, the dashboard
+  // scrolls here and bumps `focusKey` so the first input takes focus.
+  useEffect(() => {
+    if (!focusKey) return
+    const el = document.getElementById('businessName')
+    el?.focus({ preventScroll: true })
+  }, [focusKey])
 
   const submitForm = async (data) => {
     setStatus('submitting')

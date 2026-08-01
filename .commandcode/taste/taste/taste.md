@@ -14,6 +14,9 @@
 - When implementing a feature, prefers to clarify consequential design decisions upfront (via targeted questions with recommended options) before writing the plan, then proceeds with the confirmed choices. Confidence: 0.7
 - Expects a designed, stakeholder-presentable artifact for any user-facing deliverable: cover page with logo, professional typography, corporate color palette, headers/footers and page numbers, visual elements (tables, charts, progress bars, summary cards), and every reported metric tied to a real, computed source. Confidence: 0.8
 - Prefers feature rollouts to be fully end-to-end verified by the implementer, not just delivered: run the backend test suite, build the frontend, exercise each new action (including loading and error states), and confirm generated files actually open/work. Confidence: 0.8
+- Maintains responsive design as a hard requirement: layouts must work and be explicitly verified on desktop, tablet, and mobile. Confidence: 0.7
+- Prefers role-differentiated dashboards — admins get platform analytics and must never have business-user features (e.g. strategy generation); user dashboards stay business workspaces; no duplicated layouts across roles. Confidence: 0.7
+- Likes polished, animated analytics widgets for dashboards: icon, animated count-up, growth indicator, tooltip, and hover/entrance animations. Confidence: 0.5
 - Expects configuration and secrets (e.g., SMTP credentials, sender accounts) to be driven by environment variables (.env), never hardcoded in code — and for newly added .env variables to be documented so they can be supplied at deploy time. Confidence: 0.7
 - Wants global, token-driven theming: every page (landing, auth, dashboard, admin, history, strategy views) must respond instantly to Light/Dark/custom theme changes through a shared theme provider, with hardcoded color classes eliminated everywhere. Confidence: 0.8
 tates), and confirm generated files actually open/work. Confidence: 0.8

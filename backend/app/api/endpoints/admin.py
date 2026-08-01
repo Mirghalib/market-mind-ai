@@ -16,6 +16,7 @@ from app.dependencies.role_checker import RequireRole
 from app.models.role import Role
 from app.models.user import User
 from app.schemas.dashboard import (
+    AdminAnalytics,
     AdminDashboardStats,
     AdminStrategiesResponse,
     AdminUserCreate,
@@ -512,16 +513,23 @@ async def admin_list_strategies(
 
 @router.get(
     "/analytics",
+    response_model=AdminAnalytics,
     summary="Platform analytics aggregates",
 )
 async def admin_analytics(
     _: AdminRole,
     __: ViewAnalytics,
     db: DbDep,
-) -> dict[str, int]:
-    """Return analytics aggregates."""
-    stats = await AdminService(db).dashboard_stats()
-    return {"generations": stats["total_generations"], "exports": stats["total_exports"]}
+) -> AdminAnalytics:
+    """Return the full platform analytics payload (admin only).
+
+    Includes stat cards, every chart series (strategies over time,
+    export formats, user status, top users, monthly registrations,
+    strategy success) and a merged recent-activity feed. All values
+    come from real database rows.
+    """
+    payload = await AdminService(db).platform_analytics()
+    return AdminAnalytics(**payload)
 
 
 @router.delete(

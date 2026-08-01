@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Activity,
   Ban,
   CheckCircle2,
   Copy,
-  FileText,
+  Cpu,
+  FileDown,
   KeyRound,
   Loader2,
   Mail,
@@ -12,24 +12,47 @@ import {
   RefreshCw,
   Search,
   Shield,
+  Sparkles,
   Trash2,
-  TrendingUp,
+  UserCheck,
   UserCog,
   UserPlus,
   Users,
-  XCircle,
 } from 'lucide-react'
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
-import StatsCard from '@/components/dashboard/StatsCard'
 import Loader from '@/components/ui/Loader'
 import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
+import {
+  AdminChartCard,
+  AdminStatCard,
+  QuickActions,
+  RecentActivity,
+} from '@/components/admin'
+import {
+  AreaChart,
+  BarChart,
+  DonutChart,
+  LineChart,
+  PieChart,
+} from '@/components/dashboard/Charts'
 import { useAuth } from '@/context/AuthContext'
+import { useToast } from '@/context/ToastContext'
 import { adminService } from '@/services/admin'
+import { exportAnalyticsCsv } from '@/utils/analyticsCsv'
 import { cn } from '@/utils/cn'
 
 const PAGE_SIZE = 10
+
+const CHART_COLORS = {
+  indigo: '#6366f1',
+  purple: '#a855f7',
+  cyan: '#06b6d4',
+  emerald: '#10b981',
+  amber: '#f59e0b',
+  rose: '#f43f5e',
+}
 
 function errorMessage(err, fallback) {
   return (
@@ -47,18 +70,6 @@ function formatDate(value) {
     day: 'numeric',
     year: 'numeric',
   })
-}
-
-function formatBytes(bytes) {
-  if (!bytes) return '0 B'
-  const units = ['B', 'KB', 'MB', 'GB']
-  let i = 0
-  let value = bytes
-  while (value >= 1024 && i < units.length - 1) {
-    value /= 1024
-    i += 1
-  }
-  return `${value.toFixed(1)} ${units[i]}`
 }
 
 function Avatar({ user }) {
@@ -618,7 +629,8 @@ function DeleteConfirmModal({ user, onClose, onConfirm }) {
 
 export default function AdminDashboard() {
   const { userName } = useAuth()
-  const [stats, setStats] = useState(null)
+  const { showToast: toast } = useToast()
+  const [analytics, setAnalytics] = useState(null)
   const [error, setError] = useState('')
   const [users, setUsers] = useState([])
   const [total, setTotal] = useState(0)
@@ -631,21 +643,26 @@ export default function AdminDashboard() {
   const [tab, setTab] = useState('overview')
   const [modal, setModal] = useState(null) // 'invite' | 'create' | 'edit' | 'delete'
   const [selectedUser, setSelectedUser] = useState(null)
-  const [toast, setToast] = useState('')
+  const [notice, setNotice] = useState('')
 
-  const showToast = useCallback((msg) => {
-    setToast(msg)
-    window.setTimeout(() => setToast(''), 3500)
+  const showNotice = useCallback((msg) => {
+    setNotice(msg)
+    window.setTimeout(() => setNotice(''), 3500)
+  }, [])
+
+  const loadAnalytics = useCallback(() => {
+    setError('')
+    adminService
+      .getAnalytics()
+      .then(({ data }) => setAnalytics(data))
+      .catch((err) => {
+        setError(errorMessage(err, 'Could not load admin analytics.'))
+      })
   }, [])
 
   useEffect(() => {
-    adminService
-      .getStats()
-      .then(({ data }) => setStats(data))
-      .catch((err) => {
-        setError(errorMessage(err, 'Could not load admin statistics.'))
-      })
-  }, [users.length])
+    loadAnalytics()
+  }, [loadAnalytics])
 
   useEffect(() => {
     adminService
@@ -678,12 +695,104 @@ export default function AdminDashboard() {
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
-  const adminStats = [
-    { icon: Users, label: 'Total Users', value: stats?.total_users ?? 0, delta: 'live', tone: 'indigo' },
-    { icon: FileText, label: 'Strategies Generated', value: stats?.total_strategies ?? 0, delta: 'live', tone: 'purple' },
-    { icon: Activity, label: 'Total Exports', value: stats?.total_exports ?? 0, delta: 'live', tone: 'cyan' },
-    { icon: TrendingUp, label: 'Generations', value: stats?.total_generations ?? 0, delta: 'live', tone: 'emerald' },
-  ]
+  const stats = analytics?.stats
+  const growth = analytics?.growth ?? {}
+
+  const adminStats = useMemo(
+    () => [
+      {
+        icon: Users,
+        label: 'Total Users',
+        value: stats?.total_users ?? 0,
+        delta: growth.total_users ?? null,
+        hint: 'All registered accounts, including admins.',
+        tone: 'indigo',
+      },
+      {
+        icon: UserCheck,
+        label: 'Active Users',
+        value:
+          (analytics?.user_status ?? []).find((s) => s.label === 'Active')?.value ?? 0,
+        delta: growth.active_users ?? null,
+        hint: 'Accounts currently enabled.',
+        tone: 'emerald',
+      },
+      {
+        icon: Ban,
+        label: 'Blocked Users',
+        value:
+          (analytics?.user_status ?? []).find((s) => s.label === 'Blocked')?.value ?? 0,
+        delta: growth.blocked_users ?? null,
+        hint: 'Accounts disabled by an admin.',
+        tone: 'rose',
+      },
+      {
+        icon: Sparkles,
+        label: 'Strategies Generated',
+        value: stats?.total_strategies ?? 0,
+        delta: growth.total_strategies ?? null,
+        hint: 'Total marketing strategies created.',
+        tone: 'purple',
+      },
+      {
+        icon: FileDown,
+        label: 'Total Exports',
+        value: stats?.total_exports ?? 0,
+        delta: growth.total_exports ?? null,
+        hint: 'Strategies exported as files.',
+        tone: 'cyan',
+      },
+      {
+        icon: Cpu,
+        label: 'AI Requests Today',
+        value: analytics?.ai_requests_today ?? 0,
+        delta: growth.ai_requests_today ?? null,
+        hint: 'AI generations started since midnight UTC.',
+        tone: 'amber',
+      },
+    ],
+    [analytics, growth, stats]
+  )
+
+  const exportFormats = (analytics?.export_formats ?? []).map((item) => ({
+    label: item.label.toUpperCase(),
+    value: item.value,
+    color: CHART_COLORS.indigo,
+  }))
+
+  const userStatus = (analytics?.user_status ?? []).map((item) => ({
+    label: item.label,
+    value: item.value,
+    color:
+      item.label === 'Active'
+        ? CHART_COLORS.emerald
+        : item.label === 'Blocked'
+          ? CHART_COLORS.rose
+          : CHART_COLORS.amber,
+  }))
+
+  const strategySuccess = (analytics?.strategy_success ?? []).map((item) => ({
+    label: item.label,
+    value: item.value,
+    color:
+      item.label === 'completed'
+        ? CHART_COLORS.emerald
+        : item.label === 'failed'
+          ? CHART_COLORS.rose
+          : item.label === 'draft'
+            ? CHART_COLORS.amber
+            : CHART_COLORS.cyan,
+  }))
+
+  const monthlyRegistrations = analytics?.monthly_registrations ?? []
+  const topUsers = analytics?.top_users ?? []
+  const strategyTrend = analytics?.strategy_trend ?? []
+  const activityEvents = analytics?.recent_activity ?? []
+
+  const handleExportAnalytics = () => {
+    const ok = exportAnalyticsCsv(analytics)
+    if (ok) showNotice('Analytics exported as CSV.')
+  }
 
   const handleAction = (action, user) => {
     setSelectedUser(user)
@@ -694,22 +803,29 @@ export default function AdminDashboard() {
       adminService
         .updateUser(user.id, { is_active: isActive })
         .then(() => {
-          showToast(isActive ? `${user.email} unblocked.` : `${user.email} blocked.`)
+          showNotice(isActive ? `${user.email} unblocked.` : `${user.email} blocked.`)
           loadUsers()
+          loadAnalytics()
         })
-        .catch((err) => showToast(errorMessage(err, 'Could not update the user.')))
+        .catch((err) => showNotice(errorMessage(err, 'Could not update the user.')))
     }
   }
 
   const handleDelete = async () => {
     await adminService.deleteUser(selectedUser.id)
-    showToast(`${selectedUser.email} deleted.`)
+    showNotice(`${selectedUser.email} deleted.`)
     loadUsers()
-    setStats(null)
+    loadAnalytics()
   }
 
   const handleInviteSuccess = () => {
-    showToast('Invitation created.')
+    showNotice('Invitation created.')
+    loadAnalytics()
+  }
+
+  const handleCreateSuccess = () => {
+    loadUsers()
+    loadAnalytics()
   }
 
   const debouncedSearch = (value) => {
@@ -722,7 +838,7 @@ export default function AdminDashboard() {
       <DashboardHeader
         eyebrow="Admin"
         title="Admin Dashboard"
-        subtitle={`Welcome, ${userName ?? 'Admin'} — manage your platform.`}
+        subtitle={`Welcome, ${userName ?? 'Admin'} — platform overview and analytics.`}
         actions={
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => setModal('invite')}>
@@ -737,9 +853,9 @@ export default function AdminDashboard() {
         }
       />
 
-      {toast && (
+      {notice && (
         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-600 dark:text-emerald-400">
-          {toast}
+          {notice}
         </div>
       )}
 
@@ -786,12 +902,104 @@ export default function AdminDashboard() {
       )}
 
       {tab === 'overview' ? (
-        stats ? (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {adminStats.map((stat) => (
-              <StatsCard key={stat.label} {...stat} />
-            ))}
-          </div>
+        analytics ? (
+          <>
+            {/* Stat cards */}
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {adminStats.map((stat) => (
+                <AdminStatCard key={stat.label} {...stat} />
+              ))}
+            </div>
+
+            {/* Quick actions */}
+            <QuickActions
+              onInvite={() => setModal('invite')}
+              onCreate={() => setModal('create')}
+              onUsers={() => setTab('users')}
+              onExport={handleExportAnalytics}
+            />
+
+            {/* Charts */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              <AdminChartCard
+                title="Strategies generated over time"
+                subtitle="Daily strategies, last 30 days"
+                className="lg:col-span-2"
+              >
+                <LineChart data={strategyTrend} height={240} stroke={CHART_COLORS.indigo} />
+              </AdminChartCard>
+
+              <AdminChartCard
+                title="Export formats"
+                subtitle="Strategies exported by format"
+                delay={0.05}
+              >
+                <PieChart
+                  data={exportFormats}
+                  centerValue={stats?.total_exports ?? 0}
+                  centerLabel="exports"
+                />
+              </AdminChartCard>
+
+              <AdminChartCard
+                title="Users by status"
+                subtitle="Active, blocked and pending verification"
+                delay={0.1}
+              >
+                <PieChart
+                  data={userStatus}
+                  centerValue={stats?.total_users ?? 0}
+                  centerLabel="users"
+                />
+              </AdminChartCard>
+
+              <AdminChartCard
+                title="Most active users"
+                subtitle="Top 10 by strategies generated"
+                className="lg:col-span-2"
+                delay={0.15}
+              >
+                {topUsers.length > 0 ? (
+                  <BarChart data={topUsers} height={240} color={CHART_COLORS.purple} />
+                ) : (
+                  <p className="py-10 text-center text-sm text-muted-foreground dark:text-zinc-400">
+                    No strategies generated yet.
+                  </p>
+                )}
+              </AdminChartCard>
+
+              <AdminChartCard
+                title="Monthly registrations"
+                subtitle="New users per month, last 12 months"
+                delay={0.2}
+              >
+                <AreaChart data={monthlyRegistrations} height={220} stroke={CHART_COLORS.cyan} />
+              </AdminChartCard>
+
+              <AdminChartCard
+                title="Strategy success distribution"
+                subtitle="Completed, failed, draft and generating"
+                delay={0.25}
+              >
+                <DonutChart
+                  data={strategySuccess}
+                  centerValue={stats?.total_strategies ?? 0}
+                  centerLabel="strategies"
+                />
+              </AdminChartCard>
+            </div>
+
+            {/* Recent activity */}
+            <AdminChartCard title="Recent activity" subtitle="Latest platform events" delay={0.3}>
+              {activityEvents.length > 0 ? (
+                <RecentActivity events={activityEvents} />
+              ) : (
+                <p className="py-10 text-center text-sm text-muted-foreground dark:text-zinc-400">
+                  No activity yet.
+                </p>
+              )}
+            </AdminChartCard>
+          </>
         ) : (
           !error && (
             <div className="flex items-center justify-center rounded-2xl border border-border bg-card py-20 dark:border-white/10">
@@ -930,7 +1138,7 @@ export default function AdminDashboard() {
       {modal === 'create' && (
         <CreateUserModal
           onClose={() => setModal(null)}
-          onSuccess={loadUsers}
+          onSuccess={handleCreateSuccess}
           roles={roles}
         />
       )}

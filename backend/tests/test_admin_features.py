@@ -79,7 +79,14 @@ async def test_share_link_flow(app_client, db_session) -> None:
 
     from app.models.export import Export
 
-    export_id = (await db_session.execute(select(Export).limit(1))).scalar_one().id
+    export_id = (
+        await db_session.execute(
+            select(Export.id)
+            .join(Export.strategy)
+            .where(MarketingStrategy.project.has(Project.user_id == user.id))
+            .limit(1)
+        )
+    ).scalar_one()
 
     # Create a share link.
     share = await app_client.post(
@@ -129,7 +136,14 @@ async def test_share_link_requires_owner(app_client, db_session) -> None:
 
     from app.models.export import Export
 
-    export_id = (await db_session.execute(select(Export).limit(1))).scalar_one().id
+    export_id = (
+        await db_session.execute(
+            select(Export.id)
+            .join(Export.strategy)
+            .where(MarketingStrategy.project.has(Project.user_id == user.id))
+            .limit(1)
+        )
+    ).scalar_one()
 
     # A second user cannot create a share for someone else's export.
     second = await app_client.post(

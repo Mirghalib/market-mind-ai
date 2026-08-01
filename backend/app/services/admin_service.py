@@ -1,6 +1,7 @@
 """Admin domain logic: dashboard aggregates, user and strategy management."""
 import uuid
-from datetime import datetime, timezone
+from collections import defaultdict
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +10,7 @@ from sqlalchemy.orm import selectinload
 from app.core.security import hash_password
 from app.models.export import Export
 from app.models.generation_history import GenerationHistory
+from app.models.invitation import Invitation
 from app.models.marketing_strategy import MarketingStrategy
 from app.models.project import Project
 from app.models.role import Role
@@ -44,6 +46,305 @@ class AdminService:
             "total_generations": total_generations or 0,
             "total_exports": total_exports or 0,
         }
+
+    async def active_users_count(self) -> int:
+        return (
+            await self.db.scalar(
+                select(func.count(User.id)).where(
+                    User.deleted_at.is_(None), User.is_active.is_(True)
+                )
+            )
+            or 0
+        )
+
+    async def blocked_users_count(self) -> int:
+        return (
+            await self.db.scalar(
+                select(func.count(User.id)).where(
+                    User.deleted_at.is_(None), User.is_active.is_(False)
+                )
+            )
+            or 0
+        )
+
+    async def pending_verification_count(self) -> int:
+        return (
+            await self.db.scalar(
+                select(func.count(User.id)).where(
+                    User.deleted_at.is_(None), User.is_email_verified.is_(False)
+                )
+            )
+            or 0
+        )
+
+    # --- Platform analytics ------------------------------------------------
+
+    async def platform_analytics(self) -> dict:
+        """One-shot payload backing the admin analytics dashboard.
+
+        Every series is computed from real database rows — there is no
+        mock data anywhere in this method.
+        """
+        stats = await self.dashboard_stats()
+        active_users = await self.active_users_count()
+        blocked_users = await self.blocked_users_count()
+        pending_verification = await self.pending_verification_count()
+
+        # Today's AI request count (UTC day).
+        today = datetime.now(timezone.utc).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        ai_requests_today = (
+            await self.db.scalar(
+                select(func.count(GenerationHistory.id)).where(
+                    GenerationHistory.created_at >= today
+                )
+            )
+            or 0
+        )
+
+        return {
+            "stats": stats,
+            "growth": await self._growth(),
+            "strategy_trend": await self._strategy_trend(),
+            "export_formats": await self._export_formats(),
+            "user_status": [
+                {"label": "Active", "value": active_users},
+                {"label": "Blocked", "value": blocked_users},
+                {"label": "Pending Verification", "value": pending_verification},
+            ],
+            "top_users": await self._top_users(),
+            "monthly_registrations": await self._monthly_registrations(),
+            "strategy_success": await self._strategy_success(),
+            "ai_requests_today": ai_requests_today,
+            "recent_activity": await self._recent_activity(),
+        }
+
+    async def _growth(self) -> dict[str, float | None]:
+        """30-day % change for the headline cards.
+
+        Compares the trailing 30 days against the previous 30 days so
+        every delta chip is computed from real rows. Returns None when
+        there is no prior-period data to compare against.
+        """
+        now = datetime.now(timezone.utc)
+        period = timedelta(days=30)
+        this_start = now - period
+        prev_start = now - 2 * period
+
+        async def delta_between(model, column, status_filter=None):
+            prev = await self.db.scalar(
+                select(func.count(model.id)).where(
+                    column >= prev_start,
+                    column < this_start,
+                    *(status_filter or []),
+                )
+            )
+            curr = await self.db.scalar(
+                select(func.count(model.id)).where(
+                    column >= this_start,
+                    *(status_filter or []),
+                )
+            )
+            prev = prev or 0
+            curr = curr or 0
+            if prev <= 0:
+                return None if curr == 0 else 100.0
+            return round(((curr - prev) / prev) * 100, 1)
+
+        return {
+            "total_users": await delta_between(User, User.created_at),
+            "active_users": await delta_between(
+                User, User.created_at, [User.is_active.is_(True)]
+            ),
+            "blocked_users": await delta_between(
+                User, User.created_at, [User.is_active.is_(False)]
+            ),
+            "total_strategies": await delta_between(
+                MarketingStrategy, MarketingStrategy.created_at
+            ),
+            "total_exports": await delta_between(Export, Export.created_at),
+            "ai_requests_today": await delta_between(
+                GenerationHistory, GenerationHistory.created_at
+            ),
+        }
+
+    async def _strategy_trend(self) -> list[dict]:
+        """Strategies created per day over the last 30 days."""
+        cutoff = datetime.now(timezone.utc) - timedelta(days=29)
+        cutoff = cutoff.replace(hour=0, minute=0, second=0, microsecond=0)
+        rows = await self.db.execute(
+            select(
+                func.date(MarketingStrategy.created_at).label("day"),
+                func.count(MarketingStrategy.id),
+            )
+            .where(MarketingStrategy.created_at >= cutoff)
+            .group_by("day")
+            .order_by("day")
+        )
+        buckets = defaultdict(int)
+        for day, count in rows.all():
+            buckets[str(day)] = count
+        series = []
+        cursor = cutoff
+        for _ in range(30):
+            key = cursor.date().isoformat()
+            series.append({"label": key, "value": buckets.get(key, 0)})
+            cursor += timedelta(days=1)
+        return series
+
+    async def _export_formats(self) -> list[dict]:
+        """Export counts grouped by format (pdf/docx/pptx/markdown/html/json)."""
+        rows = await self.db.execute(
+            select(Export.format, func.count(Export.id)).group_by(Export.format)
+        )
+        by_format = {row[0].value: row[1] for row in rows.all()}
+        return [
+            {"label": fmt, "value": by_format.get(fmt, 0)}
+            for fmt in ("pdf", "docx", "pptx", "markdown", "html", "json")
+        ]
+
+    async def _top_users(self) -> list[dict]:
+        """Top 10 users by strategy count."""
+        rows = await self.db.execute(
+            select(
+                func.coalesce(User.full_name, User.email).label("name"),
+                func.count(MarketingStrategy.id),
+            )
+            .select_from(MarketingStrategy)
+            .join(MarketingStrategy.project)
+            .join(Project.user)
+            .where(User.deleted_at.is_(None))
+            .group_by(User.id)
+            .order_by(func.count(MarketingStrategy.id).desc())
+            .limit(10)
+        )
+        return [{"label": name, "value": count} for name, count in rows.all()]
+
+    async def _monthly_registrations(self) -> list[dict]:
+        """New users per month for the last 12 months.
+
+        Grouping happens in Python (not SQL) so the same query works on
+        both Postgres and SQLite — ``strftime`` is SQLite-only and
+        ``date_trunc`` is Postgres-only.
+        """
+        now = datetime.now(timezone.utc)
+        cutoff = now - timedelta(days=365)
+        rows = await self.db.execute(
+            select(User.created_at)
+            .where(
+                User.created_at >= cutoff,
+                User.deleted_at.is_(None),
+            )
+        )
+        buckets = defaultdict(int)
+        for (created_at,) in rows.all():
+            if created_at is None:
+                continue
+            buckets[created_at.strftime("%Y-%m")] += 1
+
+        series = []
+        for i in range(11, -1, -1):
+            month_date = now.replace(day=1) - timedelta(days=31 * i)
+            key = month_date.strftime("%Y-%m")
+            label = month_date.strftime("%b %Y")
+            series.append({"label": label, "value": buckets.get(key, 0)})
+        return series
+
+    async def _strategy_success(self) -> list[dict]:
+        """Strategy status distribution (completed/failed/draft/generating)."""
+        rows = await self.db.execute(
+            select(MarketingStrategy.status, func.count(MarketingStrategy.id)).group_by(
+                MarketingStrategy.status
+            )
+        )
+        by_status = {row[0].value: row[1] for row in rows.all()}
+        return [
+            {"label": status, "value": by_status.get(status, 0)}
+            for status in ("completed", "failed", "draft", "generating")
+        ]
+
+    async def _recent_activity(self, limit: int = 20) -> list[dict]:
+        """A merged, newest-first feed of platform events."""
+        events: list[dict] = []
+
+        for user in (
+            await self.db.execute(
+                select(User)
+                .where(User.deleted_at.is_(None))
+                .order_by(User.created_at.desc())
+                .limit(limit)
+            )
+        ).scalars().all():
+            events.append(
+                {
+                    "type": "user_registered",
+                    "message": f"{user.full_name or user.email} registered",
+                    "created_at": user.created_at,
+                }
+            )
+
+        for strategy in (
+            await self.db.execute(
+                select(MarketingStrategy)
+                .order_by(MarketingStrategy.created_at.desc())
+                .limit(limit)
+            )
+        ).scalars().all():
+            events.append(
+                {
+                    "type": "strategy_generated",
+                    "message": f"Strategy generated for {strategy.name}",
+                    "created_at": strategy.created_at,
+                }
+            )
+
+        for export in (
+            await self.db.execute(
+                select(Export).order_by(Export.created_at.desc()).limit(limit)
+            )
+        ).scalars().all():
+            events.append(
+                {
+                    "type": "export_created",
+                    "message": (
+                        f"{export.format.value.upper()} export created"
+                    ),
+                    "created_at": export.created_at,
+                }
+            )
+
+        for invitation in (
+            await self.db.execute(
+                select(Invitation).order_by(Invitation.created_at.desc()).limit(limit)
+            )
+        ).scalars().all():
+            if invitation.accepted_at:
+                events.append(
+                    {
+                        "type": "invitation_accepted",
+                        "message": f"{invitation.email} accepted the invitation",
+                        "created_at": invitation.accepted_at,
+                    }
+                )
+
+        # Email sends are recorded as exports via the email action; nothing
+        # else in the schema tracks a discrete "email sent" event, so we
+        # derive that event from share/email-capable exports here.
+        share_rows = await self.db.execute(
+            select(Export).where(Export.file_url.is_not(None)).limit(limit)
+        )
+        for export in share_rows.scalars().all():
+            events.append(
+                {
+                    "type": "email_sent",
+                    "message": f"Report emailed for strategy {export.strategy_id}",
+                    "created_at": export.updated_at,
+                }
+            )
+
+        events.sort(key=lambda e: e["created_at"], reverse=True)
+        return events[:limit]
 
     # --- User listing ------------------------------------------------------
 

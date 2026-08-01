@@ -7,6 +7,39 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from app.schemas.user import UserRead
 
 
+class ChartPoint(BaseModel):
+    """A single (label, value) pair for dashboard charts."""
+
+    label: str
+    value: int
+
+
+class AdminAnalytics(BaseModel):
+    """Full platform analytics payload for the admin dashboard.
+
+    Aggregated from real database rows — no mock analytics anywhere.
+    """
+
+    stats: AdminDashboardStats
+    growth: dict[str, float | None]
+    strategy_trend: list[ChartPoint]
+    export_formats: list[ChartPoint]
+    user_status: list[ChartPoint]
+    top_users: list[ChartPoint]
+    monthly_registrations: list[ChartPoint]
+    strategy_success: list[ChartPoint]
+    ai_requests_today: int
+    recent_activity: list[ActivityEvent]
+
+
+class ActivityEvent(BaseModel):
+    """A single recent-activity row for the admin dashboard."""
+
+    type: str
+    message: str
+    created_at: datetime
+
+
 class RoleRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

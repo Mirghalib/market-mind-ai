@@ -47,7 +47,7 @@ export const adminService = {
   /** GET /admin/strategies — all strategies. */
   getStrategies: () => api.get('/admin/strategies'),
 
-  /** GET /admin/analytics — generation/export aggregates. */
+  /** GET /admin/analytics — full platform analytics (stats, charts, activity). */
   getAnalytics: () => api.get('/admin/analytics'),
 
   /** DELETE /admin/user/{id} (legacy route kept for compatibility) */
