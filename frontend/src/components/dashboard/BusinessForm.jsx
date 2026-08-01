@@ -34,12 +34,14 @@ export const INDUSTRIES = [
 
 export const COUNTRIES = [
   'United States',
+  'Pakistan',
   'United Kingdom',
   'Canada',
   'Australia',
   'Germany',
   'France',
   'India',
+  'Brazil',
   'Other',
 ]
 

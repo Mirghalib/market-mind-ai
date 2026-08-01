@@ -115,24 +115,38 @@ def test_default_prompt_embeds_response_schema(brief: MarketingBrief) -> None:
     assert '"marketingStrategy"' in prompt
     assert '"competitorAnalysis"' in prompt
     assert '"recommendedTools"' in prompt
+    # New report sections are part of the output contract.
+    assert '"marketingScore"' in prompt
+    assert '"implementationRoadmap"' in prompt
+    assert '"estimatedROI"' in prompt
+    assert '"riskMitigation"' in prompt
+    assert '"executiveSummary"' in prompt
 
 
 def test_all_responsibilities_present(brief: MarketingBrief) -> None:
     prompt = PromptBuilder().build(brief)
 
     responsibilities = [
-        "Analyze the business.",
+        "Analyze the business and its market.",
         "Identify the target audience.",
         "Create a customer persona.",
         "Generate a SWOT analysis.",
+        "Provide a market overview with trends, size, and drivers.",
         "Recommend marketing channels.",
-        "Suggest SEO keywords.",
+        "Suggest SEO keywords and content topics.",
         "Create a 30-day content calendar.",
-        "Generate social media campaign ideas.",
-        "Write a marketing email.",
-        "Recommend advertisement ideas.",
+        "Generate a social media strategy with per-platform plans.",
+        "Write a marketing email campaign.",
+        "Recommend advertisement ideas (Google & Meta).",
         "Suggest competitor positioning.",
         "Allocate the marketing budget.",
+        "Score the overall marketing plan (0-100) with a per-area breakdown.",
+        "Build a 90-day implementation roadmap with 3 phases.",
+        "Define weekly milestones for the 90-day plan.",
+        "Estimate ROI with assumptions and period-by-period projections.",
+        "Identify risks and mitigation plans.",
+        "Write an executive summary for the report cover.",
+        "Provide final recommendations with quick wins and success criteria.",
     ]
     for responsibility in responsibilities:
         assert responsibility in prompt

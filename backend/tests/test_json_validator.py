@@ -70,20 +70,44 @@ def test_all_missing_fields_are_reported_individually(validator: JSONValidator) 
     missing = [e for e in errors if e.error_type == "missing_field"]
 
     # Every required top-level section must be reported (and cascade
-    # down to the nested required fields, so > 9 missing_field items).
+    # down to the nested required fields, so > 18 missing_field items).
     top_level = [e.field for e in missing if "." not in e.field]
     assert set(top_level) == {
+        "executiveSummary",
+        "marketingScore",
         "marketingStrategy",
         "customerPersona",
         "swotAnalysis",
+        "marketOverview",
         "seoKeywords",
         "contentCalendar",
         "advertisementIdeas",
         "emailCampaign",
+        "socialMediaStrategy",
         "competitorAnalysis",
+        "implementationRoadmap",
+        "weeklyMilestones",
+        "estimatedROI",
+        "riskMitigation",
+        "finalRecommendations",
         "recommendedTools",
     }
-    assert len(missing) > 9
+    assert len(missing) > 18
+
+
+def test_missing_new_section_is_reported(
+    validator: JSONValidator, valid_data: dict
+) -> None:
+    del valid_data["estimatedROI"]
+
+    with pytest.raises(ValidationError) as excinfo:
+        validator.validate(valid_data)
+
+    errors = excinfo.value.errors
+    assert any(
+        e.field == "estimatedROI" and e.error_type == "missing_field"
+        for e in errors
+    )
 
 
 def test_unexpected_field_is_reported(validator: JSONValidator, valid_data: dict) -> None:

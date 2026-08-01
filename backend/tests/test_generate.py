@@ -41,6 +41,11 @@ async def test_generate_success(app_client) -> None:
     assert body["summary"]
     assert len(body["sections"]) >= 3
     assert all(s["title"] and s["content"] for s in body["sections"])
+    # The full structured payload is included for the report generators.
+    assert body["content"]
+    assert "marketingScore" in body["content"]
+    assert "implementationRoadmap" in body["content"]
+    assert "estimatedROI" in body["content"]
 
 
 @pytest.mark.asyncio

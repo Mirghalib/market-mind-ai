@@ -23,6 +23,7 @@ export default function Dashboard() {
   const { userName } = useAuth()
   const [stats, setStats] = useState(null)
   const [strategy, setStrategy] = useState(null)
+  const [businessName, setBusinessName] = useState('')
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState('')
 
@@ -54,6 +55,7 @@ export default function Dashboard() {
         tone: 'professional',
       })
       setStrategy(data)
+      setBusinessName(formData.businessName)
       // Refresh the stats so the counters reflect the new generation.
       try {
         const { data: fresh } = await dashboardService.getStats()
@@ -115,7 +117,11 @@ export default function Dashboard() {
             title="Generated results"
             subtitle="Your AI-generated marketing strategy is ready below."
           />
-          <StrategyView strategy={strategy} onReset={() => setStrategy(null)} />
+          <StrategyView
+            strategy={strategy}
+            onReset={() => setStrategy(null)}
+            businessName={businessName}
+          />
         </div>
       )}
 

@@ -11,6 +11,7 @@ strategy and a generation-history audit row, which powers the History
 page and the export endpoints.
 """
 import logging
+import re
 import uuid
 
 from sqlalchemy import select
@@ -60,6 +61,31 @@ def _provider_key() -> str:
 
 def _budget_label(request: StrategyGenerationRequest) -> str:
     return request.budget or "Not specified"
+
+
+def _budget_amount(request: StrategyGenerationRequest) -> float:
+    """Extract a numeric budget from the request for ROI math.
+
+    Accepts values like "$10,000", "10k USD", "10000", "£8,000 / quarter".
+    Falls back to a representative demo figure when nothing numeric is
+    present so the mock ROI stays deterministic and useful.
+    """
+    text = (request.budget or "").strip().lower()
+    if not text:
+        return 10_000.0
+    digits = re.findall(r"[\d,.]+", text)
+    if not digits:
+        return 10_000.0
+    value = digits[0].replace(",", "")
+    try:
+        number = float(value)
+    except ValueError:
+        return 10_000.0
+    if "k" in text:
+        number *= 1000
+    if "m" in text and "k" not in text:
+        number *= 1_000_000
+    return max(number, 500.0)
 
 
 class StrategyGenerationService:
@@ -169,6 +195,7 @@ class StrategyGenerationService:
             summary=summary,
             sections=sections,
             model_used=settings.AI_MODEL,
+            content=result,
         )
 
     async def _persist(
@@ -239,8 +266,34 @@ class StrategyGenerationService:
                 return ""
             return separator.join(str(i) for i in items if str(i).strip())
 
+        exec_summary = result.get("executiveSummary") or {}
+        add(
+            "Executive Summary",
+            "".join(
+                (
+                    f"{exec_summary.get('summary', '')}\n\n"
+                    f"Key highlights:\n{join(exec_summary.get('highlights'), chr(10) + '- ')}\n"
+                    f"Recommendation: {exec_summary.get('ask', '')}"
+                )
+            ).strip()
+            or None,
+        )
+
+        score = result.get("marketingScore") or {}
+        breakdown = score.get("breakdown") or []
+        if score.get("overall") is not None:
+            score_text = "\n".join(
+                f"- {b.get('area')}: {b.get('score')}/100 — {b.get('assessment', '')}"
+                for b in breakdown
+            )
+            add(
+                "Marketing Score",
+                f"Overall score: {score.get('overall')}/100\n{score_text}"
+                + (f"\nBenchmark: {score.get('benchmark')}" if score.get("benchmark") else "")
+                + (f"\n\n{score.get('summary', '')}" if score.get("summary") else ""),
+            )
+
         strategy = result.get("marketingStrategy") or {}
-        add("Executive Summary", strategy.get("overview"))
         add("Marketing Objectives", join(strategy.get("objectives"), "\n- "))
         add("Market Positioning", strategy.get("positioning"))
         add("Key Messages", join(strategy.get("keyMessages"), "\n- "))
@@ -308,6 +361,22 @@ class StrategyGenerationService:
         )
         add("SWOT Assessment", swot.get("overallAssessment"))
 
+        market = result.get("marketOverview") or {}
+        add(
+            "Market Overview",
+            "".join(
+                (
+                    f"{market.get('summary', '')}\n"
+                    f"Market size: {market.get('targetMarketSize', '')} · "
+                    f"Growth: {market.get('growthRate', '')}\n\n"
+                    f"Key trends:\n{join(market.get('marketTrends'), chr(10) + '- ')}\n"
+                    f"Key drivers:\n{join(market.get('keyDrivers'), chr(10) + '- ')}\n"
+                    f"Market risks:\n{join(market.get('marketRisks'), chr(10) + '- ')}"
+                )
+            ).strip()
+            or None,
+        )
+
         seo = result.get("seoKeywords") or {}
         primary = seo.get("primaryKeywords") or []
         if primary:
@@ -362,6 +431,22 @@ class StrategyGenerationService:
             )
             add("Google & Meta Ads Strategy", ads_text)
 
+        social = result.get("socialMediaStrategy") or {}
+        platforms = social.get("platforms") or []
+        if platforms:
+            social_text = "\n\n".join(
+                f"{p.get('name')} — {p.get('postingCadence')}\n"
+                f"Focus: {p.get('focus', '')}\n"
+                f"Content mix: {join(p.get('contentMix'), ', ')}\n"
+                f"Goals: {join(p.get('goals'), ', ')}"
+                for p in platforms
+            )
+            add("Social Media Strategy", social_text)
+        add(
+            "Social Community Management",
+            join(social.get("communityManagement"), "\n- ") or None,
+        )
+
         competitors = result.get("competitorAnalysis") or {}
         comps = competitors.get("competitors") or []
         if comps:
@@ -375,6 +460,68 @@ class StrategyGenerationService:
         add("Competitive Advantages", join(competitors.get("competitiveAdvantages"), "\n- "))
         add("Market Gaps", join(competitors.get("marketGaps"), "\n- "))
         add("Competitor Takeaways", join(competitors.get("keyTakeaways"), "\n- "))
+
+        roadmap = result.get("implementationRoadmap") or {}
+        phases = roadmap.get("phases") or []
+        if phases:
+            roadmap_text = "\n\n".join(
+                f"{p.get('name')} ({p.get('duration')})\n"
+                f"Objectives: {join(p.get('objectives'), ', ')}\n"
+                f"Key activities:\n{join(p.get('keyActivities'), chr(10) + '- ')}\n"
+                f"Success metrics: {join(p.get('successMetrics'), ', ')}"
+                for p in phases
+            )
+            add("Implementation Roadmap (90 Days)", roadmap_text)
+
+        milestones = result.get("weeklyMilestones") or {}
+        weeks = milestones.get("weeks") or []
+        if weeks:
+            week_text = "\n".join(
+                f"- {w.get('week')}: {w.get('focus')} — {w.get('successIndicator', '')}"
+                for w in weeks
+            )
+            add("Weekly Milestones", week_text)
+
+        roi = result.get("estimatedROI") or {}
+        projections = roi.get("projections") or []
+        if projections:
+            roi_text = "\n".join(
+                f"- {p.get('period')}: invest {p.get('investment')} → "
+                f"{p.get('projectedReturn')} ({p.get('roiPercent')} ROI)"
+                for p in projections
+            )
+            add(
+                "Estimated ROI",
+                f"{roi.get('summary', '')}\nPayback period: {roi.get('paybackPeriod', '')}\n\n{roi_text}"
+                + (f"\n\nAssumptions:\n{join(roi.get('assumptions'), chr(10) + '- ')}" if roi.get("assumptions") else ""),
+            )
+
+        risks = result.get("riskMitigation") or {}
+        risk_list = risks.get("risks") or []
+        if risk_list:
+            risk_text = "\n\n".join(
+                f"{r.get('risk')} — {r.get('category')} "
+                f"(likelihood {r.get('likelihood')}, impact {r.get('impact')})\n"
+                f"Mitigation: {join(r.get('mitigation'), ', ')}"
+                for r in risk_list
+            )
+            add("Risks and Mitigation", f"{risks.get('summary', '')}\n\n{risk_text}".strip())
+
+        recommendations = result.get("finalRecommendations") or {}
+        add(
+            "Final Recommendations",
+            "".join(
+                (
+                    f"{recommendations.get('summary', '')}\n\n"
+                    f"Top priorities:\n{join(recommendations.get('priorities'), chr(10) + '- ')}\n"
+                    f"Quick wins:\n{join(recommendations.get('quickWins'), chr(10) + '- ')}\n"
+                    f"Long-term investments:\n{join(recommendations.get('longTermInvestments'), chr(10) + '- ')}\n"
+                    f"Success criteria:\n{join(recommendations.get('successCriteria'), chr(10) + '- ')}\n\n"
+                    f"{recommendations.get('closingStatement', '')}"
+                )
+            ).strip()
+            or None,
+        )
 
         tools = result.get("recommendedTools") or {}
         tool_list = tools.get("tools") or []
@@ -400,6 +547,40 @@ class StrategyGenerationService:
         exports behave identically in offline demos.
         """
         mock_doc = {
+            "executiveSummary": {
+                "summary": (
+                    f"{request.project_name} enters the {request.industry} market with a "
+                    "differentiated offer and a disciplined 90-day growth plan. This strategy "
+                    "prioritizes high-intent channels, a measurable scorecard, and fast "
+                    "execution loops so results compound quickly."
+                ),
+                "highlights": [
+                    "A prioritized channel mix aligned with the target audience",
+                    "A measurable KPI scorecard with 90-day targets",
+                    "A phased roadmap with weekly milestones and clear owners",
+                ],
+                "ask": (
+                    f"Approve the plan and begin Phase 1 — Foundation — within the first "
+                    "week to start capturing demand."
+                ),
+            },
+            "marketingScore": {
+                "overall": 74,
+                "breakdown": [
+                    {"id": "ms1", "area": "Strategy", "score": 78, "assessment": "Clear positioning and objectives with room to sharpen messaging."},
+                    {"id": "ms2", "area": "SEO", "score": 62, "assessment": "Foundational keyword set defined; needs content investment."},
+                    {"id": "ms3", "area": "Content", "score": 68, "assessment": "Calendar is structured; cadence should increase over time."},
+                    {"id": "ms4", "area": "Social", "score": 71, "assessment": "Platform plan is solid; community management needs staffing."},
+                    {"id": "ms5", "area": "Email", "score": 82, "assessment": "Nurture sequence is strong and ready to launch."},
+                    {"id": "ms6", "area": "Ads", "score": 69, "assessment": "Campaign structure is sound; budgets need active optimization."},
+                ],
+                "benchmark": "Industry average for similar SMBs is 60/100",
+                "summary": (
+                    f"{request.project_name} is above the typical benchmark for its "
+                    "segment. The biggest near-term gains come from SEO and content "
+                    "execution."
+                ),
+            },
             "marketingStrategy": {
                 "overview": (
                     f"{request.project_name} is entering the {request.industry} "
@@ -468,6 +649,30 @@ class StrategyGenerationService:
                     "measurement loops."
                 ),
             },
+            "marketOverview": {
+                "summary": (
+                    f"The {request.industry} market is growing steadily, driven by "
+                    "digital adoption and shifting customer expectations. Competition "
+                    "is fragmented, which leaves room for a focused, outcome-driven "
+                    "player like {request.project_name}."
+                ),
+                "marketTrends": [
+                    f"Continued growth in {request.industry} demand",
+                    "Rise of personalized, automated customer journeys",
+                    "Increased weight on measurable ROI in buying decisions",
+                ],
+                "targetMarketSize": "Estimated addressable market of $500M+",
+                "growthRate": "8% year-over-year",
+                "keyDrivers": [
+                    "Digital transformation among buyers",
+                    "Demand for faster time-to-value",
+                    "Shift toward subscription and outcome-based models",
+                ],
+                "marketRisks": [
+                    "Economic sensitivity in discretionary spending",
+                    "Aggressive pricing from incumbents",
+                ],
+            },
             "seoKeywords": {
                 "primaryKeywords": [
                     {"id": "s1", "keyword": f"{request.industry.lower()} strategy", "intent": "commercial", "priority": "high"},
@@ -534,6 +739,41 @@ class StrategyGenerationService:
                     },
                 ],
             },
+            "socialMediaStrategy": {
+                "summary": (
+                    "A focused social presence on LinkedIn and Instagram that builds "
+                    "authority, distributes content, and funnels engaged audiences "
+                    "into the nurture sequence."
+                ),
+                "platforms": [
+                    {
+                        "id": "soc1",
+                        "name": "LinkedIn",
+                        "focus": "Thought leadership and B2B trust",
+                        "postingCadence": "3x / week",
+                        "contentMix": ["Industry insights", "Case studies", "Founder commentary"],
+                        "goals": ["Build authority", "Drive profile visits to the funnel"],
+                    },
+                    {
+                        "id": "soc2",
+                        "name": "Instagram",
+                        "focus": "Brand awareness and community",
+                        "postingCadence": "4x / week",
+                        "contentMix": ["Reels", "Carousels", "Behind the scenes"],
+                        "goals": ["Grow following", "Surface offers to engaged users"],
+                    },
+                ],
+                "communityManagement": [
+                    "Respond to comments within 4 hours on business days",
+                    "Weekly social listening for brand mentions and industry chatter",
+                    "Highlight customer wins monthly to build social proof",
+                ],
+                "performanceMetrics": [
+                    {"id": "socm1", "metric": "Engagement rate", "target": "4%"},
+                    {"id": "socm2", "metric": "Profile clicks", "target": "+500 / month"},
+                    {"id": "socm3", "metric": "Follower growth", "target": "+1,200 in 90 days"},
+                ],
+            },
             "competitorAnalysis": {
                 "competitors": [
                     {
@@ -551,6 +791,203 @@ class StrategyGenerationService:
                     "Differentiate on outcomes and speed",
                     "Target segments incumbents ignore",
                 ],
+            },
+            "implementationRoadmap": {
+                "summary": (
+                    "A 90-day roadmap in three phases: Foundation, Momentum, and "
+                    "Scale. Each phase has clear objectives, activities, and "
+                    "success metrics."
+                ),
+                "phases": [
+                    {
+                        "id": "ph1",
+                        "name": "Foundation",
+                        "duration": "Days 1-30",
+                        "objectives": [
+                            "Stand up tracking and attribution",
+                            "Launch the nurture email sequence",
+                            "Publish the first SEO-optimized content",
+                        ],
+                        "keyActivities": [
+                            "Set up analytics and conversion tracking",
+                            "Configure the email platform and sequence",
+                            "Ship two pillar blog posts and update meta tags",
+                        ],
+                        "successMetrics": [
+                            "Analytics reporting all core events",
+                            "Welcome sequence live",
+                            "2 pillar posts published",
+                        ],
+                    },
+                    {
+                        "id": "ph2",
+                        "name": "Momentum",
+                        "duration": "Days 31-60",
+                        "objectives": [
+                            "Scale paid acquisition within targets",
+                            "Grow the email list by 1,500 subscribers",
+                            "Establish a 3x/week social cadence",
+                        ],
+                        "keyActivities": [
+                            "Launch Google + Meta campaigns with structured testing",
+                            "Run weekly A/B tests on ads and email sends",
+                            "Post 3x/week on LinkedIn and Instagram",
+                        ],
+                        "successMetrics": [
+                            "CPA within 20% of target",
+                            "List growth at or above plan",
+                            "Social engagement rate at 4%",
+                        ],
+                    },
+                    {
+                        "id": "ph3",
+                        "name": "Scale",
+                        "duration": "Days 61-90",
+                        "objectives": [
+                            "Double down on winning channels",
+                            "Reach 3.5% conversion on optimized funnels",
+                            "Deliver the first quarterly report",
+                        ],
+                        "keyActivities": [
+                            "Shift budget to top-performing campaigns",
+                            "Expand content to 4 pieces/week",
+                            "Compile results, learnings, and next-quarter plan",
+                        ],
+                        "successMetrics": [
+                            "Conversion rate at target",
+                            "ROI at or above projection",
+                            "Quarterly report delivered",
+                        ],
+                    },
+                ],
+            },
+            "weeklyMilestones": {
+                "summary": (
+                    "Twelve weekly milestones keep execution accountable and "
+                    "surface problems early."
+                ),
+                "weeks": [
+                    {"id": "w1", "week": "Week 1", "focus": "Foundation setup", "tasks": ["Analytics + tracking live", "Email platform configured"], "owner": "Marketing lead", "successIndicator": "All core events reporting"},
+                    {"id": "w2", "week": "Week 2", "focus": "Welcome sequence", "tasks": ["Write sequence copy", "Launch welcome email"], "owner": "Marketing lead", "successIndicator": "Welcome email sent to new subscribers"},
+                    {"id": "w3", "week": "Week 3", "focus": "SEO content", "tasks": ["Publish pillar post 1", "Update meta titles"], "owner": "Content lead", "successIndicator": "First pillar post live"},
+                    {"id": "w4", "week": "Week 4", "focus": "Ads launch", "tasks": ["Set up Google campaign", "Launch first Meta ad set"], "owner": "Ads manager", "successIndicator": "Campaigns delivering impressions"},
+                    {"id": "w5", "week": "Week 5", "focus": "Social cadence", "tasks": ["Kick off 3x/week posting", "First monthly recap"], "owner": "Social manager", "successIndicator": "9 posts published"},
+                    {"id": "w6", "week": "Week 6", "focus": "Optimization", "tasks": ["Review ad results", "A/B test subject lines"], "owner": "Ads manager", "successIndicator": "CPA within 20% of target"},
+                    {"id": "w7", "week": "Week 7", "focus": "List growth", "tasks": ["Launch lead magnet", "Promote on social"], "owner": "Content lead", "successIndicator": "List growth at plan pace"},
+                    {"id": "w8", "week": "Week 8", "focus": "Scale content", "tasks": ["Publish pillar post 2", "Add 2 supporting posts"], "owner": "Content lead", "successIndicator": "Content library growing on plan"},
+                    {"id": "w9", "week": "Week 9", "focus": "Retargeting", "tasks": ["Launch retargeting campaigns", "Segment email list"], "owner": "Ads manager", "successIndicator": "Retargeting live"},
+                    {"id": "w10", "week": "Week 10", "focus": "Conversion lift", "tasks": ["Optimize landing pages", "Run CRO experiments"], "owner": "Marketing lead", "successIndicator": "Conversion rate improving"},
+                    {"id": "w11", "week": "Week 11", "focus": "Community", "tasks": ["Engagement sprints", "Customer spotlight"], "owner": "Social manager", "successIndicator": "Engagement rate at 4%"},
+                    {"id": "w12", "week": "Week 12", "focus": "Reporting", "tasks": ["Compile 90-day results", "Draft next-quarter plan"], "owner": "Marketing lead", "successIndicator": "Quarterly report delivered"},
+                ],
+            },
+            "estimatedROI": {
+                "summary": (
+                    "Based on the stated budget and channel mix, the plan is "
+                    "projected to deliver positive ROI within the first 90 days."
+                ),
+                "assumptions": [
+                    "Budget allocated per the recommended split",
+                    "Average customer value holds steady",
+                    "Conversion rates improve with ongoing optimization",
+                ],
+                "projections": [
+                    {"id": "roi1", "period": "Month 1", "investment": "$3,000", "projectedReturn": "$2,400", "roiPercent": "-20%"},
+                    {"id": "roi2", "period": "Month 2", "investment": "$3,500", "projectedReturn": "$4,900", "roiPercent": "40%"},
+                    {"id": "roi3", "period": "Month 3", "investment": "$4,000", "projectedReturn": "$7,200", "roiPercent": "80%"},
+                    {"id": "roi4", "period": "Quarter 2", "investment": "$4,500", "projectedReturn": "$10,800", "roiPercent": "140%"},
+                ],
+                "paybackPeriod": "Month 3",
+                "methodology": (
+                    "Projections assume the recommended budget allocation, "
+                    "blended customer acquisition cost, and improving conversion "
+                    "rates month over month."
+                ),
+            },
+            "riskMitigation": {
+                "summary": (
+                    "The plan carries moderate execution risk, concentrated in "
+                    "budget and channel performance. Each risk has a concrete "
+                    "mitigation."
+                ),
+                "risks": [
+                    {
+                        "id": "rk1",
+                        "risk": "Underperforming ad campaigns",
+                        "category": "Execution",
+                        "likelihood": "medium",
+                        "impact": "high",
+                        "mitigation": [
+                            "Structured A/B testing from day one",
+                            "Weekly budget reallocation to winning ad sets",
+                        ],
+                    },
+                    {
+                        "id": "rk2",
+                        "risk": "Content production delays",
+                        "category": "Capacity",
+                        "likelihood": "medium",
+                        "impact": "medium",
+                        "mitigation": [
+                            "Batch-create content one week ahead",
+                            "Template-first approach for recurring formats",
+                        ],
+                    },
+                    {
+                        "id": "rk3",
+                        "risk": "Budget overruns",
+                        "category": "Budget",
+                        "likelihood": "low",
+                        "impact": "medium",
+                        "mitigation": [
+                            "Hard cap per campaign with daily pacing",
+                            "Monthly budget review against ROI",
+                        ],
+                    },
+                    {
+                        "id": "rk4",
+                        "risk": "Market shifts or new entrants",
+                        "category": "Market",
+                        "likelihood": "low",
+                        "impact": "medium",
+                        "mitigation": [
+                            "Quarterly competitive review",
+                            "Positioning refresh based on feedback",
+                        ],
+                    },
+                ],
+            },
+            "finalRecommendations": {
+                "summary": (
+                    f"Execute the 90-day plan in order, keep measurement "
+                    "continuous, and review the scorecard monthly. The priority is "
+                    "to build the foundation, then scale what performs."
+                ),
+                "priorities": [
+                    "Stand up analytics and attribution first",
+                    "Launch the email nurture sequence within two weeks",
+                    "Open Google + Meta campaigns by week four",
+                ],
+                "quickWins": [
+                    "Publish the two pillar posts within the first month",
+                    "Activate the welcome sequence to capture early list growth",
+                    "Fix on-page SEO fundamentals on the highest-traffic pages",
+                ],
+                "longTermInvestments": [
+                    "Deepen SEO content into a 4x/week cadence",
+                    "Build out a referral or partnership channel",
+                    "Invest in conversion-rate optimization after month two",
+                ],
+                "successCriteria": [
+                    "Qualified leads up 30% by end of Quarter 1",
+                    "Conversion rate at 3.5% by day 90",
+                    "ROI positive by month three",
+                ],
+                "closingStatement": (
+                    f"{request.project_name} has a clear, executable path to growth. "
+                    "With disciplined execution of this plan, the first 90 days will "
+                    "establish the measurement, channels, and momentum needed to scale."
+                ),
             },
             "recommendedTools": {
                 "summary": "A lean, affordable stack that covers analytics, email, social scheduling and SEO.",
@@ -576,6 +1013,7 @@ class StrategyGenerationService:
             ),
             sections=sections,
             model_used=MOCK_MODEL,
+            content=mock_doc,
         )
 
         logger.info(

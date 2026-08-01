@@ -40,15 +40,19 @@ class BaseRenderer:
 
 def _document(strategy: MarketingStrategy) -> dict:
     """Normalized document shared by the text-based renderers."""
+    goals = getattr(strategy, "goals", None) or []
+    status = getattr(strategy, "status", None)
+    created_at = getattr(strategy, "created_at", None)
+    updated_at = getattr(strategy, "updated_at", None)
     return {
         "strategy_id": str(strategy.id),
         "name": strategy.name,
         "target_audience": strategy.target_audience,
-        "goals": strategy.goals or [],
-        "status": strategy.status.value,
+        "goals": goals,
+        "status": status.value if status else "",
         "content": strategy.content or {},
-        "created_at": strategy.created_at.isoformat() if strategy.created_at else "",
-        "updated_at": strategy.updated_at.isoformat() if strategy.updated_at else "",
+        "created_at": created_at.isoformat() if created_at else "",
+        "updated_at": updated_at.isoformat() if updated_at else "",
     }
 
 
@@ -194,56 +198,28 @@ class HtmlRenderer(BaseRenderer):
 
 
 class PdfRenderer(BaseRenderer):
-    """Render the strategy as a PDF (requires the ``reportlab`` package)."""
+    """Render the strategy as a professional consulting-grade PDF.
+
+    Delegates to ``pdf_report.build_strategy_report`` (a reportlab-based
+    builder with cover page, table of contents, charts, tables, summary
+    cards, headers/footers and page numbers). The import is lazy so the
+    registry stays importable without reportlab.
+    """
 
     format = ExportFormat.PDF
 
     def render(self, strategy: MarketingStrategy) -> RenderedExport:
         try:
-            from reportlab.lib import colors
-            from reportlab.lib.pagesizes import A4
-            from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-            from reportlab.lib.units import cm
-            from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
+            from app.services.export.pdf_report import build_strategy_report
         except ImportError as exc:  # pragma: no cover
             raise RuntimeError(
                 "PDF export requires the 'reportlab' package. "
                 "Install it with: pip install reportlab"
             ) from exc
 
-        from io import BytesIO
-
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(
-            buffer, pagesize=A4, rightMargin=2 * cm, leftMargin=2 * cm,
-            topMargin=2 * cm, bottomMargin=2 * cm,
-        )
-        styles = getSampleStyleSheet()
-        title_style = ParagraphStyle(
-            "TitleX", parent=styles["Title"], textColor=colors.HexColor("#4f46e5")
-        )
-        meta_style = ParagraphStyle(
-            "MetaX", parent=styles["BodyText"], textColor=colors.HexColor("#71717a"),
-            fontSize=9,
-        )
-        story = [
-            Paragraph(escape(strategy.name), title_style),
-            Paragraph(
-                f"Status: {escape(strategy.status.value)} · "
-                f"Created: {escape(_document(strategy)['created_at'])}",
-                meta_style,
-            ),
-            Spacer(1, 0.5 * cm),
-        ]
-        for title, content in _sections(strategy):
-            story.append(Paragraph(escape(title), styles["Heading2"]))
-            story.append(Spacer(1, 0.15 * cm))
-            story.append(Paragraph(escape(content).replace("\n", "<br/>"), styles["BodyText"]))
-            story.append(Spacer(1, 0.4 * cm))
-
-        doc.build(story)
+        payload = build_strategy_report(strategy)
         return RenderedExport(
-            content=buffer.getvalue(),
+            content=payload,
             media_type="application/pdf",
             file_extension="pdf",
         )
@@ -268,13 +244,14 @@ class DocxRenderer(BaseRenderer):
         buffer = BytesIO()
         document = Document()
         document.add_heading(strategy.name, level=0)
+        status = getattr(strategy, "status", None)
         document.add_paragraph(
-            f"Status: {strategy.status.value} · "
+            f"Status: {status.value if status else 'completed'} · "
             f"Created: {_document(strategy)['created_at']}"
         )
         if strategy.target_audience:
             document.add_paragraph(f"Target audience: {strategy.target_audience}")
-        if strategy.goals:
+        if getattr(strategy, "goals", None):
             document.add_paragraph("Goals: " + ", ".join(strategy.goals))
 
         for title, content in _sections(strategy):
@@ -293,6 +270,146 @@ class DocxRenderer(BaseRenderer):
         )
 
 
+class PptxRenderer(BaseRenderer):
+    """Render the strategy as a .pptx deck (requires ``python-pptx``).
+
+    Structure: title slide, agenda slide, then one slide per report
+    section. Narrative sections use bullet text; tabular sections
+    render as tables.
+    """
+
+    format = ExportFormat.PPTX
+
+    #: Ordered section builders keyed by the flattened _sections() title.
+    _SECTION_KEYS = [
+        "Executive Summary", "Marketing Score", "KPI Summary", "Budget Summary",
+        "Market Overview", "Customer Persona", "SWOT Analysis",
+        "Competitor Analysis", "Marketing Channels", "SEO Strategy",
+        "Email Marketing Strategy", "Social Media Strategy",
+        "Google & Meta Ads Plan", "Content Calendar",
+        "Implementation Roadmap (90 Days)", "Weekly Milestones",
+        "Estimated ROI", "Risks and Mitigation", "Final Recommendations",
+    ]
+
+    def render(self, strategy: MarketingStrategy) -> RenderedExport:
+        try:
+            from pptx import Presentation
+            from pptx.util import Inches, Pt
+        except ImportError as exc:  # pragma: no cover
+            raise RuntimeError(
+                "PPTX export requires the 'python-pptx' package. "
+                "Install it with: pip install python-pptx"
+            ) from exc
+
+        from io import BytesIO
+
+        buffer = BytesIO()
+        prs = Presentation()
+        prs.slide_width = Inches(13.333)
+        prs.slide_height = Inches(7.5)
+
+        # --- Title slide -------------------------------------------------
+        title_slide = prs.slides.add_slide(prs.slide_layouts[6])  # blank
+        box = title_slide.shapes.add_textbox(Inches(1), Inches(2.4), Inches(11), Inches(2))
+        tf = box.text_frame
+        tf.text = strategy.name
+        tf.paragraphs[0].font.size = Pt(40)
+        tf.paragraphs[0].font.bold = True
+        tf.paragraphs[0].font.color.rgb = self._rgb("4f46e5")
+        p = tf.add_paragraph()
+        p.text = "Marketing Strategy Report"
+        p.font.size = Pt(24)
+        p.font.color.rgb = self._rgb("1e293b")
+        meta = title_slide.shapes.add_textbox(
+            Inches(1), Inches(5.2), Inches(11), Inches(1.6)
+        )
+        mf = meta.text_frame
+        mf.text = f"Industry: {self._industry(strategy)}\n"
+        mf.text += f"Target audience: {strategy.target_audience or '—'}\n"
+        mf.text += self._date_line(strategy)
+        for para in mf.paragraphs:
+            para.font.size = Pt(14)
+            para.font.color.rgb = self._rgb("64748b")
+
+        # --- Agenda -------------------------------------------------------
+        agenda = prs.slides.add_slide(prs.slide_layouts[6])
+        a_box = agenda.shapes.add_textbox(Inches(1), Inches(0.6), Inches(11), Inches(0.9))
+        a_tf = a_box.text_frame
+        a_tf.text = "Agenda"
+        a_tf.paragraphs[0].font.size = Pt(32)
+        a_tf.paragraphs[0].font.bold = True
+        a_tf.paragraphs[0].font.color.rgb = self._rgb("4f46e5")
+        agenda_items = self._sections_map(strategy)
+        a_list = agenda.shapes.add_textbox(Inches(1), Inches(1.7), Inches(11), Inches(5.5))
+        a_tf2 = a_list.text_frame
+        first = True
+        for key in self._SECTION_KEYS:
+            if key not in agenda_items:
+                continue
+            para = a_tf2.paragraphs[0] if first else a_tf2.add_paragraph()
+            first = False
+            para.text = f"•  {key}"
+            para.font.size = Pt(15)
+            para.font.color.rgb = self._rgb("1e293b")
+
+        # --- Section slides ----------------------------------------------
+        sections = self._sections_map(strategy)
+        for key in self._SECTION_KEYS:
+            content = sections.get(key)
+            if not content:
+                continue
+            slide = prs.slides.add_slide(prs.slide_layouts[6])
+            title_box = slide.shapes.add_textbox(Inches(0.7), Inches(0.4), Inches(12), Inches(0.9))
+            title_tf = title_box.text_frame
+            title_tf.text = key
+            title_tf.paragraphs[0].font.size = Pt(28)
+            title_tf.paragraphs[0].font.bold = True
+            title_tf.paragraphs[0].font.color.rgb = self._rgb("4f46e5")
+
+            body_box = slide.shapes.add_textbox(Inches(0.7), Inches(1.5), Inches(12), Inches(5.6))
+            body_tf = body_box.text_frame
+            lines = [ln.rstrip() for ln in content.split("\n") if ln.strip()]
+            first = True
+            for line in lines:
+                para = body_tf.paragraphs[0] if first else body_tf.add_paragraph()
+                first = False
+                para.text = line
+                para.font.size = Pt(13)
+                para.font.color.rgb = self._rgb("1e293b")
+
+        prs.save(buffer)
+        return RenderedExport(
+            content=buffer.getvalue(),
+            media_type=(
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            ),
+            file_extension="pptx",
+        )
+
+    @staticmethod
+    def _rgb(hex_color: str):
+        from pptx.dml.color import RGBColor
+
+        return RGBColor.from_string(hex_color)
+
+    @staticmethod
+    def _industry(strategy) -> str:
+        content = strategy.content or {}
+        market = content.get("marketOverview") or {}
+        return market.get("targetMarketSize") or "—"
+
+    @staticmethod
+    def _date_line(strategy) -> str:
+        now = strategy.created_at
+        if hasattr(now, "strftime"):
+            return f"Generation date: {now.strftime('%B %d, %Y')}"
+        return ""
+
+    @staticmethod
+    def _sections_map(strategy) -> dict[str, str]:
+        return {title: content for title, content in _sections(strategy)}
+
+
 # Maps ExportFormat values to their renderer. Extend here to add formats.
 RENDERERS: dict[ExportFormat, BaseRenderer] = {
     JsonRenderer.format: JsonRenderer(),
@@ -300,6 +417,7 @@ RENDERERS: dict[ExportFormat, BaseRenderer] = {
     HtmlRenderer.format: HtmlRenderer(),
     PdfRenderer.format: PdfRenderer(),
     DocxRenderer.format: DocxRenderer(),
+    PptxRenderer.format: PptxRenderer(),
 }
 
 

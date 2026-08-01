@@ -2,6 +2,24 @@
 import json
 
 VALID_MARKETING_STRATEGY = {
+    "executiveSummary": {
+        "summary": "A focused growth plan for the coming quarter.",
+        "highlights": ["Clear positioning", "Measurable KPIs"],
+        "ask": "Approve and begin Phase 1.",
+    },
+    "marketingScore": {
+        "overall": 74,
+        "breakdown": [
+            {"id": "ms1", "area": "Strategy", "score": 80, "assessment": "Solid plan."},
+            {"id": "ms2", "area": "SEO", "score": 60, "assessment": "Needs content."},
+            {"id": "ms3", "area": "Content", "score": 70, "assessment": "On track."},
+            {"id": "ms4", "area": "Social", "score": 72, "assessment": "Good cadence."},
+            {"id": "ms5", "area": "Email", "score": 84, "assessment": "Strong sequence."},
+            {"id": "ms6", "area": "Ads", "score": 66, "assessment": "Optimize budgets."},
+        ],
+        "benchmark": "Industry average 60/100",
+        "summary": "Above benchmark overall.",
+    },
     "marketingStrategy": {
         "overview": "Test strategy",
         "objectives": ["Increase sales"],
@@ -31,6 +49,14 @@ VALID_MARKETING_STRATEGY = {
         "opportunities": ["Online growth"],
         "threats": ["Big brands"],
         "overallAssessment": "Positioned to grow.",
+    },
+    "marketOverview": {
+        "summary": "A growing, fragmented market.",
+        "marketTrends": ["Digital adoption"],
+        "targetMarketSize": "$500M",
+        "growthRate": "8% YoY",
+        "keyDrivers": ["Convenience"],
+        "marketRisks": ["Price competition"],
     },
     "seoKeywords": {
         "primaryKeywords": [
@@ -108,6 +134,21 @@ VALID_MARKETING_STRATEGY = {
             }
         ],
     },
+    "socialMediaStrategy": {
+        "summary": "Focused social presence.",
+        "platforms": [
+            {
+                "id": "soc1",
+                "name": "Instagram",
+                "focus": "Awareness",
+                "postingCadence": "4x/week",
+                "contentMix": ["Reels"],
+                "goals": ["Grow followers"],
+            }
+        ],
+        "communityManagement": ["Reply within 4h"],
+        "performanceMetrics": [{"id": "m1", "metric": "Engagement", "target": "4%"}],
+    },
     "competitorAnalysis": {
         "competitors": [
             {
@@ -124,6 +165,63 @@ VALID_MARKETING_STRATEGY = {
         "competitiveAdvantages": ["Direct trade"],
         "marketGaps": ["Home delivery"],
         "keyTakeaways": ["Win on delivery"],
+    },
+    "implementationRoadmap": {
+        "summary": "Three phases over 90 days.",
+        "phases": [
+            {
+                "id": "ph1",
+                "name": "Foundation",
+                "duration": "Days 1-30",
+                "objectives": ["Stand up tracking"],
+                "keyActivities": ["Set up analytics"],
+                "successMetrics": ["Tracking live"],
+            }
+        ],
+    },
+    "weeklyMilestones": {
+        "summary": "Twelve weekly milestones.",
+        "weeks": [
+            {
+                "id": "w1",
+                "week": "Week 1",
+                "focus": "Setup",
+                "tasks": ["Configure analytics"],
+                "owner": "Marketing lead",
+                "successIndicator": "Tracking live",
+            }
+        ],
+    },
+    "estimatedROI": {
+        "summary": "Positive ROI by month three.",
+        "assumptions": ["Budget per plan"],
+        "projections": [
+            {"id": "r1", "period": "Month 1", "investment": "$3k", "projectedReturn": "$2.4k", "roiPercent": "-20%"},
+            {"id": "r2", "period": "Month 2", "investment": "$3.5k", "projectedReturn": "$4.9k", "roiPercent": "40%"},
+        ],
+        "paybackPeriod": "Month 3",
+        "methodology": "Based on blended CAC.",
+    },
+    "riskMitigation": {
+        "summary": "Moderate execution risk.",
+        "risks": [
+            {
+                "id": "rk1",
+                "risk": "Ad underperformance",
+                "category": "Execution",
+                "likelihood": "medium",
+                "impact": "high",
+                "mitigation": ["A/B testing"],
+            }
+        ],
+    },
+    "finalRecommendations": {
+        "summary": "Execute in order.",
+        "priorities": ["Stand up tracking"],
+        "quickWins": ["Fix on-page SEO"],
+        "longTermInvestments": ["Build content engine"],
+        "successCriteria": ["Leads +30%"],
+        "closingStatement": "Disciplined execution wins.",
     },
     "recommendedTools": {
         "summary": "Lean stack",

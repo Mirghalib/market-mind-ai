@@ -58,6 +58,7 @@ class Settings(BaseSettings):
     # --- Uploads ---
     UPLOAD_DIR: str = "uploads"
     PROFILE_IMAGE_DIR: str = "uploads/profile_images"
+    EXPORT_DIR: str = "uploads/exports"
     UPLOAD_MAX_SIZE: int = 5 * 1024 * 1024  # 5 MB
     PROFILE_IMAGE_ALLOWED_TYPES: dict[str, str] = {
         "jpg": "image/jpeg",
@@ -66,6 +67,15 @@ class Settings(BaseSettings):
         "webp": "image/webp",
     }
     PUBLIC_BASE_URL: str = "http://localhost:8000"
+
+    # --- Email (SMTP for the "Email Report" export action) ---
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = ""
+    SMTP_USE_TLS: bool = True
+    REPORT_FROM_NAME: str = "Market Mind AI"
 
     # --- AI (LLM provider) ---
     AI_PROVIDER: str = "groq"

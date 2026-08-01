@@ -1,4 +1,6 @@
 import { Rocket, Users, Layers, CalendarDays, Mail, Megaphone, Search } from 'lucide-react'
+import ExportCenter from '@/components/dashboard/ExportCenter'
+import ReportCharts from '@/components/dashboard/ReportCharts'
 
 /**
  * Map the backend's StrategyGenerationResponse (summary + sections)
@@ -56,7 +58,7 @@ export function strategyToCards(strategy) {
 /**
  * Render the full strategy: a summary banner plus the section cards.
  */
-export function StrategyView({ strategy, onReset }) {
+export function StrategyView({ strategy, onReset, businessName }) {
   if (!strategy) return null
 
   const cards = strategyToCards(strategy)
@@ -85,6 +87,15 @@ export function StrategyView({ strategy, onReset }) {
           )}
         </div>
       </div>
+
+      {/* Export Center — professional report downloads */}
+      <ExportCenter
+        strategyId={strategy.strategy_id}
+        businessName={businessName}
+      />
+
+      {/* Web charts driven by the structured content */}
+      <ReportCharts content={strategy.content} />
 
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map((card) => (

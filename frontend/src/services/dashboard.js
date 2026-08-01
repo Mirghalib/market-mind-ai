@@ -17,8 +17,17 @@ export const dashboardService = {
   /** DELETE /generation-history/{id} — remove a history record. */
   deleteHistory: (id) => api.delete(`/generation-history/${id}`),
 
-  /** POST /dashboard/export — download a strategy file. */
-  export: (payload) => api.post('/dashboard/export', payload),
+  /** POST /dashboard/export — download a strategy file (binary blob). */
+  exportFile: (payload) => api.post('/dashboard/export', payload, { responseType: 'blob' }),
+
+  /** GET /dashboard/exports — the current user's saved exports. */
+  getExports: (params) => api.get('/dashboard/exports', { params }),
+
+  /** GET /export/{id} — re-download a previously saved export (blob). */
+  downloadExport: (id) => api.get(`/export/${id}`, { responseType: 'blob' }),
+
+  /** POST /export/{id}/email — email a report link to a recipient. */
+  emailExport: (id, payload) => api.post(`/export/${id}/email`, payload),
 }
 
 export default dashboardService

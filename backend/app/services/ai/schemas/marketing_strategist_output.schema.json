@@ -6,17 +6,256 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
+    "executiveSummary",
+    "marketingScore",
     "marketingStrategy",
     "customerPersona",
     "swotAnalysis",
+    "marketOverview",
     "seoKeywords",
     "contentCalendar",
     "advertisementIdeas",
     "emailCampaign",
+    "socialMediaStrategy",
     "competitorAnalysis",
+    "implementationRoadmap",
+    "weeklyMilestones",
+    "estimatedROI",
+    "riskMitigation",
+    "finalRecommendations",
     "recommendedTools"
   ],
   "properties": {
+    "executiveSummary": {
+      "type": "object",
+      "title": "Executive Summary",
+      "description": "One-page executive summary used on the report cover and opening page.",
+      "additionalProperties": false,
+      "required": ["summary", "highlights", "ask"],
+      "properties": {
+        "summary": { "type": "string", "description": "Concise overview of the recommended strategy." },
+        "highlights": { "type": "array", "description": "3-5 headline takeaways.", "items": { "type": "string" } },
+        "ask": { "type": "string", "description": "The primary recommendation / call to action." }
+      }
+    },
+
+    "marketingScore": {
+      "type": "object",
+      "title": "Marketing Score",
+      "description": "Overall readiness score with per-area breakdown.",
+      "additionalProperties": false,
+      "required": ["overall", "breakdown", "benchmark", "summary"],
+      "properties": {
+        "overall": { "type": "integer", "minimum": 0, "maximum": 100, "description": "Overall marketing readiness score (0-100)." },
+        "breakdown": {
+          "type": "array",
+          "description": "Per-area scores. Areas: strategy, seo, content, social, email, ads.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "area", "score", "assessment"],
+            "properties": {
+              "id": { "type": "string", "description": "Stable unique id for React list keys." },
+              "area": { "type": "string", "description": "Area name (e.g. 'Strategy', 'SEO')." },
+              "score": { "type": "integer", "minimum": 0, "maximum": 100, "description": "Area score (0-100)." },
+              "assessment": { "type": "string", "description": "One-sentence assessment of the area." }
+            }
+          }
+        },
+        "benchmark": { "type": "string", "description": "Industry benchmark the score is compared against." },
+        "summary": { "type": "string", "description": "Short interpretation of the score." }
+      }
+    },
+
+    "marketOverview": {
+      "type": "object",
+      "title": "Market Overview",
+      "description": "Analysis of the market the business operates in.",
+      "additionalProperties": false,
+      "required": ["summary", "marketTrends", "targetMarketSize", "growthRate", "keyDrivers", "marketRisks"],
+      "properties": {
+        "summary": { "type": "string", "description": "Overview of the current market." },
+        "marketTrends": { "type": "array", "description": "Key trends shaping the market.", "items": { "type": "string" } },
+        "targetMarketSize": { "type": "string", "description": "Estimated size of the addressable market." },
+        "growthRate": { "type": "string", "description": "Expected market growth rate (e.g. '8% YoY')." },
+        "keyDrivers": { "type": "array", "description": "Factors driving demand.", "items": { "type": "string" } },
+        "marketRisks": { "type": "array", "description": "External market risks.", "items": { "type": "string" } }
+      }
+    },
+
+    "socialMediaStrategy": {
+      "type": "object",
+      "title": "Social Media Strategy",
+      "description": "Platform-by-platform social plan with community management and metrics.",
+      "additionalProperties": false,
+      "required": ["summary", "platforms", "communityManagement", "performanceMetrics"],
+      "properties": {
+        "summary": { "type": "string", "description": "Short overview of the social approach." },
+        "platforms": {
+          "type": "array",
+          "description": "Recommended platforms and how to use them.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "focus", "postingCadence", "contentMix", "goals"],
+            "properties": {
+              "id": { "type": "string", "description": "Stable unique id for React list keys." },
+              "name": { "type": "string", "description": "Platform name (e.g. Instagram, LinkedIn)." },
+              "focus": { "type": "string", "description": "Role of the platform in the strategy." },
+              "postingCadence": { "type": "string", "description": "Publishing rhythm (e.g. '3x / week')." },
+              "contentMix": { "type": "array", "description": "Content types to publish.", "items": { "type": "string" } },
+              "goals": { "type": "array", "description": "Platform-specific goals.", "items": { "type": "string" } }
+            }
+          }
+        },
+        "communityManagement": { "type": "array", "description": "Community engagement practices.", "items": { "type": "string" } },
+        "performanceMetrics": {
+          "type": "array",
+          "description": "Social KPIs to track.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "metric", "target"],
+            "properties": {
+              "id": { "type": "string", "description": "Stable unique id for React list keys." },
+              "metric": { "type": "string", "description": "Metric name (e.g. Engagement rate)." },
+              "target": { "type": "string", "description": "Target value (e.g. '4%')." }
+            }
+          }
+        }
+      }
+    },
+
+    "implementationRoadmap": {
+      "type": "object",
+      "title": "Implementation Roadmap",
+      "description": "A 90-day phased implementation plan.",
+      "additionalProperties": false,
+      "required": ["summary", "phases"],
+      "properties": {
+        "summary": { "type": "string", "description": "Short overview of the roadmap." },
+        "phases": {
+          "type": "array",
+          "description": "Roadmap phases (typically 3 covering 90 days).",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "duration", "objectives", "keyActivities", "successMetrics"],
+            "properties": {
+              "id": { "type": "string", "description": "Stable unique id for React list keys." },
+              "name": { "type": "string", "description": "Phase name (e.g. 'Foundation')." },
+              "duration": { "type": "string", "description": "Phase duration (e.g. 'Days 1-30')." },
+              "objectives": { "type": "array", "description": "What the phase achieves.", "items": { "type": "string" } },
+              "keyActivities": { "type": "array", "description": "Activities to execute.", "items": { "type": "string" } },
+              "successMetrics": { "type": "array", "description": "How success is measured.", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+
+    "weeklyMilestones": {
+      "type": "object",
+      "title": "Weekly Milestones",
+      "description": "Week-by-week milestones for the 90-day plan.",
+      "additionalProperties": false,
+      "required": ["summary", "weeks"],
+      "properties": {
+        "summary": { "type": "string", "description": "Short overview of the milestone schedule." },
+        "weeks": {
+          "type": "array",
+          "description": "Weekly milestones (typically 12-13 weeks).",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "week", "focus", "tasks", "successIndicator"],
+            "properties": {
+              "id": { "type": "string", "description": "Stable unique id for React list keys." },
+              "week": { "type": "string", "description": "Week label (e.g. 'Week 1')." },
+              "focus": { "type": "string", "description": "Primary focus for the week." },
+              "tasks": { "type": "array", "description": "Key tasks for the week.", "items": { "type": "string" } },
+              "owner": { "type": "string", "description": "Who owns the week's deliverables." },
+              "successIndicator": { "type": "string", "description": "How the week is deemed successful." }
+            }
+          }
+        }
+      }
+    },
+
+    "estimatedROI": {
+      "type": "object",
+      "title": "Estimated ROI",
+      "description": "Projected investment, return, and ROI over the plan horizon.",
+      "additionalProperties": false,
+      "required": ["summary", "assumptions", "projections", "paybackPeriod", "methodology"],
+      "properties": {
+        "summary": { "type": "string", "description": "Short overview of the expected financial return." },
+        "assumptions": { "type": "array", "description": "Assumptions behind the projections.", "items": { "type": "string" } },
+        "projections": {
+          "type": "array",
+          "description": "Period-by-period projections.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "period", "investment", "projectedReturn", "roiPercent"],
+            "properties": {
+              "id": { "type": "string", "description": "Stable unique id for React list keys." },
+              "period": { "type": "string", "description": "Period label (e.g. 'Q1', 'Month 3')." },
+              "investment": { "type": "string", "description": "Investment for the period (e.g. '$5,000')." },
+              "projectedReturn": { "type": "string", "description": "Projected return for the period (e.g. '$8,500')." },
+              "roiPercent": { "type": "string", "description": "ROI percentage for the period (e.g. '70%')." }
+            }
+          }
+        },
+        "paybackPeriod": { "type": "string", "description": "When the investment is expected to be recouped (e.g. 'Month 5')." },
+        "methodology": { "type": "string", "description": "How the projections were calculated." }
+      }
+    },
+
+    "riskMitigation": {
+      "type": "object",
+      "title": "Risk Mitigation",
+      "description": "Risks to execution and how to mitigate them.",
+      "additionalProperties": false,
+      "required": ["summary", "risks"],
+      "properties": {
+        "summary": { "type": "string", "description": "Short overview of the risk posture." },
+        "risks": {
+          "type": "array",
+          "description": "Individual risks with likelihood, impact and mitigation.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "risk", "category", "likelihood", "impact", "mitigation"],
+            "properties": {
+              "id": { "type": "string", "description": "Stable unique id for React list keys." },
+              "risk": { "type": "string", "description": "The risk itself." },
+              "category": { "type": "string", "description": "Risk category (e.g. 'Budget', 'Execution')." },
+              "likelihood": { "type": "string", "enum": ["low", "medium", "high"], "description": "How likely the risk is." },
+              "impact": { "type": "string", "enum": ["low", "medium", "high"], "description": "Impact if it materialises." },
+              "mitigation": { "type": "array", "description": "Mitigation actions.", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+
+    "finalRecommendations": {
+      "type": "object",
+      "title": "Final Recommendations",
+      "description": "Closing recommendations and success criteria.",
+      "additionalProperties": false,
+      "required": ["summary", "priorities", "quickWins", "longTermInvestments", "successCriteria", "closingStatement"],
+      "properties": {
+        "summary": { "type": "string", "description": "Short overview of the recommendations." },
+        "priorities": { "type": "array", "description": "Top priorities in order.", "items": { "type": "string" } },
+        "quickWins": { "type": "array", "description": "Fast, low-effort wins.", "items": { "type": "string" } },
+        "longTermInvestments": { "type": "array", "description": "Longer-term investments to plan for.", "items": { "type": "string" } },
+        "successCriteria": { "type": "array", "description": "Criteria to judge success.", "items": { "type": "string" } },
+        "closingStatement": { "type": "string", "description": "Final message to the business." }
+      }
+    },
+
     "marketingStrategy": {
       "type": "object",
       "title": "Marketing Strategy",

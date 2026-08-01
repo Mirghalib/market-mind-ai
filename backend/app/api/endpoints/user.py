@@ -7,6 +7,7 @@ GenerationHistoryService, ExportService) so business logic is not
 duplicated.
 """
 import logging
+import uuid
 from typing import Annotated
 
 from fastapi import (
@@ -26,7 +27,7 @@ from app.dependencies.auth import get_current_user
 from app.dependencies.permission_checker import RequirePermission
 from app.models.user import User
 from app.schemas.dashboard import ProfileResponse, UserDashboardStats
-from app.schemas.export import ExportCreateRequest
+from app.schemas.export import ExportCreateRequest, ExportPage
 from app.schemas.generation_history import GenerationHistoryPage
 from app.schemas.strategy import StrategyGenerationRequest, StrategyGenerationResponse
 from app.core.security import hash_password, verify_password
@@ -252,4 +253,54 @@ async def user_export(
         content=rendered.content,
         media_type=rendered.media_type,
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get(
+    "/exports",
+    response_model=ExportPage,
+    summary="List the current user's exports",
+)
+async def user_exports(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: DbDep,
+    strategy_id: uuid.UUID | None = None,
+    limit: int = 20,
+    offset: int = 0,
+) -> ExportPage:
+    """Return the exports owned by the current user, newest first.
+
+    The list is always scoped to the authenticated user via
+    ``ExportService.list_exports``, so no extra permission gate is
+    required for the user's own history.
+    """
+    service = ExportService(db)
+    items, total = await service.list_exports(
+        current_user,
+        strategy_id=strategy_id,
+        limit=limit,
+        offset=offset,
+    )
+
+    from app.schemas.export import ExportRead
+
+    def _to_read(export) -> ExportRead:
+        return ExportRead(
+            id=export.id,
+            strategy_id=export.strategy_id,
+            format=export.format,
+            file_key=export.file_key,
+            file_url=export.file_url,
+            status=export.status,
+            created_at=export.created_at,
+            updated_at=export.updated_at,
+            strategy_name=export.strategy.name if export.strategy else None,
+        )
+
+    return ExportPage(
+        items=[_to_read(e) for e in items],
+        total=total,
+        limit=limit,
+        offset=offset,
+        has_more=offset + len(items) < total,
     )

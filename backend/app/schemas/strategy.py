@@ -61,3 +61,8 @@ class StrategyGenerationResponse(BaseModel):
     sections: list[StrategySection]
     model_used: str
     status: Literal["completed", "failed"] = "completed"
+    content: dict | None = Field(
+        default=None,
+        description="Full structured AI payload (marketingScore, roadmap, ROI, ...). "
+        "Optional for backwards compatibility.",
+    )
