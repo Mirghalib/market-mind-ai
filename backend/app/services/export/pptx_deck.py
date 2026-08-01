@@ -242,6 +242,9 @@ class DeckBuilder:
     # --- slides -------------------------------------------------------------
 
     def cover(self) -> int:
+        from app.services.export.report_data import ReportData
+
+        data = ReportData(self.strategy)
         slide = self.add_slide()
         self.add_rect(slide, 0, 0, 13.333, 7.5, "111827")
         self.add_rect(slide, 0, 0, 13.333, 0.35, BRAND["primary"])
@@ -253,16 +256,22 @@ class DeckBuilder:
             slide, 0.9, 3.4, 11.5, 0.6,
             [("Marketing Strategy Report", 24, False, "C7D2FE")],
         )
+        budget_line = (
+            f"Budget: {data.budget_label}"
+            if data.budget_label and data.budget_label != "Not specified"
+            else None
+        )
+        cover_meta = [
+            f"Industry: {_industry(self.strategy)}",
+            f"Country: {data.country}",
+            f"Target audience: {self.strategy.target_audience or '—'}",
+        ]
+        if budget_line:
+            cover_meta.append(budget_line)
+        cover_meta.append(_date_line(self.strategy))
         self.add_text(
             slide, 0.9, 4.6, 11.5, 1.6,
-            [
-                (f"Industry: {_industry(self.strategy)}", 14, False, "94A3B8"),
-                (
-                    f"Target audience: {self.strategy.target_audience or '—'}",
-                    14, False, "94A3B8",
-                ),
-                (_date_line(self.strategy), 14, False, "94A3B8"),
-            ],
+            [(line, 14, False, "94A3B8") for line in cover_meta],
         )
         return 1
 
@@ -311,6 +320,116 @@ class DeckBuilder:
                 self.add_bullets(slide, 0.9, y, 11.5, 0.4, [line], size=13)
                 y += 0.35
             y += 0.25
+        return 1
+
+    def business_overview(self) -> int:
+        """Business overview slide: goals, positioning, key messages."""
+        strategy = self.content.get("marketingStrategy") or {}
+        goals = strategy.get("objectives") or []
+        positioning = strategy.get("positioning")
+        messages = strategy.get("keyMessages") or []
+        if not goals and not positioning and not messages:
+            return 0
+        slide = self.add_slide()
+        self.slide_header(slide, "Business Overview")
+        y = 1.8
+        if positioning:
+            self.add_text(slide, 0.9, y, 11.5, 0.4, [("Positioning", 15, True, BRAND["primary"])])
+            y += 0.5
+            self.add_text(slide, 0.9, y, 11.5, 0.8, [(str(positioning), 13, False, BRAND["muted"])])
+            y += 1.2
+        if goals:
+            self.add_text(slide, 0.9, y, 11.5, 0.4, [("Objectives", 15, True, BRAND["primary"])])
+            y += 0.5
+            self.add_bullets(slide, 0.9, y, 11.5, 3.0, [str(g) for g in goals[:6]], size=13)
+            y += min(6.5 - y, 0.4 * len(goals[:6]))
+        if messages and y < 6.2:
+            self.add_text(slide, 0.9, y, 11.5, 0.4, [("Key Messages", 15, True, BRAND["secondary"])])
+            y += 0.5
+            self.add_bullets(slide, 0.9, y, 11.5, 1.5, [str(m) for m in messages[:4]], size=13)
+        return 1
+
+    def target_audience(self) -> int:
+        """Target audience slide from the persona."""
+        persona = self.content.get("customerPersona") or {}
+        if not persona:
+            return 0
+        slide = self.add_slide()
+        self.slide_header(slide, "Target Audience")
+        y = 1.8
+        profile = [
+            ("Name", persona.get("name")),
+            ("Age range", persona.get("ageRange")),
+            ("Location", persona.get("location")),
+            ("Occupation", persona.get("occupation")),
+            ("Income level", persona.get("incomeLevel")),
+        ]
+        # Left column: profile attributes.
+        for label, value in profile:
+            if value:
+                self.add_text(slide, 0.9, y, 2.4, 0.35, [(label.upper(), 10, True, BRAND["muted"])])
+                self.add_text(slide, 0.9, y + 0.32, 5.0, 0.35, [(str(value), 14, True, BRAND["dark"])])
+                y += 0.9
+        # Right column: interests / goals / pain points.
+        x = 6.8
+        self.add_text(slide, x, 1.8, 5.5, 0.4, [("Interests", 15, True, BRAND["primary"])])
+        interests = persona.get("interests") or []
+        self.add_bullets(slide, x, 2.3, 5.5, 2.0, [str(i) for i in interests[:5]], size=12)
+        y2 = 4.4
+        goals = persona.get("goals") or []
+        if goals:
+            self.add_text(slide, x, y2, 5.5, 0.4, [("Goals", 15, True, BRAND["secondary"])])
+            self.add_bullets(slide, x, y2 + 0.5, 5.5, 1.6, [str(g) for g in goals[:4]], size=12)
+        summary = persona.get("summary")
+        if summary:
+            self.add_text(slide, 0.9, 6.2, 11.5, 0.7, [(str(summary), 12, False, BRAND["muted"])])
+        return 1
+
+    def marketing_objectives(self) -> int:
+        """Marketing objectives slide with numbered goals."""
+        strategy = self.content.get("marketingStrategy") or {}
+        goals = strategy.get("objectives") or []
+        if not goals:
+            return 0
+        slide = self.add_slide()
+        self.slide_header(slide, "Marketing Objectives")
+        y = 1.9
+        for i, goal in enumerate(goals[:8], start=1):
+            self.add_rect(slide, 0.9, y, 0.5, 0.5, BRAND["primary"])
+            self.add_text(slide, 1.0, y + 0.05, 0.4, 0.4, [(str(i), 16, True, BRAND["white"])], align="CENTER")
+            self.add_text(slide, 1.7, y + 0.03, 10.8, 0.5, [(str(goal), 15, False, BRAND["dark"])])
+            y += 0.68
+        return 1
+
+    def content_strategy(self) -> int:
+        """Content strategy slide from the content calendar + SEO topics."""
+        calendar = self.content.get("contentCalendar") or {}
+        seo = self.content.get("seoKeywords") or {}
+        topics = seo.get("contentTopics") or []
+        schedule = calendar.get("schedule") or []
+        if not topics and not schedule and not calendar.get("timeframe"):
+            return 0
+        slide = self.add_slide()
+        self.slide_header(slide, "Content Strategy")
+        y = 1.8
+        tf = calendar.get("timeframe") or calendar.get("cadence")
+        if tf:
+            self.add_text(slide, 0.9, y, 11.5, 0.4, [("Plan", 14, True, BRAND["primary"])])
+            y += 0.5
+            self.add_text(slide, 0.9, y, 11.5, 0.4, [(str(tf), 13, False, BRAND["dark"])])
+            y += 0.8
+        if topics:
+            self.add_text(slide, 0.9, y, 11.5, 0.4, [("Content Topics", 15, True, BRAND["secondary"])])
+            y += 0.5
+            for t in topics[:5]:
+                title = t.get("title", "")
+                kw = t.get("targetKeyword", "")
+                stage = t.get("funnelStage", "")
+                line = title + (f" — {kw}" if kw else "")
+                self.add_bullets(slide, 0.9, y, 11.5, 0.4, [line], size=13)
+                y += 0.4
+                if y > 6.2:
+                    break
         return 1
 
     def marketing_score(self) -> int:
@@ -568,13 +687,38 @@ class DeckBuilder:
                 y += 0.5
         return 1
 
+    def next_steps(self) -> int:
+        """Next steps slide from the roadmap + recommendations."""
+        roadmap = self.content.get("implementationRoadmap") or {}
+        rec = self.content.get("finalRecommendations") or {}
+        phases = roadmap.get("phases") or []
+        steps = [f"{p.get('name', '')} — {p.get('duration', '')}" for p in phases[:4]]
+        priorities = rec.get("priorities") or []
+        items = [str(p) for p in priorities[:4]] if priorities else steps
+        if not items:
+            return 0
+        slide = self.add_slide()
+        self.slide_header(slide, "Next Steps")
+        y = 1.8
+        for i, item in enumerate(items[:6], start=1):
+            self.add_rect(slide, 0.9, y, 0.5, 0.5, BRAND["emerald"])
+            self.add_text(slide, 1.0, y + 0.05, 0.4, 0.4, [(str(i), 15, True, BRAND["white"])], align="CENTER")
+            self.add_text(slide, 1.7, y + 0.04, 10.8, 0.5, [(str(item), 15, False, BRAND["dark"])])
+            y += 0.68
+        quick = rec.get("quickWins") or []
+        if quick and y < 5.6:
+            self.add_text(slide, 0.9, y + 0.2, 11.5, 0.4, [("Quick wins", 14, True, BRAND["secondary"])])
+            y += 0.7
+            self.add_bullets(slide, 0.9, y, 11.5, 1.2, [str(q) for q in quick[:4]], size=12)
+        return 1
+
     def closing(self) -> int:
         slide = self.add_slide()
         self.add_rect(slide, 0, 0, 13.333, 7.5, "111827")
         self.add_rect(slide, 0, 0, 13.333, 0.35, BRAND["primary"])
         self.add_text(
             slide, 0.9, 2.6, 11.5, 1.0,
-            [("Ready to execute?", 40, True, BRAND["white"])],
+            [("Thank you", 44, True, BRAND["white"])],
         )
         self.add_text(
             slide, 0.9, 3.7, 11.5, 1.2,
@@ -599,12 +743,16 @@ class DeckBuilder:
             self.agenda,
             self.exec_summary,
             self.marketing_score,
+            self.business_overview,
+            self.target_audience,
+            self.marketing_objectives,
             self.kpi_slide,
             lambda: self.section_slide("Market Overview"),
             lambda: self.section_slide("Customer Persona"),
             lambda: self.section_slide("SWOT Analysis"),
             lambda: self.section_slide("Competitor Analysis"),
             self.channels_slide,
+            self.content_strategy,
             lambda: self.section_slide("SEO Strategy", "Seokeywords"),
             lambda: self.section_slide("Email Marketing Strategy", "Emailcampaign"),
             lambda: self.section_slide("Social Media Strategy", "Socialmediastrategy"),
@@ -614,6 +762,7 @@ class DeckBuilder:
             self.roi,
             lambda: self.section_slide("Risks and Mitigation", "Riskmitigation"),
             self.recommendations,
+            self.next_steps,
             self.closing,
         ]
 

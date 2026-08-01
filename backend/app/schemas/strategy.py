@@ -15,7 +15,12 @@ class StrategyGenerationRequest(BaseModel):
     industry: str = Field(
         min_length=1,
         max_length=100,
-        description="Industry or vertical, e.g. 'SaaS', 'E-commerce'",
+        description="Industry or vertical, e.g. 'SaaS', 'E-commerce', 'Restaurant'",
+    )
+    product: str | None = Field(
+        default=None,
+        max_length=500,
+        description="Product or service being marketed (optional)",
     )
     target_audience: str = Field(
         min_length=1,
@@ -39,7 +44,27 @@ class StrategyGenerationRequest(BaseModel):
     budget: str | None = Field(
         default=None,
         max_length=255,
-        description="Budget for the campaign or period (optional)",
+        description="Budget for the campaign or period (optional, human label)",
+    )
+    budget_amount: float | None = Field(
+        default=None,
+        ge=0,
+        description="Numeric monthly budget amount (optional)",
+    )
+    currency_code: str | None = Field(
+        default=None,
+        max_length=10,
+        description="ISO currency code, e.g. 'PKR', 'USD', 'GBP'",
+    )
+    currency_symbol: str | None = Field(
+        default=None,
+        max_length=10,
+        description="Currency symbol, e.g. 'Rs.', '$', '£', '€'",
+    )
+    budget_period: str | None = Field(
+        default=None,
+        max_length=50,
+        description="Budget period, e.g. 'month', 'quarter', 'year'",
     )
     competitors: list[str] = Field(
         default_factory=list,

@@ -366,6 +366,44 @@ def _progress_bar(value: float, width: float) -> Drawing:
     return d
 
 
+def _timeline(phases: list[dict]) -> Drawing:
+    """Horizontal marketing timeline of roadmap phases (dots on a line)."""
+    if not phases:
+        return Drawing(0, 0)
+    width, height = 16.5 * cm, 3.2 * cm
+    line_y = 1.6 * cm
+    drawing = Drawing(width, height)
+    left, right = 1.0 * cm, width - 1.0 * cm
+
+    drawing.add(shapes.Line(left, line_y, right, line_y,
+                            strokeColor=INDIGO_LIGHT, strokeWidth=4))
+    drawing.add(shapes.Line(left, line_y, right, line_y,
+                            strokeColor=INDIGO, strokeWidth=1))
+
+    n = len(phases[:6])
+    step = (right - left) / max(n - 1, 1)
+    palette = [INDIGO, HexColor("#7c3aed"), HexColor("#06b6d4"),
+               HexColor("#10b981"), HexColor("#f59e0b"), HexColor("#f43f5e")]
+    for i, phase in enumerate(phases[:6]):
+        x = left + i * step
+        drawing.add(shapes.Circle(x, line_y, 0.14 * cm,
+                                  fillColor=palette[i % len(palette)],
+                                  strokeColor=WHITE, strokeWidth=1.2))
+        # Duration label above the dot.
+        drawing.add(shapes.String(
+            x, line_y + 0.32 * cm, str(phase.get("duration", ""))[:14],
+            fontName="Helvetica-Bold", fontSize=7.5, fillColor=SLATE,
+            textAnchor="middle",
+        ))
+        # Phase name below the dot.
+        drawing.add(shapes.String(
+            x, line_y - 0.55 * cm, str(phase.get("name", ""))[:18],
+            fontName="Helvetica", fontSize=7, fillColor=MUTED,
+            textAnchor="middle",
+        ))
+    return drawing
+
+
 # ---------------------------------------------------------------------------
 # Table helper
 # ---------------------------------------------------------------------------
@@ -456,12 +494,24 @@ def _cover_flowables(strategy) -> list[Any]:
     market = content.get("marketOverview") or {}
     if market.get("targetMarketSize"):
         industry = market["targetMarketSize"]
+
+    from app.services.export.report_data import ReportData
+
+    _data = ReportData(strategy)
+    budget_label = _data.budget_label if _data.budget_label != "Not specified" else "—"
+
     meta_rows = [
         [Paragraph("<font color='#c7d2fe'>INDUSTRY</font>", _META),
          Paragraph(_esc(industry), ParagraphStyle(
              "CoverMetaV", parent=_BODY, fontSize=10, textColor=WHITE))],
+        [Paragraph("<font color='#c7d2fe'>COUNTRY</font>", _META),
+         Paragraph(_esc(_data.country), ParagraphStyle(
+             "CoverMetaV", parent=_BODY, fontSize=10, textColor=WHITE))],
         [Paragraph("<font color='#c7d2fe'>TARGET AUDIENCE</font>", _META),
          Paragraph(_esc(strategy.target_audience or "—"), ParagraphStyle(
+             "CoverMetaV", parent=_BODY, fontSize=10, textColor=WHITE))],
+        [Paragraph("<font color='#c7d2fe'>BUDGET</font>", _META),
+         Paragraph(_esc(budget_label), ParagraphStyle(
              "CoverMetaV", parent=_BODY, fontSize=10, textColor=WHITE))],
         [Paragraph("<font color='#c7d2fe'>GENERATION DATE</font>", _META),
          Paragraph(_esc(date_str or "—"), ParagraphStyle(
@@ -470,8 +520,8 @@ def _cover_flowables(strategy) -> list[Any]:
     meta_table = Table(meta_rows, colWidths=[4.2 * cm, 11.5 * cm], hAlign="LEFT")
     meta_table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, -1), HexColor("#1e1b4b")),
-        ("TOPPADDING", (0, 0), (-1, -1), 8),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 7),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
         ("LEFTPADDING", (0, 0), (-1, -1), 12),
         ("RIGHTPADDING", (0, 0), (-1, -1), 12),
         ("LINEBELOW", (0, 0), (-1, -2), 0.4, HexColor("#4338ca")),
@@ -842,7 +892,14 @@ def _roadmap_flowables(content: dict) -> list[Any]:
     flow = [Paragraph("90-Day Implementation Roadmap", _H1)]
     if roadmap.get("summary"):
         flow.append(Paragraph(_esc(roadmap["summary"]), _BODY))
-    for phase in roadmap.get("phases") or []:
+    phases = roadmap.get("phases") or []
+    if phases:
+        timeline = _timeline(phases)
+        if timeline.width > 0:
+            flow.append(Spacer(1, 0.5 * cm))
+            flow.append(timeline)
+            flow.append(Paragraph("Marketing timeline — implementation phases", _CAPTION))
+    for phase in phases:
         name = phase.get("name", "")
         duration = phase.get("duration", "")
         flow.append(Spacer(1, 0.4 * cm))
@@ -857,13 +914,17 @@ def _roadmap_flowables(content: dict) -> list[Any]:
     return flow
 
 
-def _milestones_flowables(content: dict) -> list[Any]:
+def _action_plan_flowables(content: dict) -> list[Any]:
+    """Next 90-day action plan — a combined milestones checklist."""
     milestones = content.get("weeklyMilestones") or {}
-    flow = [Paragraph("Weekly Milestones", _H1)]
+    roadmap = content.get("implementationRoadmap") or {}
+    flow = [Paragraph("Next 90-Day Action Plan", _H1)]
     if milestones.get("summary"):
         flow.append(Paragraph(_esc(milestones["summary"]), _BODY))
+
     weeks = milestones.get("weeks") or []
     if weeks:
+        flow.append(Paragraph("Weekly Milestones", _H2))
         rows = [[w.get("week", ""), w.get("focus", ""),
                  w.get("owner") or "—",
                  w.get("successIndicator", "")] for w in weeks]
@@ -871,6 +932,17 @@ def _milestones_flowables(content: dict) -> list[Any]:
             ["Week", "Focus", "Owner", "Success Indicator"],
             rows, col_widths=[2.2 * cm, 4.6 * cm, 3.0 * cm, 6.7 * cm],
         ))
+
+    # Action checklist derived from roadmap phases.
+    tasks = []
+    for phase in roadmap.get("phases") or []:
+        for activity in phase.get("keyActivities") or []:
+            label = f"{phase.get('duration', '')}: {activity}" if phase.get("duration") else str(activity)
+            tasks.append(label)
+    if tasks:
+        flow.append(Spacer(1, 0.4 * cm))
+        flow.append(Paragraph("Key Actions", _H2))
+        flow.extend(_bullet_list(tasks[:12]))
     return flow
 
 
@@ -985,7 +1057,7 @@ _SECTION_BUILDERS: list[tuple[str, Any]] = [
     ("Google & Meta Ads Plan", _ads_flowables),
     ("Content Calendar", _calendar_flowables),
     ("90-Day Implementation Roadmap", _roadmap_flowables),
-    ("Weekly Milestones", _milestones_flowables),
+    ("Next 90-Day Action Plan", _action_plan_flowables),
     ("Estimated ROI", _roi_flowables),
     ("Risks and Mitigation", _risks_flowables),
     ("Final Recommendations", _recommendations_flowables),
@@ -1017,7 +1089,7 @@ def _section_entries(content: dict) -> list[tuple[str, Any]]:
                 _ads_flowables: "advertisementIdeas",
                 _calendar_flowables: "contentCalendar",
                 _roadmap_flowables: "implementationRoadmap",
-                _milestones_flowables: "weeklyMilestones",
+                _action_plan_flowables: "weeklyMilestones",
                 _roi_flowables: "estimatedROI",
                 _risks_flowables: "riskMitigation",
                 _recommendations_flowables: "finalRecommendations",

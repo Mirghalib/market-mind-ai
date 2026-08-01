@@ -28,11 +28,14 @@ from app.schemas.strategy import (
     StrategySection,
 )
 from app.services.ai.ai_service import AIService
+from app.services.ai.country_profiles import profile_for_country
+from app.services.ai.currencies import budget_label, currency_for_country
 from app.services.ai.exceptions import (
     AIServiceError,
     ProviderError,
     ValidationError,
 )
+from app.services.ai.industry_playbooks import format_playbook, match_playbook
 from app.services.ai.prompt_builder import MarketingBrief
 
 logger = logging.getLogger("market_mind_ai.strategy_generation")
@@ -60,16 +63,25 @@ def _provider_key() -> str:
 
 
 def _budget_label(request: StrategyGenerationRequest) -> str:
-    return request.budget or "Not specified"
+    if request.budget:
+        return request.budget
+    return budget_label(
+        request.budget_amount,
+        request.currency_symbol,
+        request.currency_code,
+        request.budget_period,
+    )
 
 
 def _budget_amount(request: StrategyGenerationRequest) -> float:
-    """Extract a numeric budget from the request for ROI math.
+    """Resolve a numeric budget from the request for ROI math.
 
-    Accepts values like "$10,000", "10k USD", "10000", "£8,000 / quarter".
-    Falls back to a representative demo figure when nothing numeric is
-    present so the mock ROI stays deterministic and useful.
+    Prefers the structured ``budget_amount``; falls back to parsing the
+    human ``budget`` string; finally a representative demo figure.
     """
+    if request.budget_amount is not None:
+        return max(float(request.budget_amount), 500.0)
+
     text = (request.budget or "").strip().lower()
     if not text:
         return 10_000.0
@@ -86,6 +98,22 @@ def _budget_amount(request: StrategyGenerationRequest) -> float:
     if "m" in text and "k" not in text:
         number *= 1_000_000
     return max(number, 500.0)
+
+
+def _currency_meta(request: StrategyGenerationRequest) -> dict:
+    """Currency/country metadata stored on the strategy content."""
+    symbol = request.currency_symbol or currency_for_country(request.country)[1]
+    code = request.currency_code or currency_for_country(request.country)[0]
+    return {
+        "country": request.country or "Global",
+        "industry": request.industry,
+        "product": request.product or request.project_name,
+        "currency_code": code,
+        "currency_symbol": symbol,
+        "budget_amount": request.budget_amount,
+        "budget_period": request.budget_period or "month",
+        "budget_label": _budget_label(request),
+    }
 
 
 class StrategyGenerationService:
@@ -119,19 +147,34 @@ class StrategyGenerationService:
 
         try:
             service = self._ai_service or AIService()
+            playbook = match_playbook(request.industry)
+            country_profile = profile_for_country(request.country)
             result = await service.generate_marketing_strategy(
                 MarketingBrief(
                     business_name=request.project_name,
                     industry=request.industry,
-                    product=request.project_name,
+                    product=request.product or request.project_name,
                     audience=request.target_audience,
                     country=request.country or "Global",
                     goal="; ".join(request.goals),
                     budget=_budget_label(request),
+                    budget_amount=request.budget_amount,
+                    currency_code=request.currency_code
+                    or currency_for_country(request.country)[0],
+                    currency_symbol=request.currency_symbol
+                    or currency_for_country(request.country)[1],
+                    budget_period=request.budget_period or "month",
                     brand_tone=request.tone,
                     competitors=request.competitors or [],
+                    industry_playbook=format_playbook(playbook),
+                    country_profile="\n".join(
+                        ["Platforms: " + ", ".join(country_profile.get("platforms", []))]
+                        + country_profile.get("tactics", [])
+                    ),
                 )
             )
+            # Attach currency/country metadata so exports can render it.
+            result.setdefault("metadata", _currency_meta(request))
         except ProviderError as exc:
             if exc.status_code == 429:
                 if settings.AI_FALLBACK_TO_MOCK:
@@ -532,6 +575,66 @@ class StrategyGenerationService:
             )
             add("Recommended Tools", tool_text)
 
+        analysis = result.get("businessAnalysis") or {}
+        add("Business Analysis", analysis.get("overview"))
+        add(
+            "Business Strengths",
+            join(analysis.get("strengths"), "\n- "),
+        )
+        add(
+            "Growth Levers",
+            join(analysis.get("growthLevers"), "\n- "),
+        )
+        add(
+            "Immediate Wins",
+            join(analysis.get("immediateWins"), "\n- "),
+        )
+
+        funnel = result.get("marketingFunnel") or {}
+        stages = funnel.get("stages") or []
+        if stages:
+            funnel_text = "\n\n".join(
+                f"{s.get('stage')}:\n{join(s.get('tactics'), chr(10) + '- ')}"
+                for s in stages
+            )
+            add("Marketing Funnel", f"{funnel.get('summary', '')}\n\n{funnel_text}".strip())
+
+        influencers = result.get("influencerStrategy") or {}
+        add("Influencer Strategy", influencers.get("summary"))
+        tiers = influencers.get("tiers") or []
+        if tiers:
+            tier_text = "\n".join(
+                f"- {t.get('tier')}: {t.get('strategy')}" for t in tiers
+            )
+            add("Influencer Tiers", tier_text)
+        add(
+            "Influencer Campaign Ideas",
+            join(influencers.get("campaignIdeas"), "\n- "),
+        )
+
+        opportunities = result.get("growthOpportunities") or {}
+        add("Growth Opportunities", opportunities.get("summary"))
+        opps = opportunities.get("opportunities") or []
+        if opps:
+            opp_text = "\n".join(
+                f"- {o.get('name')} ({o.get('effort')} effort, {o.get('impact')} impact): {o.get('why')}"
+                for o in opps
+            )
+            add("Growth Opportunity Details", opp_text)
+
+        scaling = result.get("futureScaling") or {}
+        add("Future Scaling Strategy", scaling.get("summary"))
+        phases = scaling.get("phases") or []
+        if phases:
+            phase_text = "\n".join(
+                f"- {p.get('phase')}: {p.get('focus')}" for p in phases
+            )
+            add("Scaling Phases", phase_text)
+        add(
+            "Scale Levers",
+            join(scaling.get("scaleLevers"), "\n- "),
+        )
+
         return sections
 
     async def _generate_mock(
@@ -541,463 +644,16 @@ class StrategyGenerationService:
         db: AsyncSession | None = None,
         user: User | None = None,
     ) -> StrategyGenerationResponse:
-        """Deterministic fallback content used when the LLM is unavailable.
+        """Deterministic but input-unique fallback used when the LLM is
+        unavailable.
 
-        Mirrors the section set the real pipeline produces so the UI and
-        exports behave identically in offline demos.
+        Driven by the industry playbook, country profile and currency so
+        Restaurant (PK) != SaaS (US) != Gym (AE), matching the section set
+        the real pipeline produces.
         """
-        mock_doc = {
-            "executiveSummary": {
-                "summary": (
-                    f"{request.project_name} enters the {request.industry} market with a "
-                    "differentiated offer and a disciplined 90-day growth plan. This strategy "
-                    "prioritizes high-intent channels, a measurable scorecard, and fast "
-                    "execution loops so results compound quickly."
-                ),
-                "highlights": [
-                    "A prioritized channel mix aligned with the target audience",
-                    "A measurable KPI scorecard with 90-day targets",
-                    "A phased roadmap with weekly milestones and clear owners",
-                ],
-                "ask": (
-                    f"Approve the plan and begin Phase 1 — Foundation — within the first "
-                    "week to start capturing demand."
-                ),
-            },
-            "marketingScore": {
-                "overall": 74,
-                "breakdown": [
-                    {"id": "ms1", "area": "Strategy", "score": 78, "assessment": "Clear positioning and objectives with room to sharpen messaging."},
-                    {"id": "ms2", "area": "SEO", "score": 62, "assessment": "Foundational keyword set defined; needs content investment."},
-                    {"id": "ms3", "area": "Content", "score": 68, "assessment": "Calendar is structured; cadence should increase over time."},
-                    {"id": "ms4", "area": "Social", "score": 71, "assessment": "Platform plan is solid; community management needs staffing."},
-                    {"id": "ms5", "area": "Email", "score": 82, "assessment": "Nurture sequence is strong and ready to launch."},
-                    {"id": "ms6", "area": "Ads", "score": 69, "assessment": "Campaign structure is sound; budgets need active optimization."},
-                ],
-                "benchmark": "Industry average for similar SMBs is 60/100",
-                "summary": (
-                    f"{request.project_name} is above the typical benchmark for its "
-                    "segment. The biggest near-term gains come from SEO and content "
-                    "execution."
-                ),
-            },
-            "marketingStrategy": {
-                "overview": (
-                    f"{request.project_name} is entering the {request.industry} "
-                    "market with a differentiated offer. This strategy lays out a "
-                    "prioritized growth plan covering positioning, channels, budget "
-                    "and measurement."
-                ),
-                "objectives": list(request.goals),
-                "positioning": (
-                    f"Position {request.project_name} as the accessible, "
-                    "outcome-driven choice for the target audience, emphasizing "
-                    "value and measurable results over generic alternatives."
-                ),
-                "keyMessages": [
-                    "Built around your goals, not templates",
-                    "Clear results from week one",
-                    "A dedicated plan for every channel",
-                ],
-                "channels": [
-                    {"id": "c1", "name": "Email", "priority": "high", "description": "Nurture high-intent leads"},
-                    {"id": "c2", "name": "Paid Social", "priority": "high", "description": "Retarget engaged visitors"},
-                    {"id": "c3", "name": "SEO", "priority": "medium", "description": "Capture search demand"},
-                ],
-                "budgetAllocation": [
-                    {"channel": "Paid Social", "percentage": 40},
-                    {"channel": "Email", "percentage": 20},
-                    {"channel": "SEO & Content", "percentage": 25},
-                    {"channel": "Influencers", "percentage": 15},
-                ],
-                "kpis": [
-                    {"id": "k1", "metric": "Qualified leads", "target": "+30%", "timeframe": "Quarter 1"},
-                    {"id": "k2", "metric": "Online conversion rate", "target": "3.5%", "timeframe": "Quarter 1"},
-                    {"id": "k3", "metric": "Email list growth", "target": "+1,500", "timeframe": "Quarter 1"},
-                ],
-            },
-            "customerPersona": {
-                "name": "The Decision-Maker",
-                "ageRange": "28-45",
-                "location": request.country or "Global",
-                "occupation": "Owner / team lead",
-                "incomeLevel": "Mid-to-senior",
-                "summary": (
-                    f"A results-focused professional in {request.country or 'the target market'} "
-                    "who values clarity, speed and measurable outcomes and is actively "
-                    "looking for a better way to reach customers."
-                ),
-                "interests": ["Growth", "Automation", "Industry news"],
-                "painPoints": ["Limited time", "Fragmented channels", "Hard to measure ROI"],
-                "goals": list(request.goals),
-                "preferredChannels": ["Email", "LinkedIn", "Search"],
-                "buyingTriggers": ["Time savings", "Clear pricing", "Proven case studies"],
-                "objections": ["Budget", "Switching cost", "Time to results"],
-            },
-            "swotAnalysis": {
-                "strengths": ["Focused offer", "Fast time-to-value", "Agile team"],
-                "weaknesses": ["Brand awareness", "Limited budget"],
-                "opportunities": [
-                    f"Growing {request.industry} demand",
-                    "Under-served niche segments",
-                    "Automation-driven efficiency",
-                ],
-                "threats": ["Established incumbents", "Price competition", "AI fatigue"],
-                "overallAssessment": (
-                    f"{request.project_name} can win by pairing a sharp value "
-                    "proposition with disciplined channel execution and fast "
-                    "measurement loops."
-                ),
-            },
-            "marketOverview": {
-                "summary": (
-                    f"The {request.industry} market is growing steadily, driven by "
-                    "digital adoption and shifting customer expectations. Competition "
-                    "is fragmented, which leaves room for a focused, outcome-driven "
-                    "player like {request.project_name}."
-                ),
-                "marketTrends": [
-                    f"Continued growth in {request.industry} demand",
-                    "Rise of personalized, automated customer journeys",
-                    "Increased weight on measurable ROI in buying decisions",
-                ],
-                "targetMarketSize": "Estimated addressable market of $500M+",
-                "growthRate": "8% year-over-year",
-                "keyDrivers": [
-                    "Digital transformation among buyers",
-                    "Demand for faster time-to-value",
-                    "Shift toward subscription and outcome-based models",
-                ],
-                "marketRisks": [
-                    "Economic sensitivity in discretionary spending",
-                    "Aggressive pricing from incumbents",
-                ],
-            },
-            "seoKeywords": {
-                "primaryKeywords": [
-                    {"id": "s1", "keyword": f"{request.industry.lower()} strategy", "intent": "commercial", "priority": "high"},
-                    {"id": "s2", "keyword": f"best {request.industry.lower()} tools", "intent": "commercial", "priority": "high"},
-                ],
-                "contentTopics": [
-                    {"id": "t1", "title": f"5 ways to grow in {request.industry}", "funnelStage": "awareness"},
-                    {"id": "t2", "title": "A 90-day growth plan", "funnelStage": "consideration"},
-                ],
-                "onPageRecommendations": [
-                    "Optimize meta titles with target keywords",
-                    "Add internal links from high-traffic pages",
-                ],
-            },
-            "contentCalendar": {
-                "timeframe": "Next 30 days",
-                "cadence": "3 posts / week",
-                "schedule": [
-                    {"id": "d1", "date": "Week 1", "channel": "Blog", "topic": "Industry deep-dive", "cta": "Learn more"},
-                    {"id": "d2", "date": "Week 1", "channel": "Email", "topic": "Welcome sequence", "cta": "Get started"},
-                    {"id": "d3", "date": "Week 2", "channel": "LinkedIn", "topic": "Thought leadership", "cta": "Engage"},
-                    {"id": "d4", "date": "Week 2", "channel": "Paid Social", "topic": "Offer teaser", "cta": "Claim offer"},
-                    {"id": "d5", "date": "Week 3", "channel": "Blog", "topic": "Case study", "cta": "Read story"},
-                    {"id": "d6", "date": "Week 4", "channel": "Email", "topic": "Monthly recap", "cta": "Next steps"},
-                ],
-            },
-            "emailCampaign": {
-                "campaignName": "Launch Nurture",
-                "goal": "Convert cold subscribers into qualified leads",
-                "audience": "New subscribers",
-                "subjectLines": [
-                    "The plan that fits your goals",
-                    "Your growth roadmap, in one place",
-                    "Start with a clear advantage",
-                ],
-                "sequence": [
-                    {"id": "e1", "day": 0, "type": "Welcome", "subject": "Welcome to the plan"},
-                    {"id": "e2", "day": 3, "type": "Value", "subject": "One tactic, three ways"},
-                    {"id": "e3", "day": 7, "type": "Offer", "subject": "Your next step"},
-                ],
-            },
-            "advertisementIdeas": {
-                "summary": "Focused paid campaigns across Google and Meta that capture high-intent demand and retarget engaged audiences.",
-                "campaigns": [
-                    {
-                        "id": "a1",
-                        "name": "Search Capture",
-                        "platform": "Google Ads",
-                        "objective": "Capture high-intent search demand",
-                        "audience": request.target_audience,
-                        "budget": _budget_label(request),
-                        "duration": "Ongoing",
-                        "expectedOutcome": "Qualified clicks at a controlled cost",
-                    },
-                    {
-                        "id": "a2",
-                        "name": "Retargeting",
-                        "platform": "Meta Ads",
-                        "objective": "Convert engaged visitors",
-                        "audience": "Website visitors, email openers",
-                        "budget": _budget_label(request),
-                        "duration": "30 days",
-                        "expectedOutcome": "Improved conversion rate",
-                    },
-                ],
-            },
-            "socialMediaStrategy": {
-                "summary": (
-                    "A focused social presence on LinkedIn and Instagram that builds "
-                    "authority, distributes content, and funnels engaged audiences "
-                    "into the nurture sequence."
-                ),
-                "platforms": [
-                    {
-                        "id": "soc1",
-                        "name": "LinkedIn",
-                        "focus": "Thought leadership and B2B trust",
-                        "postingCadence": "3x / week",
-                        "contentMix": ["Industry insights", "Case studies", "Founder commentary"],
-                        "goals": ["Build authority", "Drive profile visits to the funnel"],
-                    },
-                    {
-                        "id": "soc2",
-                        "name": "Instagram",
-                        "focus": "Brand awareness and community",
-                        "postingCadence": "4x / week",
-                        "contentMix": ["Reels", "Carousels", "Behind the scenes"],
-                        "goals": ["Grow following", "Surface offers to engaged users"],
-                    },
-                ],
-                "communityManagement": [
-                    "Respond to comments within 4 hours on business days",
-                    "Weekly social listening for brand mentions and industry chatter",
-                    "Highlight customer wins monthly to build social proof",
-                ],
-                "performanceMetrics": [
-                    {"id": "socm1", "metric": "Engagement rate", "target": "4%"},
-                    {"id": "socm2", "metric": "Profile clicks", "target": "+500 / month"},
-                    {"id": "socm3", "metric": "Follower growth", "target": "+1,200 in 90 days"},
-                ],
-            },
-            "competitorAnalysis": {
-                "competitors": [
-                    {
-                        "id": "cp1",
-                        "name": "Direct competitors",
-                        "marketPosition": "Established",
-                        "strengths": ["Brand", "Scale"],
-                        "weaknesses": ["Slower to personalize", "Higher prices"],
-                        "threatLevel": "medium",
-                    }
-                ],
-                "competitiveAdvantages": ["Speed", "Personalization", "Transparent pricing"],
-                "marketGaps": ["Under-served niche segments", "Simpler onboarding"],
-                "keyTakeaways": [
-                    "Differentiate on outcomes and speed",
-                    "Target segments incumbents ignore",
-                ],
-            },
-            "implementationRoadmap": {
-                "summary": (
-                    "A 90-day roadmap in three phases: Foundation, Momentum, and "
-                    "Scale. Each phase has clear objectives, activities, and "
-                    "success metrics."
-                ),
-                "phases": [
-                    {
-                        "id": "ph1",
-                        "name": "Foundation",
-                        "duration": "Days 1-30",
-                        "objectives": [
-                            "Stand up tracking and attribution",
-                            "Launch the nurture email sequence",
-                            "Publish the first SEO-optimized content",
-                        ],
-                        "keyActivities": [
-                            "Set up analytics and conversion tracking",
-                            "Configure the email platform and sequence",
-                            "Ship two pillar blog posts and update meta tags",
-                        ],
-                        "successMetrics": [
-                            "Analytics reporting all core events",
-                            "Welcome sequence live",
-                            "2 pillar posts published",
-                        ],
-                    },
-                    {
-                        "id": "ph2",
-                        "name": "Momentum",
-                        "duration": "Days 31-60",
-                        "objectives": [
-                            "Scale paid acquisition within targets",
-                            "Grow the email list by 1,500 subscribers",
-                            "Establish a 3x/week social cadence",
-                        ],
-                        "keyActivities": [
-                            "Launch Google + Meta campaigns with structured testing",
-                            "Run weekly A/B tests on ads and email sends",
-                            "Post 3x/week on LinkedIn and Instagram",
-                        ],
-                        "successMetrics": [
-                            "CPA within 20% of target",
-                            "List growth at or above plan",
-                            "Social engagement rate at 4%",
-                        ],
-                    },
-                    {
-                        "id": "ph3",
-                        "name": "Scale",
-                        "duration": "Days 61-90",
-                        "objectives": [
-                            "Double down on winning channels",
-                            "Reach 3.5% conversion on optimized funnels",
-                            "Deliver the first quarterly report",
-                        ],
-                        "keyActivities": [
-                            "Shift budget to top-performing campaigns",
-                            "Expand content to 4 pieces/week",
-                            "Compile results, learnings, and next-quarter plan",
-                        ],
-                        "successMetrics": [
-                            "Conversion rate at target",
-                            "ROI at or above projection",
-                            "Quarterly report delivered",
-                        ],
-                    },
-                ],
-            },
-            "weeklyMilestones": {
-                "summary": (
-                    "Twelve weekly milestones keep execution accountable and "
-                    "surface problems early."
-                ),
-                "weeks": [
-                    {"id": "w1", "week": "Week 1", "focus": "Foundation setup", "tasks": ["Analytics + tracking live", "Email platform configured"], "owner": "Marketing lead", "successIndicator": "All core events reporting"},
-                    {"id": "w2", "week": "Week 2", "focus": "Welcome sequence", "tasks": ["Write sequence copy", "Launch welcome email"], "owner": "Marketing lead", "successIndicator": "Welcome email sent to new subscribers"},
-                    {"id": "w3", "week": "Week 3", "focus": "SEO content", "tasks": ["Publish pillar post 1", "Update meta titles"], "owner": "Content lead", "successIndicator": "First pillar post live"},
-                    {"id": "w4", "week": "Week 4", "focus": "Ads launch", "tasks": ["Set up Google campaign", "Launch first Meta ad set"], "owner": "Ads manager", "successIndicator": "Campaigns delivering impressions"},
-                    {"id": "w5", "week": "Week 5", "focus": "Social cadence", "tasks": ["Kick off 3x/week posting", "First monthly recap"], "owner": "Social manager", "successIndicator": "9 posts published"},
-                    {"id": "w6", "week": "Week 6", "focus": "Optimization", "tasks": ["Review ad results", "A/B test subject lines"], "owner": "Ads manager", "successIndicator": "CPA within 20% of target"},
-                    {"id": "w7", "week": "Week 7", "focus": "List growth", "tasks": ["Launch lead magnet", "Promote on social"], "owner": "Content lead", "successIndicator": "List growth at plan pace"},
-                    {"id": "w8", "week": "Week 8", "focus": "Scale content", "tasks": ["Publish pillar post 2", "Add 2 supporting posts"], "owner": "Content lead", "successIndicator": "Content library growing on plan"},
-                    {"id": "w9", "week": "Week 9", "focus": "Retargeting", "tasks": ["Launch retargeting campaigns", "Segment email list"], "owner": "Ads manager", "successIndicator": "Retargeting live"},
-                    {"id": "w10", "week": "Week 10", "focus": "Conversion lift", "tasks": ["Optimize landing pages", "Run CRO experiments"], "owner": "Marketing lead", "successIndicator": "Conversion rate improving"},
-                    {"id": "w11", "week": "Week 11", "focus": "Community", "tasks": ["Engagement sprints", "Customer spotlight"], "owner": "Social manager", "successIndicator": "Engagement rate at 4%"},
-                    {"id": "w12", "week": "Week 12", "focus": "Reporting", "tasks": ["Compile 90-day results", "Draft next-quarter plan"], "owner": "Marketing lead", "successIndicator": "Quarterly report delivered"},
-                ],
-            },
-            "estimatedROI": {
-                "summary": (
-                    "Based on the stated budget and channel mix, the plan is "
-                    "projected to deliver positive ROI within the first 90 days."
-                ),
-                "assumptions": [
-                    "Budget allocated per the recommended split",
-                    "Average customer value holds steady",
-                    "Conversion rates improve with ongoing optimization",
-                ],
-                "projections": [
-                    {"id": "roi1", "period": "Month 1", "investment": "$3,000", "projectedReturn": "$2,400", "roiPercent": "-20%"},
-                    {"id": "roi2", "period": "Month 2", "investment": "$3,500", "projectedReturn": "$4,900", "roiPercent": "40%"},
-                    {"id": "roi3", "period": "Month 3", "investment": "$4,000", "projectedReturn": "$7,200", "roiPercent": "80%"},
-                    {"id": "roi4", "period": "Quarter 2", "investment": "$4,500", "projectedReturn": "$10,800", "roiPercent": "140%"},
-                ],
-                "paybackPeriod": "Month 3",
-                "methodology": (
-                    "Projections assume the recommended budget allocation, "
-                    "blended customer acquisition cost, and improving conversion "
-                    "rates month over month."
-                ),
-            },
-            "riskMitigation": {
-                "summary": (
-                    "The plan carries moderate execution risk, concentrated in "
-                    "budget and channel performance. Each risk has a concrete "
-                    "mitigation."
-                ),
-                "risks": [
-                    {
-                        "id": "rk1",
-                        "risk": "Underperforming ad campaigns",
-                        "category": "Execution",
-                        "likelihood": "medium",
-                        "impact": "high",
-                        "mitigation": [
-                            "Structured A/B testing from day one",
-                            "Weekly budget reallocation to winning ad sets",
-                        ],
-                    },
-                    {
-                        "id": "rk2",
-                        "risk": "Content production delays",
-                        "category": "Capacity",
-                        "likelihood": "medium",
-                        "impact": "medium",
-                        "mitigation": [
-                            "Batch-create content one week ahead",
-                            "Template-first approach for recurring formats",
-                        ],
-                    },
-                    {
-                        "id": "rk3",
-                        "risk": "Budget overruns",
-                        "category": "Budget",
-                        "likelihood": "low",
-                        "impact": "medium",
-                        "mitigation": [
-                            "Hard cap per campaign with daily pacing",
-                            "Monthly budget review against ROI",
-                        ],
-                    },
-                    {
-                        "id": "rk4",
-                        "risk": "Market shifts or new entrants",
-                        "category": "Market",
-                        "likelihood": "low",
-                        "impact": "medium",
-                        "mitigation": [
-                            "Quarterly competitive review",
-                            "Positioning refresh based on feedback",
-                        ],
-                    },
-                ],
-            },
-            "finalRecommendations": {
-                "summary": (
-                    f"Execute the 90-day plan in order, keep measurement "
-                    "continuous, and review the scorecard monthly. The priority is "
-                    "to build the foundation, then scale what performs."
-                ),
-                "priorities": [
-                    "Stand up analytics and attribution first",
-                    "Launch the email nurture sequence within two weeks",
-                    "Open Google + Meta campaigns by week four",
-                ],
-                "quickWins": [
-                    "Publish the two pillar posts within the first month",
-                    "Activate the welcome sequence to capture early list growth",
-                    "Fix on-page SEO fundamentals on the highest-traffic pages",
-                ],
-                "longTermInvestments": [
-                    "Deepen SEO content into a 4x/week cadence",
-                    "Build out a referral or partnership channel",
-                    "Invest in conversion-rate optimization after month two",
-                ],
-                "successCriteria": [
-                    "Qualified leads up 30% by end of Quarter 1",
-                    "Conversion rate at 3.5% by day 90",
-                    "ROI positive by month three",
-                ],
-                "closingStatement": (
-                    f"{request.project_name} has a clear, executable path to growth. "
-                    "With disciplined execution of this plan, the first 90 days will "
-                    "establish the measurement, channels, and momentum needed to scale."
-                ),
-            },
-            "recommendedTools": {
-                "summary": "A lean, affordable stack that covers analytics, email, social scheduling and SEO.",
-                "tools": [
-                    {"id": "r1", "name": "Google Analytics", "category": "analytics", "purpose": "Measure performance", "pricing": "Free", "difficulty": "easy", "recommendation": "recommended"},
-                    {"id": "r2", "name": "Email platform", "category": "email-marketing", "purpose": "Send campaigns", "pricing": "From free", "difficulty": "easy", "recommendation": "recommended"},
-                    {"id": "r3", "name": "SEO suite", "category": "seo", "purpose": "Track keywords", "pricing": "From $99/mo", "difficulty": "medium", "recommendation": "optional"},
-                ],
-            },
-        }
+        from app.services.ai.mock_strategy import build_mock_strategy
+
+        mock_doc = build_mock_strategy(request)
 
         sections = self._build_sections(mock_doc)
 
@@ -1009,7 +665,8 @@ class StrategyGenerationService:
             strategy_id=strategy_id,
             summary=(
                 f"A {request.tone} {request.industry} strategy for "
-                f"{request.project_name} targeting {request.target_audience}."
+                f"{request.project_name} in {request.country or 'their market'} "
+                f"targeting {request.target_audience}."
             ),
             sections=sections,
             model_used=MOCK_MODEL,

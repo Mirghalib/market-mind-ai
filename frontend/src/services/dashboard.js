@@ -37,6 +37,13 @@ export const dashboardService = {
 
   /** DELETE /export/{id}/shares/{shareId} — revoke a share link. */
   revokeShare: (id, shareId) => api.delete(`/export/${id}/shares/${shareId}`),
+
+  /** GET /s/{token}/preview — branded HTML preview of a shared report. */
+  getSharePreview: (token) => api.get(`/s/${token}/preview`, { responseType: 'text' }),
+
+  /** GET /s/{token}/download — download a shared report in a chosen format (blob). */
+  downloadShared: (token, format) =>
+    api.get(`/s/${token}/download`, { params: { format }, responseType: 'blob' }),
 }
 
 export default dashboardService

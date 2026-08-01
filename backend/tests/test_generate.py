@@ -111,3 +111,57 @@ async def test_generate_persists_strategy_and_history(app_client, db_session) ->
 
     history = (await db_session.execute(select(GenerationHistory))).scalars().all()
     assert any(str(h.strategy_id) == strategy_id for h in history)
+
+
+@pytest.mark.asyncio
+async def test_generate_unique_per_industry_and_country(app_client) -> None:
+    """Different industries/countries produce different strategies with the
+    right currency in the mock (offline) path."""
+    headers = await _authed_headers(app_client)
+
+    def payload(name, industry, product, country, symbol, code, amount):
+        return {
+            "project_name": name,
+            "industry": industry,
+            "product": product,
+            "target_audience": "local customers",
+            "goals": ["Grow revenue"],
+            "country": country,
+            "currency_code": code,
+            "currency_symbol": symbol,
+            "budget_amount": amount,
+            "budget_period": "month",
+        }
+
+    cases = [
+        payload("Spice Garden", "Restaurant", "Pakistani cuisine", "Pakistan", "Rs.", "PKR", 100000),
+        payload("CloudDesk", "Software Company", "SaaS CRM", "United States", "$", "USD", 10000),
+        payload("Iron Peak", "Gym", "Personal training", "UAE", "AED ", "AED", 20000),
+    ]
+    results = []
+    for p in cases:
+        response = await app_client.post("/generate", json=p, headers=headers)
+        assert response.status_code == 200
+        results.append(response.json()["content"])
+
+    rest, saas, gym = results
+
+    def channels(content):
+        return {c["name"] for c in content["marketingStrategy"]["channels"]}
+
+    rc, sc, gc = channels(rest), channels(saas), channels(gym)
+    # Industry playbook makes the channel mixes differ.
+    assert rc != sc and sc != gc and gc != rc
+
+    # Currency metadata is stored and rendered in the budget figures.
+    assert rest["metadata"]["currency_symbol"] == "Rs."
+    assert saas["metadata"]["currency_symbol"] == "$"
+    assert gym["metadata"]["currency_symbol"] == "AED "
+    assert "Rs." in rest["estimatedROI"]["projections"][0]["investment"]
+    assert "$" in saas["estimatedROI"]["projections"][0]["investment"]
+
+    # New report sections are present.
+    for content in results:
+        for section in ("businessAnalysis", "marketingFunnel",
+                        "influencerStrategy", "growthOpportunities", "futureScaling"):
+            assert section in content

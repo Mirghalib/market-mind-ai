@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import {
   Building2,
   CheckCircle2,
+  Coins,
   Globe,
   Loader2,
   Megaphone,
@@ -20,38 +21,61 @@ import Select from '@/components/ui/Select'
 import Textarea from '@/components/ui/Textarea'
 import Button from '@/components/ui/Button'
 import { cn } from '@/utils/cn'
+import {
+  CURRENCY_OPTIONS,
+  DEFAULT_CURRENCY,
+  currencyForCountry,
+} from '@/constants/currencies'
 
 export const INDUSTRIES = [
-  'SaaS',
-  'E-commerce',
-  'Agency',
-  'Local Business',
+  'Restaurant / Food',
+  'SaaS / Software',
+  'E-commerce / Online Store',
+  'Gym & Fitness',
+  'Real Estate',
+  'Beauty Salon / Spa',
+  'Hospital / Clinic',
+  'Academy / Education',
+  'Travel Agency',
+  'Furniture Store',
+  'Agency / Consulting',
   'Fintech',
   'Healthcare',
-  'Education',
+  'Local Business',
   'Other',
 ]
 
 export const COUNTRIES = [
   'United States',
-  'Pakistan',
   'United Kingdom',
+  'Pakistan',
+  'India',
+  'UAE',
+  'Saudi Arabia',
   'Canada',
   'Australia',
   'Germany',
   'France',
-  'India',
+  'Italy',
+  'Spain',
   'Brazil',
+  'Mexico',
+  'Turkey',
+  'Nigeria',
+  'South Africa',
+  'Egypt',
+  'Japan',
+  'China',
+  'Singapore',
+  'Malaysia',
+  'Indonesia',
+  'Thailand',
+  'Philippines',
+  'New Zealand',
   'Other',
 ]
 
-export const BUDGETS = [
-  'Under $1,000 / mo',
-  '$1,000 – $5,000 / mo',
-  '$5,000 – $20,000 / mo',
-  '$20,000 – $50,000 / mo',
-  '$50,000+ / mo',
-]
+export const BUDGET_PERIODS = ['month', 'quarter', 'year']
 
 export const GOALS = [
   'Increase brand awareness',
@@ -60,6 +84,8 @@ export const GOALS = [
   'Grow email list',
   'Improve engagement',
   'Launch a new product',
+  'Increase foot traffic / visits',
+  'Build customer loyalty',
 ]
 
 export const TONES = [
@@ -77,7 +103,10 @@ const defaultValues = {
   product: '',
   targetAudience: '',
   country: '',
-  budget: '',
+  currencyCode: 'USD',
+  currencySymbol: '$',
+  budgetAmount: '',
+  budgetPeriod: 'month',
   marketingGoal: '',
   brandTone: '',
   competitors: '',
@@ -88,11 +117,32 @@ export default function BusinessForm({ onSubmit, loading = false, className, foc
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm({ defaultValues, mode: 'onTouched' })
 
   const [status, setStatus] = useState('idle') // 'idle' | 'submitting' | 'success'
   const [highlighted, setHighlighted] = useState(false)
+
+  const watchedCountry = watch('country')
+  const watchedCurrency = watch('currencyCode')
+
+  // Auto-select the currency when the country changes, unless the user
+  // has already manually overridden it.
+  useEffect(() => {
+    if (!watchedCountry) return
+    const { code, symbol } = currencyForCountry(watchedCountry)
+    setValue('currencyCode', code)
+    setValue('currencySymbol', symbol)
+  }, [watchedCountry, setValue])
+
+  // Keep the symbol in sync when the user manually overrides the currency code.
+  useEffect(() => {
+    if (!watchedCurrency) return
+    const option = CURRENCY_OPTIONS[watchedCurrency]
+    if (option) setValue('currencySymbol', option.symbol)
+  }, [watchedCurrency, setValue])
 
   // When the top "Generate Strategy" CTA is clicked, the dashboard
   // scrolls here, bumps `focusKey`, focuses the first input and briefly
@@ -224,19 +274,52 @@ export default function BusinessForm({ onSubmit, loading = false, className, foc
             </option>
           ))}
         </Select>
-        <Select
-          id="budget"
-          label="Monthly budget"
-          error={errors.budget?.message}
-          {...register('budget', { required: 'Select a budget range' })}
-        >
-          <option value="">Select budget</option>
-          {BUDGETS.map((budget) => (
-            <option key={budget} value={budget}>
-              {budget}
-            </option>
-          ))}
-        </Select>
+        <div className="grid grid-cols-2 gap-4">
+          <Select
+            id="currencyCode"
+            label="Currency"
+            error={errors.currencyCode?.message}
+            {...register('currencyCode', { required: 'Select a currency' })}
+          >
+            {Object.values(CURRENCY_OPTIONS).map(({ code, symbol }) => (
+              <option key={code} value={code}>
+                {code} ({symbol.trim()})
+              </option>
+            ))}
+          </Select>
+          <Select
+            id="budgetPeriod"
+            label="Period"
+            {...register('budgetPeriod')}
+          >
+            {BUDGET_PERIODS.map((period) => (
+              <option key={period} value={period}>
+                Per {period}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div>
+          <Input
+            id="budgetAmount"
+            label="Monthly budget"
+            type="number"
+            min="0"
+            step="any"
+            placeholder="e.g. 100000"
+            error={errors.budgetAmount?.message}
+            {...register('budgetAmount', {
+              required: 'Enter your budget amount',
+              min: { value: 0, message: 'Budget must be positive' },
+            })}
+          />
+          {watchedCurrency && (
+            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground dark:text-zinc-500">
+              <Coins size={12} />
+              Currency auto-selected from your country — you can override it.
+            </p>
+          )}
+        </div>
 
         <Select
           id="marketingGoal"

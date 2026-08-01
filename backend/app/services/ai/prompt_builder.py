@@ -44,11 +44,29 @@ class MarketingBrief(BaseModel):
     audience: str = Field(description="Target audience description")
     country: str = Field(description="Country / market of operation")
     goal: str = Field(description="Primary marketing objective")
-    budget: str = Field(description="Budget for the campaign or period")
+    budget: str = Field(description="Budget label, e.g. 'Rs. 100,000 / month'")
+    budget_amount: float | None = Field(
+        default=None, description="Numeric budget amount"
+    )
+    currency_code: str | None = Field(
+        default=None, description="ISO currency code, e.g. 'PKR', 'USD'"
+    )
+    currency_symbol: str | None = Field(
+        default=None, description="Currency symbol, e.g. 'Rs.', '$'"
+    )
+    budget_period: str | None = Field(
+        default=None, description="Budget period, e.g. 'month', 'quarter'"
+    )
     brand_tone: str = Field(description="Desired brand voice and tone")
     competitors: Sequence[str] = Field(
         default_factory=list,
         description="Known competitor names (optional)",
+    )
+    industry_playbook: str = Field(
+        default="", description="Rendered industry playbook lines"
+    )
+    country_profile: str = Field(
+        default="", description="Rendered country marketing profile"
     )
 
 
@@ -87,6 +105,7 @@ class PromptBuilder:
         """Compose the marketing prompt from the brief sections."""
         competitors = self._format_competitors(brief.competitors)
         output_section = self._build_output_section()
+        currency_rule = self._build_currency_rule(brief)
 
         return self._marketing_template.format(
             business_name=brief.business_name,
@@ -99,6 +118,9 @@ class PromptBuilder:
             brand_tone=brief.brand_tone,
             competitors=competitors,
             output_section=output_section,
+            industry_playbook=brief.industry_playbook or "Not provided",
+            country_profile=brief.country_profile or "Not provided",
+            currency_rule=currency_rule,
         ).strip()
 
     def _format_competitors(self, competitors: Sequence[str]) -> str:
@@ -106,6 +128,27 @@ class PromptBuilder:
         if not competitors:
             return "None provided"
         return "\n".join(f"- {name}" for name in competitors)
+
+    @staticmethod
+    def _build_currency_rule(brief: MarketingBrief) -> str:
+        """Currency-aware instruction so the AI never assumes USD."""
+        symbol = brief.currency_symbol or "$"
+        code = brief.currency_code or "USD"
+        if brief.budget_amount is not None:
+            try:
+                amount = f"{float(brief.budget_amount):,.0f}"
+            except (TypeError, ValueError):
+                amount = str(brief.budget_amount)
+            return (
+                f"The user's budget is {symbol} {amount} per "
+                f"{brief.budget_period or 'month'} ({code}). Use {symbol} for ALL "
+                "monetary figures (budgets, ad spend, ROI, projections). Never use USD "
+                "or '$' unless the currency is actually USD."
+            )
+        return (
+            f"The user's currency is {code} ({symbol}). Use {symbol} for ALL monetary "
+            "figures (budgets, ad spend, ROI, projections). Never assume USD."
+        )
 
     def _build_output_section(self) -> str:
         """Compose the output contract section of the prompt."""

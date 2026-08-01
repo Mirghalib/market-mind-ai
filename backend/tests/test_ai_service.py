@@ -95,7 +95,7 @@ async def test_prompt_is_built_from_brief(brief: MarketingBrief) -> None:
 
     prompt = provider.recorded_prompts[0]
     assert "Acme Coffee" in prompt
-    assert "Allocate the marketing budget." in prompt
+    assert "Budget Allocation" in prompt
     assert "Return ONLY valid JSON." in prompt
 
 

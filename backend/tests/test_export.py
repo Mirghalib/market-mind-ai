@@ -419,6 +419,173 @@ async def test_pdf_report_renders_full_strategy(app_client, db_session) -> None:
     assert len(rendered.content) > 5000
 
 
+@pytest.mark.asyncio
+async def test_markdown_renderer_professional(app_client, db_session) -> None:
+    """Markdown includes TOC, tables and checklists — no dict reprs."""
+    from app.services.export.renderers import MarkdownRenderer
+
+    user = await _register_user(db_session)
+    strategy = await _create_strategy(
+        db_session,
+        user,
+        content={
+            "executiveSummary": {"summary": "S", "highlights": ["H"], "ask": "A"},
+            "marketingScore": {"overall": 74, "breakdown": [], "benchmark": "", "summary": ""},
+            "marketingStrategy": {
+                "objectives": ["Grow", "Scale"],
+                "channels": [{"name": "SEO", "priority": "high", "description": "Organic"}],
+                "budgetAllocation": [{"channel": "SEO", "percentage": 60}],
+                "kpis": [{"metric": "Leads", "target": "+30%", "timeframe": "Q3"}],
+            },
+            "implementationRoadmap": {
+                "summary": "R",
+                "phases": [{
+                    "name": "Foundation", "duration": "Days 1-30",
+                    "objectives": ["Stand up tracking"], "keyActivities": ["Set up analytics"],
+                    "successMetrics": ["Tracking live"],
+                }],
+            },
+            "weeklyMilestones": {"summary": "W", "weeks": [
+                {"week": "Week 1", "focus": "Setup", "owner": "Lead", "successIndicator": "Live"},
+            ]},
+            "finalRecommendations": {"summary": "F", "priorities": ["Execute"], "quickWins": [], "longTermInvestments": [], "successCriteria": [], "closingStatement": ""},
+        },
+    )
+    rendered = MarkdownRenderer().render(strategy)
+    text = rendered.content.decode("utf-8")
+    assert "## Table of Contents" in text
+    assert "| --- |" in text
+    assert "- [ ]" in text
+    assert "## Marketing Score" in text
+
+
+@pytest.mark.asyncio
+async def test_docx_and_pptx_render(app_client, db_session) -> None:
+    """DOCX and PPTX renderers produce valid packages with rich content."""
+    from app.services.export.renderers import DocxRenderer, PptxRenderer
+
+    user = await _register_user(db_session)
+    strategy = await _create_strategy(
+        db_session,
+        user,
+        content={
+            "executiveSummary": {"summary": "S", "highlights": ["H"], "ask": "A"},
+            "marketingScore": {"overall": 74, "breakdown": [], "benchmark": "", "summary": ""},
+            "marketingStrategy": {
+                "objectives": ["Grow"],
+                "channels": [{"name": "SEO", "priority": "high", "description": "Organic"}],
+                "budgetAllocation": [{"channel": "SEO", "percentage": 60}],
+                "kpis": [{"metric": "Leads", "target": "+30%", "timeframe": "Q3"}],
+            },
+            "implementationRoadmap": {
+                "summary": "R",
+                "phases": [{
+                    "name": "Foundation", "duration": "Days 1-30",
+                    "objectives": ["Stand up tracking"], "keyActivities": ["Set up analytics"],
+                    "successMetrics": ["Tracking live"],
+                }],
+            },
+            "weeklyMilestones": {"summary": "W", "weeks": [
+                {"week": "Week 1", "focus": "Setup", "owner": "Lead", "successIndicator": "Live"},
+            ]},
+            "estimatedROI": {"summary": "R", "assumptions": [], "projections": [
+                {"period": "Month 1", "investment": "$3k", "projectedReturn": "$2.4k", "roiPercent": "-20%"},
+            ], "paybackPeriod": "Month 3", "methodology": ""},
+            "finalRecommendations": {"summary": "F", "priorities": ["Execute"], "quickWins": [], "longTermInvestments": [], "successCriteria": [], "closingStatement": ""},
+        },
+    )
+
+    docx = DocxRenderer().render(strategy)
+    assert docx.content[:2] == b"PK"
+    assert len(docx.content) > 5000
+
+    pptx = PptxRenderer().render(strategy)
+    assert pptx.content[:2] == b"PK"
+    assert len(pptx.content) > 5000
+
+    from pptx import Presentation
+    from io import BytesIO
+
+    prs = Presentation(BytesIO(pptx.content))
+    # Sparse content still produces a full structural deck (cover, agenda,
+    # summary, score, KPI, roadmap, ROI, next steps, closing, ...).
+    assert len(prs.slides._sldIdLst) >= 12
+
+
+@pytest.mark.asyncio
+async def test_share_preview_and_download(app_client, db_session) -> None:
+    """Share preview returns branded HTML; format download returns a file."""
+    user = await _register_user(db_session)
+    strategy = await _create_strategy(
+        db_session,
+        user,
+        content={
+            "executiveSummary": {"summary": "S", "highlights": ["H"], "ask": "A"},
+            "marketingScore": {"overall": 74, "breakdown": [], "benchmark": "", "summary": ""},
+            "marketingStrategy": {"objectives": ["Grow"], "channels": [], "budgetAllocation": [], "kpis": []},
+        },
+    )
+
+    login = await app_client.post(
+        "/auth/login",
+        json={"email": USER_PAYLOAD["email"], "password": USER_PAYLOAD["password"]},
+    )
+    token = login.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    created = await app_client.post(
+        "/export",
+        json={"strategy_id": str(strategy.id), "format": "pdf"},
+        headers=headers,
+    )
+    assert created.status_code == 200
+
+    from sqlalchemy import select
+
+    from app.models.export import Export
+
+    export_id = (
+        await db_session.execute(select(Export).limit(1))
+    ).scalar_one().id
+
+    share = await app_client.post(
+        f"/export/{export_id}/share",
+        params={"expires_in_days": 7},
+        headers=headers,
+    )
+    assert share.status_code == 201
+    share_token = share.json()["token"]
+
+    # Branded preview.
+    preview = await app_client.get(f"/s/{share_token}/preview")
+    assert preview.status_code == 200
+    assert preview.headers["content-type"].startswith("text/html")
+    assert "Market Mind AI" in preview.text
+    assert "Marketing Score" in preview.text or "Marketing Strategy" in preview.text
+
+    # Download in a chosen format.
+    download = await app_client.get(
+        f"/s/{share_token}/download", params={"format": "pdf"}
+    )
+    assert download.status_code == 200
+    assert download.content[:4] == b"%PDF"
+
+    # Markdown download.
+    md = await app_client.get(
+        f"/s/{share_token}/download", params={"format": "markdown"}
+    )
+    assert md.status_code == 200
+    assert md.content.startswith(b"#")
+
+
+@pytest.mark.asyncio
+async def test_share_preview_invalid_token(app_client) -> None:
+    """Unknown share tokens return a clean 404 on the preview route."""
+    preview = await app_client.get("/s/does-not-exist/preview")
+    assert preview.status_code == 404
+    assert "does not exist" in preview.json()["detail"].lower()
+
+
 async def _create_strategy(
     session: AsyncSession,
     user: User,

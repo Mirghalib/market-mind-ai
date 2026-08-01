@@ -15,6 +15,7 @@ const History = lazy(() => import('@/pages/History/History'))
 const Settings = lazy(() => import('@/pages/Settings/Settings'))
 const AdminDashboard = lazy(() => import('@/pages/Admin/AdminDashboard'))
 const AdminHistory = lazy(() => import('@/pages/Admin/AdminHistory'))
+const SharedReport = lazy(() => import('@/pages/SharedReport/SharedReport'))
 
 function PageLoader() {
   return (
@@ -41,6 +42,7 @@ export default function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/accept-invite" element={<AcceptInvite />} />
+        <Route path="/shared/:token" element={<SharedReport />} />
 
         {/* Authenticated user routes */}
         <Route element={<ProtectedRoute />}>

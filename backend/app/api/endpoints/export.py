@@ -219,6 +219,25 @@ async def email_export(
     if not attachment_path.is_file():
         attachment_path = None
 
+    # Marketing score for the branded email badge.
+    marketing_score = None
+    content = export.strategy.content if export.strategy else None
+    if isinstance(content, dict):
+        score = (content.get("marketingScore") or {}).get("overall")
+        try:
+            marketing_score = int(score)
+        except (TypeError, ValueError):
+            marketing_score = None
+
+    # Create a short-lived share link for the "view in browser" button.
+    share_url = None
+    try:
+        share, share_url = await service.create_share_link(
+            export, current_user, expires_in_days=7
+        )
+    except Exception:  # noqa: BLE001
+        logger.warning("Could not create share link for email export %s", export_id)
+
     email_service = EmailService()
     try:
         email_service.send_report_email(
@@ -226,6 +245,9 @@ async def email_export(
             business_name=export.strategy.name if export.strategy else "your strategy",
             public_url=export.file_url,
             summary=_email_summary(export),
+            marketing_score=marketing_score,
+            recipient_name=payload.recipient_name,
+            share_url=share_url,
             attachment_path=attachment_path,
             attachment_display_name=(
                 f"{export.strategy.name if export.strategy else 'strategy'}."
@@ -359,6 +381,36 @@ async def open_shared_report(
     revoked, or missing links return a helpful 404/410 message instead
     of crashing.
     """
+    share = await _resolve_share(db, token)
+
+    if not share.export or not share.export.file_key:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The shared report file is missing.",
+        )
+
+    file_path = Path(settings.EXPORT_DIR) / share.export.file_key
+    if not file_path.is_file():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The shared report file is missing.",
+        )
+
+    share.download_count += 1
+    await db.commit()
+
+    return FileResponse(
+        path=str(file_path),
+        filename=(
+            f"{share.export.strategy.name if share.export.strategy else 'report'}-"
+            f"shared.{file_path.suffix.lstrip('.')}"
+        ),
+        media_type="application/octet-stream",
+    )
+
+
+async def _resolve_share(db: AsyncSession, token: str) -> ShareLink:
+    """Load a share link and enforce active/not-expired rules."""
     result = await db.execute(
         select(ShareLink)
         .options(
@@ -387,29 +439,72 @@ async def open_shared_report(
                 status_code=status.HTTP_410_GONE,
                 detail="This share link has expired.",
             )
-    if not share.export or not share.export.file_key:
+    return share
+
+
+@router.get(
+    "/s/{token}/preview",
+    summary="Branded HTML preview of a shared report (public)",
+    responses={
+        200: {"content": {"text/html": {}}, "description": "Branded preview page"},
+        404: {"description": "Share link not found"},
+        410: {"description": "Share link revoked or expired"},
+    },
+)
+async def shared_report_preview(
+    token: str,
+    db: DbDep,
+) -> Response:
+    """Render a professional, responsive preview page for a share link."""
+    from app.services.export.share_preview import render_share_preview
+
+    share = await _resolve_share(db, token)
+    html = render_share_preview(share, token)
+    return Response(
+        content=html,
+        media_type="text/html; charset=utf-8",
+    )
+
+
+@router.get(
+    "/s/{token}/download",
+    summary="Download a shared report in a chosen format (public)",
+)
+async def shared_report_download(
+    token: str,
+    db: DbDep,
+    format: str = Query(default="pdf", pattern="^(pdf|docx|pptx|markdown|html|json)$"),
+) -> Response:
+    """Stream the shared strategy re-rendered in the requested format."""
+    from app.models.export import ExportFormat
+    from app.services.export.renderers import get_renderer
+
+    share = await _resolve_share(db, token)
+    if not share.export or not share.export.strategy:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="The shared report file is missing.",
+            detail="The shared report is missing.",
         )
 
-    file_path = Path(settings.EXPORT_DIR) / share.export.file_key
-    if not file_path.is_file():
+    try:
+        rendered = get_renderer(ExportFormat(format)).render(share.export.strategy)
+    except RuntimeError as exc:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="The shared report file is missing.",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exc) or "Export failed",
         )
 
     share.download_count += 1
     await db.commit()
 
-    return FileResponse(
-        path=str(file_path),
-        filename=(
-            f"{share.export.strategy.name if share.export.strategy else 'report'}-"
-            f"shared.{file_path.suffix.lstrip('.')}"
-        ),
-        media_type="application/octet-stream",
+    filename = (
+        f"{share.export.strategy.name or 'report'}-"
+        f"{format}.{rendered.file_extension}"
+    )
+    return Response(
+        content=rendered.content,
+        media_type=rendered.media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 

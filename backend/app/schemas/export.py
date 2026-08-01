@@ -48,3 +48,8 @@ class ExportEmailRequest(BaseModel):
     """Request payload for POST /export/{export_id}/email."""
 
     to_email: EmailStr = Field(description="Recipient email address")
+    recipient_name: str | None = Field(
+        default=None,
+        max_length=255,
+        description="Optional recipient name for the email greeting",
+    )

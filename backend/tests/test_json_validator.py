@@ -91,6 +91,11 @@ def test_all_missing_fields_are_reported_individually(validator: JSONValidator) 
         "riskMitigation",
         "finalRecommendations",
         "recommendedTools",
+        "businessAnalysis",
+        "marketingFunnel",
+        "influencerStrategy",
+        "growthOpportunities",
+        "futureScaling",
     }
     assert len(missing) > 18
 

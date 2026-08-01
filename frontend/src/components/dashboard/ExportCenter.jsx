@@ -4,6 +4,7 @@ import {
   Check,
   Copy,
   Download,
+  Eye,
   FileDown,
   FileText,
   FileType2,
@@ -228,8 +229,8 @@ export default function ExportCenter({ strategyId, businessName }) {
       <Modal open={shareOpen} onClose={() => setShareOpen(false)} title="Share report">
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground dark:text-zinc-300">
-            Your report is ready. Share the secure link so stakeholders can open it
-            directly — the link expires in 7 days.
+            Your report is ready. Share the secure link so stakeholders can open a
+            branded preview and download the formats they need — the link expires in 7 days.
           </p>
           <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2.5 dark:border-white/10 dark:bg-zinc-900">
             <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground dark:text-zinc-400">
@@ -256,6 +257,26 @@ export default function ExportCenter({ strategyId, businessName }) {
               Open
             </a>
           </div>
+
+          {/* Branded preview + format downloads */}
+          <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/[0.04] p-3">
+            <p className="text-xs font-semibold tracking-wide text-indigo-600 uppercase dark:text-indigo-400">
+              Recipient preview
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground dark:text-zinc-400">
+              Stakeholders see a branded report page and can download any format.
+            </p>
+            <a
+              href={`/shared/${sharedUrl.split('/s/')[1] ?? ''}`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-400"
+            >
+              <Eye size={15} />
+              Preview report
+            </a>
+          </div>
+
           {navigator.share && (
             <Button variant="outline" className="w-full" onClick={handleNativeShare}>
               <Share2 size={16} />
@@ -282,6 +303,7 @@ export default function ExportCenter({ strategyId, businessName }) {
 
 function EmailModal({ onClose, defaultEmail, onSent, strategyId }) {
   const [email, setEmail] = useState(defaultEmail)
+  const [recipientName, setRecipientName] = useState('')
   const [format, setFormat] = useState('pdf')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -299,7 +321,10 @@ function EmailModal({ onClose, defaultEmail, onSent, strategyId }) {
       })
       const latest = data.items?.[0]
       if (!latest) throw new Error('No export record found.')
-      await dashboardService.emailExport(latest.id, { to_email: email })
+      await dashboardService.emailExport(latest.id, {
+        to_email: email,
+        recipient_name: recipientName || undefined,
+      })
       onSent(email)
     } catch (err) {
       setError(errorMessage(err, 'Could not send the email.'))
@@ -311,6 +336,19 @@ function EmailModal({ onClose, defaultEmail, onSent, strategyId }) {
   return (
     <Modal open onClose={onClose} title="Email report">
       <form onSubmit={submit} className="space-y-4">
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-foreground dark:text-zinc-200">
+            Recipient name <span className="font-normal text-muted-foreground">(optional)</span>
+          </label>
+          <input
+            type="text"
+            value={recipientName}
+            onChange={(e) => setRecipientName(e.target.value)}
+            placeholder="e.g. Sarah Johnson"
+            className="h-11 w-full rounded-lg border border-border bg-card px-3.5 text-sm text-foreground placeholder-zinc-400 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+          />
+        </div>
+
         <div>
           <label className="mb-1.5 block text-sm font-medium text-foreground dark:text-zinc-200">
             Recipient email

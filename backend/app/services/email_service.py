@@ -8,6 +8,7 @@ import logging
 import mimetypes
 import smtplib
 import ssl
+from datetime import datetime
 from email.message import EmailMessage
 from pathlib import Path
 
@@ -45,6 +46,9 @@ class EmailService:
         business_name: str,
         public_url: str,
         summary: str = "",
+        marketing_score: int | None = None,
+        recipient_name: str | None = None,
+        share_url: str | None = None,
         attachment_path: str | Path | None = None,
         attachment_display_name: str | None = None,
     ) -> None:
@@ -61,9 +65,11 @@ class EmailService:
         message["From"] = f"{settings.REPORT_FROM_NAME} <{settings.SMTP_FROM}>"
         message["To"] = to_email
 
+        greeting = recipient_name or "there"
+
         # Plain-text fallback.
         text = (
-            f"Hello,\n\n"
+            f"Hello {greeting},\n\n"
             f"Your marketing strategy report for {business_name} is ready.\n\n"
             f"Open it here: {public_url}\n"
             + (f"\nSummary: {summary}\n" if summary else "")
@@ -72,7 +78,17 @@ class EmailService:
         )
         message.set_content(text)
 
-        message.add_alternative(self._render_html(business_name, public_url, summary), subtype="html")
+        message.add_alternative(
+            self._render_html(
+                business_name,
+                public_url,
+                summary,
+                marketing_score=marketing_score,
+                recipient_name=recipient_name,
+                share_url=share_url,
+            ),
+            subtype="html",
+        )
 
         if attachment_path:
             path = Path(attachment_path)
@@ -107,12 +123,43 @@ class EmailService:
 
         logger.info("Report email sent to %s for %s", to_email, business_name)
 
-    def _render_html(self, business_name: str, public_url: str, summary: str) -> str:
+    def _render_html(
+        self,
+        business_name: str,
+        public_url: str,
+        summary: str,
+        *,
+        marketing_score: int | None = None,
+        recipient_name: str | None = None,
+        share_url: str | None = None,
+    ) -> str:
         """Professional branded HTML email with logo, summary and CTA."""
         from html import escape
 
         name = escape(business_name)
         url = escape(public_url)
+        greeting = escape(recipient_name or "there")
+        share_link_html = ""
+        if share_url:
+            share_link_html = (
+                f'<p style="margin:14px 0 0;font-size:13px;color:#64748b;">'
+                f'Or open it in the browser: <a href="{escape(share_url)}" '
+                f'style="color:#4f46e5;text-decoration:underline;">View shared report</a></p>'
+            )
+
+        score_html = ""
+        if marketing_score is not None:
+            score_html = (
+                f'<div style="margin:22px 0 0;padding:18px 22px;background:#eef2ff;'
+                f'border-radius:12px;border:1px solid #c7d2fe;text-align:center;">'
+                f'<span style="font-size:34px;font-weight:800;color:#4f46e5;">'
+                f'{marketing_score}</span>'
+                f'<span style="font-size:15px;color:#64748b;"> / 100</span>'
+                f'<div style="font-size:11px;letter-spacing:0.08em;color:#64748b;'
+                f'text-transform:uppercase;margin-top:4px;">Marketing Score</div>'
+                f'</div>'
+            )
+
         summary_html = (
             f'<p style="margin:18px 0 0;font-size:14px;line-height:1.7;color:#64748b;">'
             f"{escape(summary)}</p>"
@@ -127,11 +174,12 @@ class EmailService:
       <td align="center">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
           <tr>
-            <td style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);padding:28px 32px;">
+            <td style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);padding:26px 32px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td>
-                    <span style="font-size:22px;font-weight:bold;color:#ffffff;">&#9889; Market Mind AI</span>
+                  <td style="vertical-align:middle;">
+                    <span style="display:inline-block;width:34px;height:34px;line-height:34px;text-align:center;background:#ffffff;color:#4f46e5;font-weight:800;border-radius:8px;margin-right:10px;">M</span>
+                    <span style="font-size:20px;font-weight:bold;color:#ffffff;vertical-align:middle;">Market Mind AI</span>
                   </td>
                 </tr>
               </table>
@@ -139,6 +187,9 @@ class EmailService:
           </tr>
           <tr>
             <td style="padding:32px;">
+              <p style="margin:0 0 6px;font-size:16px;color:#1e293b;font-weight:bold;">
+                Hello {greeting},
+              </p>
               <h1 style="margin:0 0 8px;font-size:22px;color:#0f172a;line-height:1.3;">
                 Your marketing strategy report is ready
               </h1>
@@ -150,6 +201,7 @@ class EmailService:
                 button below.
               </p>
               {summary_html}
+              {score_html}
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin:28px 0 0;">
                 <tr>
                   <td style="background-color:#4f46e5;border-radius:10px;">
@@ -159,6 +211,7 @@ class EmailService:
                   </td>
                 </tr>
               </table>
+              {share_link_html}
               <p style="margin:28px 0 0;font-size:13px;color:#94a3b8;line-height:1.6;">
                 The file is also attached to this email for convenience.<br/>
                 Generated by Market Mind AI — if you did not request this report, you can
@@ -168,8 +221,11 @@ class EmailService:
           </tr>
           <tr>
             <td style="padding:18px 32px;background-color:#f8fafc;border-top:1px solid #e2e8f0;">
-              <p style="margin:0;font-size:12px;color:#94a3b8;">
-                &copy; {business_name} &middot; Market Mind AI &middot; AI-powered marketing intelligence
+              <p style="margin:0 0 4px;font-size:12px;color:#94a3b8;">
+                <strong style="color:#4f46e5;">Market Mind AI</strong> &middot; AI-powered marketing intelligence
+              </p>
+              <p style="margin:0;font-size:11px;color:#cbd5e1;">
+                &copy; {datetime.now().year} Market Mind AI &middot; {name}
               </p>
             </td>
           </tr>

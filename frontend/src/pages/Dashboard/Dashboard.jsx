@@ -7,6 +7,7 @@ import { StrategyView } from '@/components/dashboard/StrategyView'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import { dashboardService } from '@/services/dashboard'
+import { formatBudget } from '@/constants/currencies'
 
 export default function Dashboard() {
   const { userName } = useAuth()
@@ -47,12 +48,33 @@ export default function Dashboard() {
     setGenerating(true)
     setError('')
     try {
+      const competitors = (formData.competitors || '')
+        .split(',')
+        .map((c) => c.trim())
+        .filter(Boolean)
+
+      // Build a human budget label in the selected currency, e.g.
+      // "Rs. 100,000 / month" — the AI uses it verbatim.
+      const budgetAmount = Number(formData.budgetAmount)
+      const hasBudget = Number.isFinite(budgetAmount) && budgetAmount > 0
+      const budgetLabel = hasBudget
+        ? formatBudget(budgetAmount, formData.currencySymbol, formData.budgetPeriod)
+        : undefined
+
       const { data } = await dashboardService.generate({
         project_name: formData.businessName,
         industry: formData.industry,
+        product: formData.product,
         target_audience: formData.targetAudience,
         goals: [formData.marketingGoal],
         tone: 'professional',
+        country: formData.country,
+        budget: budgetLabel,
+        budget_amount: hasBudget ? budgetAmount : undefined,
+        currency_code: formData.currencyCode,
+        currency_symbol: formData.currencySymbol,
+        budget_period: formData.budgetPeriod,
+        competitors,
       })
       setStrategy(data)
       setBusinessName(formData.businessName)

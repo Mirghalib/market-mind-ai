@@ -23,7 +23,12 @@
     "estimatedROI",
     "riskMitigation",
     "finalRecommendations",
-    "recommendedTools"
+    "recommendedTools",
+    "businessAnalysis",
+    "marketingFunnel",
+    "influencerStrategy",
+    "growthOpportunities",
+    "futureScaling"
   ],
   "properties": {
     "executiveSummary": {
@@ -623,6 +628,122 @@
             }
           }
         }
+      }
+    },
+
+    "businessAnalysis": {
+      "type": "object",
+      "title": "Business Analysis",
+      "description": "A consultant-grade analysis of the business itself: offer, moat, growth levers, immediate wins.",
+      "additionalProperties": false,
+      "required": ["overview", "strengths", "growthLevers", "immediateWins"],
+      "properties": {
+        "overview": { "type": "string", "description": "Sharp overview of the business and its offer." },
+        "strengths": { "type": "array", "description": "Concrete business strengths tied to the industry and offer.", "items": { "type": "string" } },
+        "growthLevers": { "type": "array", "description": "Specific levers this business can pull to grow.", "items": { "type": "string" } },
+        "immediateWins": { "type": "array", "description": "Fast, low-effort wins unique to this business.", "items": { "type": "string" } }
+      }
+    },
+
+    "marketingFunnel": {
+      "type": "object",
+      "title": "Marketing Funnel",
+      "description": "Stage-by-stage funnel: awareness, interest, consideration, conversion, retention — with tactics per stage.",
+      "additionalProperties": false,
+      "required": ["summary", "stages"],
+      "properties": {
+        "summary": { "type": "string", "description": "Short overview of the funnel approach." },
+        "stages": {
+          "type": "array",
+          "description": "Funnel stages in order.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "stage", "tactics"],
+            "properties": {
+              "id": { "type": "string", "description": "Stable unique id for React list keys." },
+              "stage": { "type": "string", "description": "Stage name (e.g. Awareness, Consideration)." },
+              "tactics": { "type": "array", "description": "Tactics for this stage.", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+
+    "influencerStrategy": {
+      "type": "object",
+      "title": "Influencer Strategy",
+      "description": "Who to work with, why, and how to structure influencer campaigns.",
+      "additionalProperties": false,
+      "required": ["summary", "tiers", "campaignIdeas"],
+      "properties": {
+        "summary": { "type": "string", "description": "Short overview of the influencer approach." },
+        "tiers": {
+          "type": "array",
+          "description": "Influencer tiers and how to use each.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["tier", "strategy"],
+            "properties": {
+              "tier": { "type": "string", "description": "Tier name (e.g. Micro, Macro)." },
+              "strategy": { "type": "string", "description": "How to use this tier." }
+            }
+          }
+        },
+        "campaignIdeas": { "type": "array", "description": "Concrete influencer campaign concepts.", "items": { "type": "string" } }
+      }
+    },
+
+    "growthOpportunities": {
+      "type": "object",
+      "title": "Growth Opportunities",
+      "description": "Untapped growth angles specific to the business, industry and market.",
+      "additionalProperties": false,
+      "required": ["summary", "opportunities"],
+      "properties": {
+        "summary": { "type": "string", "description": "Short overview of the opportunity set." },
+        "opportunities": {
+          "type": "array",
+          "description": "Named opportunities with rationale.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "why", "effort", "impact"],
+            "properties": {
+              "id": { "type": "string", "description": "Stable unique id for React list keys." },
+              "name": { "type": "string", "description": "Opportunity name." },
+              "why": { "type": "string", "description": "Why it fits this business and market." },
+              "effort": { "type": "string", "enum": ["low", "medium", "high"], "description": "Effort to capture." },
+              "impact": { "type": "string", "enum": ["low", "medium", "high"], "description": "Expected impact." }
+            }
+          }
+        }
+      }
+    },
+
+    "futureScaling": {
+      "type": "object",
+      "title": "Future Scaling Strategy",
+      "description": "How the business should scale beyond the first 90 days: new channels, geographies, products.",
+      "additionalProperties": false,
+      "required": ["summary", "phases", "scaleLevers"],
+      "properties": {
+        "summary": { "type": "string", "description": "Short overview of the scaling path." },
+        "phases": {
+          "type": "array",
+          "description": "Scaling phases (e.g. 3-6 months, 6-12 months, 12+ months).",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["phase", "focus"],
+            "properties": {
+              "phase": { "type": "string", "description": "Phase window." },
+              "focus": { "type": "string", "description": "Primary focus for the phase." }
+            }
+          }
+        },
+        "scaleLevers": { "type": "array", "description": "Levers to pull to scale (people, tech, channels, markets).", "items": { "type": "string" } }
       }
     }
   }

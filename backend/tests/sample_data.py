@@ -237,6 +237,44 @@ VALID_MARKETING_STRATEGY = {
             }
         ],
     },
+    "businessAnalysis": {
+        "overview": "A focused offer in the coffee market with room to dominate the local niche.",
+        "strengths": ["Focused offer", "Local presence", "Clear audience"],
+        "growthLevers": ["Local SEO", "Delivery apps", "Referral program"],
+        "immediateWins": ["Claim listings", "Launch social", "Publish content"],
+    },
+    "marketingFunnel": {
+        "summary": "A funnel that moves customers from awareness to repeat purchase.",
+        "stages": [
+            {"id": "f1", "stage": "Awareness", "tactics": ["Instagram Reels", "Local SEO", "Food influencers"]},
+            {"id": "f2", "stage": "Consideration", "tactics": ["Reviews", "Comparison content", "Email drops"]},
+            {"id": "f3", "stage": "Conversion", "tactics": ["Limited-time offers", "Easy ordering"]},
+            {"id": "f4", "stage": "Retention", "tactics": ["Loyalty program", "Re-engagement emails"]},
+        ],
+    },
+    "influencerStrategy": {
+        "summary": "Partner with local food creators to build trust.",
+        "tiers": [
+            {"tier": "Micro", "strategy": "Local foodies with engaged audiences"},
+            {"tier": "Mid", "strategy": "Regional voices for broader reach"},
+        ],
+        "campaignIdeas": ["Unboxing of the signature blend", "A day-in-the-life feature", "Referral discount codes"],
+    },
+    "growthOpportunities": {
+        "summary": "Untapped angles for growth.",
+        "opportunities": [
+            {"id": "g1", "name": "Delivery-app dominance", "why": "Under-used by competitors", "effort": "low", "impact": "high"},
+            {"id": "g2", "name": "Niche specialization", "why": "Segment competitors ignore", "effort": "medium", "impact": "high"},
+        ],
+    },
+    "futureScaling": {
+        "summary": "Scale beyond the first 90 days.",
+        "phases": [
+            {"phase": "3-6 months", "focus": "Double down on top channels"},
+            {"phase": "6-12 months", "focus": "Expand to nearby cities"},
+        ],
+        "scaleLevers": ["Team", "Automation", "New channels", "Partnerships"],
+    },
 }
 
 # Raw LLM-style payload for providers/fake providers to return.
