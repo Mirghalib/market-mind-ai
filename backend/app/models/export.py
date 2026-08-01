@@ -56,6 +56,11 @@ class Export(UUIDPrimaryKeyTimestampMixin, Base):
     strategy: Mapped["MarketingStrategy"] = relationship(
         back_populates="exports"
     )
+    share_links: Mapped[list["ShareLink"]] = relationship(
+        back_populates="export",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
 
     def __repr__(self) -> str:
         return (
@@ -65,3 +70,4 @@ class Export(UUIDPrimaryKeyTimestampMixin, Base):
 
 
 from app.models.marketing_strategy import MarketingStrategy  # noqa: E402
+from app.models.share_link import ShareLink  # noqa: E402

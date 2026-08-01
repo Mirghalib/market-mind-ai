@@ -16,15 +16,15 @@ export default function SectionTitle({
       )}
     >
       {eyebrow && (
-        <p className="mb-3 text-sm font-semibold tracking-wide text-indigo-500 uppercase dark:text-indigo-400">
+        <p className="mb-3 text-sm font-semibold tracking-wide text-accent-500 uppercase">
           {eyebrow}
         </p>
       )}
-      <h2 className="text-3xl font-semibold tracking-tight text-foreground dark:text-white">
+      <h2 className="text-3xl font-semibold tracking-tight text-landing-text">
         {title}
       </h2>
       {description && (
-        <p className="mt-3 text-base leading-relaxed text-muted-foreground dark:text-zinc-400">
+        <p className="mt-3 text-base leading-relaxed text-landing-muted">
           {description}
         </p>
       )}

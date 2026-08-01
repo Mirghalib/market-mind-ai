@@ -3,7 +3,9 @@
 Dependencies: database session + renderer registry only. Raises plain
 exceptions; the API layer translates them into HTTP errors.
 """
+import secrets
 import uuid
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from sqlalchemy import func, select
@@ -14,6 +16,7 @@ from app.core.config import settings
 from app.models.export import Export, ExportFormat, ExportStatus
 from app.models.marketing_strategy import MarketingStrategy
 from app.models.project import Project
+from app.models.share_link import ShareLink
 from app.models.user import User
 from app.schemas.export import ExportCreateRequest
 from app.services.export.renderers import RenderedExport, get_renderer
@@ -147,3 +150,44 @@ class ExportService:
             select(MarketingStrategy).where(MarketingStrategy.id == strategy_id)
         )
         return result.scalar_one_or_none()
+
+    # --- Secure share links ------------------------------------------------
+
+    async def create_share_link(
+        self, export: Export, user: User, *, expires_in_days: int | None = 7
+    ) -> tuple[ShareLink, str]:
+        """Create a secure share link for an export and return (link, url)."""
+        token = secrets.token_urlsafe(24)
+        share = ShareLink(
+            export_id=export.id,
+            token=token,
+            created_by=user.id,
+            expires_at=(
+                datetime.now(timezone.utc) + timedelta(days=expires_in_days)
+                if expires_in_days
+                else None
+            ),
+            is_active=True,
+            download_count=0,
+        )
+        self.db.add(share)
+        await self.db.commit()
+        await self.db.refresh(share)
+        url = f"{settings.PUBLIC_BASE_URL.rstrip('/')}/api/v1/s/{token}"
+        return share, url
+
+    async def list_share_links(self, export: Export) -> list[ShareLink]:
+        result = await self.db.execute(
+            select(ShareLink)
+            .where(ShareLink.export_id == export.id)
+            .order_by(ShareLink.created_at.desc())
+        )
+        return list(result.scalars().all())
+
+    async def revoke_share_link(self, share_id: uuid.UUID) -> bool:
+        share = await self.db.get(ShareLink, share_id)
+        if share is None:
+            return False
+        share.is_active = False
+        await self.db.commit()
+        return True

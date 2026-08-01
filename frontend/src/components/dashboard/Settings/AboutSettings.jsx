@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { Info, Sparkles } from 'lucide-react'
 import { APP_NAME } from '@/constants'
 
@@ -55,14 +56,18 @@ export default function AboutSettings() {
       </dl>
 
       <div className="mt-6 flex flex-wrap gap-3">
-        {['Documentation', 'Changelog', 'Support'].map((label) => (
-          <a
+        {[
+          { label: 'Documentation', href: '/' },
+          { label: 'Changelog', href: '/history' },
+          { label: 'Support', href: '/settings' },
+        ].map(({ label, href }) => (
+          <Link
             key={label}
-            href="#"
+            to={href}
             className="text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
           >
             {label}
-          </a>
+          </Link>
         ))}
       </div>
     </motion.div>

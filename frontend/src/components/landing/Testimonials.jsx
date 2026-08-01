@@ -59,15 +59,15 @@ export default function Testimonials() {
     <section
       id="testimonials"
       aria-label="Testimonials"
-      className="relative overflow-hidden bg-zinc-950 py-24"
+      className="relative overflow-hidden bg-landing-bg py-24"
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent-500/50 to-transparent"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute top-0 left-1/2 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl"
+        className="pointer-events-none absolute top-0 left-1/2 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-accent-500/10 blur-3xl"
       />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -89,28 +89,28 @@ export default function Testimonials() {
             <motion.figure
               key={t.name}
               variants={cardVariants}
-              className="group relative flex flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-white/[0.03] p-7 shadow-lg shadow-black/20 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 hover:border-white/20 hover:shadow-xl hover:shadow-cyan-500/10"
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-landing-border bg-landing-card p-7 shadow-lg shadow-black/20 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 hover:border-landing-border-strong hover:shadow-xl hover:shadow-accent-500/10"
             >
               {/* Hover glow */}
               <div
                 aria-hidden
-                className="pointer-events-none absolute -top-20 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-indigo-500/15 blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                className="pointer-events-none absolute -top-20 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-accent-500/15 blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
               />
 
               {/* Decorative quote mark */}
               <Quote
                 aria-hidden
                 size={28}
-                className="absolute top-6 right-6 text-white/[0.06] transition-colors duration-300 group-hover:text-white/10"
+                className="absolute top-6 right-6 text-landing-text/[0.06] transition-colors duration-300 group-hover:text-landing-text/10"
               />
 
               <Stars />
 
-              <blockquote className="relative mt-5 flex-1 text-sm leading-relaxed text-zinc-400">
+              <blockquote className="relative mt-5 flex-1 text-sm leading-relaxed text-landing-muted">
                 “{t.quote}”
               </blockquote>
 
-              <figcaption className="relative mt-7 flex items-center gap-4 border-t border-zinc-800 pt-6">
+              <figcaption className="relative mt-7 flex items-center gap-4 border-t border-landing-border pt-6">
                 <span
                   aria-hidden
                   className={cn(
@@ -121,8 +121,8 @@ export default function Testimonials() {
                   {t.initials}
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-white">{t.name}</p>
-                  <p className="mt-0.5 text-xs text-zinc-400">{t.role}</p>
+                  <p className="text-sm font-semibold text-landing-text">{t.name}</p>
+                  <p className="mt-0.5 text-xs text-landing-muted">{t.role}</p>
                 </div>
               </figcaption>
             </motion.figure>

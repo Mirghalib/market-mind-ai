@@ -50,7 +50,7 @@ function Counter({ value, suffix }) {
 
 function LogoMark({ name, icon: Icon }) {
   return (
-    <div className="flex shrink-0 items-center gap-2.5 text-zinc-400 transition-colors duration-200 hover:text-zinc-300">
+    <div className="flex shrink-0 items-center gap-2.5 text-landing-muted transition-colors duration-200 hover:text-landing-text">
       <Icon size={20} />
       <span className="text-base font-semibold tracking-tight">{name}</span>
     </div>
@@ -62,11 +62,11 @@ export default function TrustedBy() {
     <section
       id="trusted-by"
       aria-label="Trusted by leading companies"
-      className="border-y border-zinc-800/60 bg-zinc-950 py-16"
+      className="border-y border-landing-border bg-landing-bg py-16"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <p className="text-center text-sm font-medium text-zinc-400">
-          Trusted by <span className="text-zinc-400">500+ businesses</span>{' '}
+        <p className="text-center text-sm font-medium text-landing-muted">
+          Trusted by <span className="text-landing-muted">500+ businesses</span>{' '}
           worldwide
         </p>
 
@@ -96,14 +96,14 @@ export default function TrustedBy() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.5, delay: i * 0.1, ease: 'easeOut' }}
-              className="group relative overflow-hidden rounded-2xl border border-zinc-800 bg-white/[0.03] p-6 text-center backdrop-blur transition-colors duration-300 hover:border-indigo-500/30 hover:bg-white/[0.05]"
+              className="group relative overflow-hidden rounded-2xl border border-landing-border bg-landing-card p-6 text-center backdrop-blur transition-colors duration-300 hover:border-accent-500/30 hover:bg-landing-card-hover"
             >
-              <div className="pointer-events-none absolute -top-16 left-1/2 h-32 w-32 -translate-x-1/2 rounded-full bg-indigo-500/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100 sm:opacity-0" />
+              <div className="pointer-events-none absolute -top-16 left-1/2 h-32 w-32 -translate-x-1/2 rounded-full bg-accent-500/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100 sm:opacity-0" />
 
-              <p className="text-4xl font-bold tracking-tight text-white">
+              <p className="text-4xl font-bold tracking-tight text-landing-text">
                 <Counter value={stat.value} suffix={stat.suffix} />
               </p>
-              <p className="mt-2 text-sm text-zinc-400">{stat.label}</p>
+              <p className="mt-2 text-sm text-landing-muted">{stat.label}</p>
             </motion.div>
           ))}
         </div>

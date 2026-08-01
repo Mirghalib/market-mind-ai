@@ -7,6 +7,7 @@ import BusinessForm from '@/components/dashboard/BusinessForm'
 import { StrategyView } from '@/components/dashboard/StrategyView'
 import { AreaChart } from '@/components/dashboard/Charts'
 import { useAuth } from '@/context/AuthContext'
+import { useToast } from '@/context/ToastContext'
 import { dashboardService } from '@/services/dashboard'
 import { cn } from '@/utils/cn'
 
@@ -21,6 +22,7 @@ const chartData = [
 
 export default function Dashboard() {
   const { userName } = useAuth()
+  const { showToast } = useToast()
   const [stats, setStats] = useState(null)
   const [strategy, setStrategy] = useState(null)
   const [businessName, setBusinessName] = useState('')
@@ -56,6 +58,7 @@ export default function Dashboard() {
       })
       setStrategy(data)
       setBusinessName(formData.businessName)
+      showToast('Marketing strategy generated successfully.', 'success')
       // Refresh the stats so the counters reflect the new generation.
       try {
         const { data: fresh } = await dashboardService.getStats()
@@ -64,12 +67,13 @@ export default function Dashboard() {
         // Stats refresh is best-effort.
       }
     } catch (err) {
-      setError(
+      const msg =
         err.response?.data?.detail ||
-          err.response?.data?.message ||
-          err.message ||
-          'Strategy generation failed. Try again.'
-      )
+        err.response?.data?.message ||
+        err.message ||
+        'Strategy generation failed. Try again.'
+      setError(msg)
+      showToast(msg, 'error')
     } finally {
       setGenerating(false)
     }
@@ -88,7 +92,9 @@ export default function Dashboard() {
         message="Turn your business into a marketing strategy in seconds — your market analysis, personas, and campaigns are one prompt away."
         tip="Engage with your top 20% of customers this week — repeat buyers are 5x more likely to try a new product."
         ctaLabel="Generate Strategy"
-        ctaTo="/dashboard"
+        onCtaClick={() =>
+          document.getElementById('strategy-generator')?.scrollIntoView({ behavior: 'smooth' })
+        }
       />
 
       {/* Analytics cards — driven by the live dashboard stats */}
@@ -98,7 +104,9 @@ export default function Dashboard() {
       />
 
       {/* Strategy generator */}
-      <BusinessForm onSubmit={handleSubmit} loading={generating} />
+      <div id="strategy-generator" className="scroll-mt-24">
+        <BusinessForm onSubmit={handleSubmit} loading={generating} />
+      </div>
 
       {error && (
         <div

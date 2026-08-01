@@ -78,4 +78,12 @@ class UserService:
         user = result.scalar_one_or_none()
         if user is None or not verify_password(password, user.hashed_password):
             raise InvalidCredentialsError()
+        if not user.is_active:
+            raise InvalidCredentialsError()
+        # Track the last successful login for the admin panel.
+        from datetime import datetime, timezone
+
+        user.last_login_at = datetime.now(timezone.utc)
+        await self.db.commit()
+        await self.db.refresh(user)
         return user

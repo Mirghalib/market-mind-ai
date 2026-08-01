@@ -22,6 +22,9 @@ class UserRead(BaseModel):
     profile_image: str | None
     created_at: datetime
     updated_at: datetime
+    last_login_at: datetime | None = None
+    is_email_verified: bool = False
+    email_verified_at: datetime | None = None
 
 
 class UserUpdateProfile(BaseModel):

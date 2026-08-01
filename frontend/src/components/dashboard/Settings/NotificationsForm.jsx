@@ -1,8 +1,17 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Bell, Loader2, Save } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { cn } from '@/utils/cn'
+
+const STORAGE_KEY = 'market_mind_ai_notification_prefs'
+
+const DEFAULTS = {
+  emailDigest: true,
+  aiSuggestions: true,
+  weeklyReports: false,
+  productUpdates: true,
+}
 
 function Toggle({ id, label, description, checked, onChange }) {
   return (
@@ -36,16 +45,19 @@ function Toggle({ id, label, description, checked, onChange }) {
 
 /**
  * Notification preferences with toggle switches.
- * Local state only — no backend.
+ * Preferences are persisted locally so they survive reloads.
  */
 export default function NotificationsForm() {
-  const [values, setValues] = useState({
-    emailDigest: true,
-    aiSuggestions: true,
-    weeklyReports: false,
-    productUpdates: true,
+  const [values, setValues] = useState(() => {
+    try {
+      const stored = window.localStorage.getItem(STORAGE_KEY)
+      return stored ? { ...DEFAULTS, ...JSON.parse(stored) } : DEFAULTS
+    } catch {
+      return DEFAULTS
+    }
   })
   const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
 
   const handleToggle = (key) => (event) => {
     setValues((current) => ({ ...current, [key]: event.target.checked }))
@@ -54,7 +66,17 @@ export default function NotificationsForm() {
   const handleSubmit = (event) => {
     event.preventDefault()
     setSaving(true)
-    window.setTimeout(() => setSaving(false), 900)
+    setSaved(false)
+    window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(values))
+      } catch {
+        // Storage unavailable — ignore.
+      }
+      setSaving(false)
+      setSaved(true)
+      window.setTimeout(() => setSaved(false), 2500)
+    }, 500)
   }
 
   return (
@@ -116,7 +138,7 @@ export default function NotificationsForm() {
         </div>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6 flex items-center gap-3">
         <Button type="submit" disabled={saving}>
           {saving ? (
             <>
@@ -130,6 +152,11 @@ export default function NotificationsForm() {
             </>
           )}
         </Button>
+        {saved && (
+          <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+            Preferences saved
+          </span>
+        )}
       </div>
     </motion.form>
   )

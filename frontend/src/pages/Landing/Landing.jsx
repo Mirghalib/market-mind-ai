@@ -12,7 +12,7 @@ import Footer from '@/components/common/Footer'
 
 export default function Landing() {
   return (
-    <div className="flex min-h-screen flex-col bg-surface-dark text-zinc-100">
+    <div className="flex min-h-screen flex-col bg-landing-bg text-landing-text">
       <Navbar />
       <main className="flex-1">
         <Hero />

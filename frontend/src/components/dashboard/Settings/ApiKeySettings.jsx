@@ -1,10 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Check, Copy, Eye, EyeOff, Key, RefreshCw } from 'lucide-react'
+import { Copy, Eye, EyeOff, Key } from 'lucide-react'
 import Button from '@/components/ui/Button'
-import { cn } from '@/utils/cn'
-
-const PLACEHOLDER_KEY = 'mmai_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
 async function copyToClipboard(text) {
   if (navigator.clipboard?.writeText) {
@@ -22,18 +19,15 @@ async function copyToClipboard(text) {
 }
 
 /**
- * API key placeholder. Copy and reveal are client-side only;
- * no key is stored or fetched. Wire to your API later.
+ * API key section. The platform does not yet issue per-user API keys;
+ * this card explains the status instead of pretending to work.
  */
 export default function ApiKeySettings() {
-  const [visible, setVisible] = useState(false)
   const [copied, setCopied] = useState(false)
-
-  const masked = `${PLACEHOLDER_KEY.slice(0, 12)}${'•'.repeat(20)}`
 
   const handleCopy = async () => {
     try {
-      await copyToClipboard(PLACEHOLDER_KEY)
+      await copyToClipboard('mmai_api_access_pending')
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
@@ -60,49 +54,24 @@ export default function ApiKeySettings() {
         </div>
       </div>
 
-      <div className="mt-6">
-        <p className="mb-1.5 text-sm font-medium text-foreground dark:text-zinc-300">
-          Your key
+      <div className="mt-6 rounded-xl border border-border bg-muted p-5 dark:border-white/5 dark:bg-white/[0.02]">
+        <p className="text-sm font-medium text-foreground dark:text-white">
+          API access is coming soon
         </p>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <div className="flex h-11 flex-1 items-center gap-2 overflow-hidden rounded-lg border border-border bg-muted px-3.5 font-mono text-sm text-muted-foreground dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
-            <span className="truncate">{visible ? PLACEHOLDER_KEY : masked}</span>
-            <button
-              type="button"
-              onClick={() => setVisible((v) => !v)}
-              aria-label={visible ? 'Hide API key' : 'Show API key'}
-              className="ml-auto shrink-0 text-muted-foreground transition-colors hover:text-zinc-900 dark:hover:text-white"
-            >
-              {visible ? <EyeOff size={15} /> : <Eye size={15} />}
-            </button>
+        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground dark:text-zinc-400">
+          Per-user API keys will be available in an upcoming release. For now, use
+          the dashboard to generate, export, and share strategies — every feature
+          you need is already here.
+        </p>
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="flex h-11 flex-1 items-center gap-2 overflow-hidden rounded-lg border border-border bg-card px-3.5 font-mono text-sm text-muted-foreground dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
+            <span className="truncate">{'mmai_api_access_pending'}</span>
+            <Eye size={15} className="ml-auto shrink-0 text-muted-foreground/50" />
           </div>
-          <Button type="button" variant="outline" onClick={handleCopy}>
-            {copied ? (
-              <>
-                <Check size={15} className="text-emerald-500" />
-                Copied
-              </>
-            ) : (
-              <>
-                <Copy size={15} />
-                Copy
-              </>
-            )}
+          <Button type="button" variant="outline" size="sm" onClick={handleCopy}>
+            {copied ? 'Copied' : 'Copy'}
           </Button>
         </div>
-      </div>
-
-      <div className="mt-5 flex flex-col items-start justify-between gap-4 rounded-xl border border-border bg-muted p-4 sm:flex-row sm:items-center dark:border-white/5 dark:bg-white/[0.02]">
-        <div>
-          <p className="text-sm font-medium text-foreground dark:text-white">Regenerate key</p>
-          <p className="mt-0.5 text-sm text-muted-foreground dark:text-zinc-400">
-            Invalidates the current key immediately.
-          </p>
-        </div>
-        <Button type="button" variant="ghost" size="sm" onClick={() => {}}>
-          <RefreshCw size={15} />
-          Regenerate
-        </Button>
       </div>
     </motion.div>
   )

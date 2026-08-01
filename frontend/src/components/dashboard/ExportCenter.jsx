@@ -17,6 +17,7 @@ import Button from '@/components/ui/Button'
 import Modal from '@/components/ui/Modal'
 import { dashboardService } from '@/services/dashboard'
 import { useAuth } from '@/context/AuthContext'
+import { useToast } from '@/context/ToastContext'
 import { cn } from '@/utils/cn'
 
 async function copyToClipboard(text) {
@@ -68,6 +69,7 @@ const IDLE = { status: 'idle' }
  */
 export default function ExportCenter({ strategyId, businessName }) {
   const { user } = useAuth()
+  const { showToast } = useToast()
   const [states, setStates] = useState({})
   const [error, setError] = useState('')
   const [shareOpen, setShareOpen] = useState(false)
@@ -87,10 +89,13 @@ export default function ExportCenter({ strategyId, businessName }) {
       })
       saveBlob(data, `${businessName ?? 'strategy'}.${format}`)
       setState(format, { status: 'success' })
+      showToast(`${format.toUpperCase()} report downloaded.`, 'success')
       setTimeout(() => setState(format, IDLE), 2000)
     } catch (err) {
       setState(format, { status: 'error' })
-      setError(errorMessage(err, `Could not download the ${format.toUpperCase()} report.`))
+      const msg = errorMessage(err, `Could not download the ${format.toUpperCase()} report.`)
+      setError(msg)
+      showToast(msg, 'error')
     }
   }
 
@@ -105,35 +110,37 @@ export default function ExportCenter({ strategyId, businessName }) {
       const text = await data.text()
       await copyToClipboard(text)
       setState('markdown', { status: 'success' })
+      showToast('Markdown copied to clipboard.', 'success')
       setTimeout(() => setState('markdown', IDLE), 2000)
     } catch (err) {
       setState('markdown', { status: 'error' })
-      setError(errorMessage(err, 'Could not copy the Markdown report.'))
+      const msg = errorMessage(err, 'Could not copy the Markdown report.')
+      setError(msg)
+      showToast(msg, 'error')
     }
   }
 
   const openShare = async () => {
     setError('')
     try {
-      const { data } = await dashboardService.exportFile({
+      // Ensure a PDF export exists, then create a secure share link.
+      await dashboardService.exportFile({
         strategy_id: strategyId,
         format: 'pdf',
       })
-      saveBlob(data, `${businessName ?? 'strategy'}.pdf`)
-      // The file URL is exposed by the list endpoint; fetch it for the link.
       const { data: exports } = await dashboardService.getExports({
         strategy_id: strategyId,
         limit: 1,
       })
       const latest = exports.items?.[0]
-      if (latest?.file_url) {
-        setSharedUrl(latest.file_url)
-      } else {
-        setSharedUrl(window.location.origin)
-      }
+      if (!latest?.id) throw new Error('No export record found.')
+      const { data } = await dashboardService.shareExport(latest.id, { expires_in_days: 7 })
+      setSharedUrl(data.url)
       setShareOpen(true)
     } catch (err) {
-      setError(errorMessage(err, 'Could not prepare the report for sharing.'))
+      const msg = errorMessage(err, 'Could not prepare the report for sharing.')
+      setError(msg)
+      showToast(msg, 'error')
     }
   }
 
@@ -149,7 +156,7 @@ export default function ExportCenter({ strategyId, businessName }) {
   const emailSent = (email) => {
     setEmailOpen(false)
     setState('email', { status: 'success' })
-    setError(`Report sent to ${email}.`)
+    showToast(`Report sent to ${email}.`, 'success')
     setTimeout(() => setState('email', IDLE), 4000)
   }
 
@@ -221,8 +228,8 @@ export default function ExportCenter({ strategyId, businessName }) {
       <Modal open={shareOpen} onClose={() => setShareOpen(false)} title="Share report">
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground dark:text-zinc-300">
-            Your report has been downloaded. Share the public link so stakeholders can
-            open it directly.
+            Your report is ready. Share the secure link so stakeholders can open it
+            directly — the link expires in 7 days.
           </p>
           <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2.5 dark:border-white/10 dark:bg-zinc-900">
             <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground dark:text-zinc-400">
@@ -240,6 +247,14 @@ export default function ExportCenter({ strategyId, businessName }) {
             >
               Copy link
             </button>
+            <a
+              href={sharedUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="shrink-0 rounded-lg bg-indigo-500/15 px-3 py-1.5 text-sm font-medium text-indigo-600 transition-colors hover:bg-indigo-500/25 dark:text-indigo-400"
+            >
+              Open
+            </a>
           </div>
           {navigator.share && (
             <Button variant="outline" className="w-full" onClick={handleNativeShare}>

@@ -82,15 +82,15 @@ export default function FAQ() {
     <section
       id="faq"
       aria-label="Frequently asked questions"
-      className="relative overflow-hidden bg-zinc-950 py-24"
+      className="relative overflow-hidden bg-landing-bg py-24"
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-rose-500/50 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent-500/50 to-transparent"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute top-0 left-1/2 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-rose-500/10 blur-3xl"
+        className="pointer-events-none absolute top-0 left-1/2 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-accent-500/10 blur-3xl"
       />
 
       <div className="relative mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
@@ -117,8 +117,8 @@ export default function FAQ() {
                 className={cn(
                   'overflow-hidden rounded-2xl border backdrop-blur transition-colors duration-300',
                   isOpen
-                    ? 'border-indigo-400/30 bg-white/[0.05] shadow-lg shadow-indigo-500/10'
-                    : 'border-white/10 bg-white/[0.03] hover:border-white/20'
+                    ? 'border-accent-400/30 bg-landing-card-hover shadow-lg shadow-accent-500/10'
+                    : 'border-landing-border bg-landing-card hover:border-landing-border-strong'
                 )}
               >
                 <h3>
@@ -131,9 +131,9 @@ export default function FAQ() {
                     aria-controls={`faq-panel-${index}`}
                     id={`faq-button-${index}`}
                     tabIndex={index === openIndex ? 0 : -1}
-                    className="flex w-full cursor-pointer items-center justify-between gap-4 px-6 py-5 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-500"
+                    className="flex w-full cursor-pointer items-center justify-between gap-4 px-6 py-5 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent-500"
                   >
-                    <span className="text-sm font-medium text-white sm:text-base">
+                    <span className="text-sm font-medium text-landing-text sm:text-base">
                       {faq.question}
                     </span>
                     <motion.span
@@ -142,8 +142,8 @@ export default function FAQ() {
                       className={cn(
                         'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors duration-300',
                         isOpen
-                          ? 'border-indigo-400/40 bg-indigo-500/20 text-indigo-300'
-                          : 'border-white/10 bg-white/[0.04] text-zinc-400'
+                          ? 'border-accent-400/40 bg-accent-500/20 text-accent-300'
+                          : 'border-landing-border bg-landing-card text-landing-muted'
                       )}
                     >
                       <ChevronDown size={16} strokeWidth={2.25} />
@@ -162,7 +162,7 @@ export default function FAQ() {
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3, ease: 'easeInOut' }}
                     >
-                      <p className="px-6 pb-6 text-sm leading-relaxed text-zinc-400">
+                      <p className="px-6 pb-6 text-sm leading-relaxed text-landing-muted">
                         {faq.answer}
                       </p>
                     </motion.div>

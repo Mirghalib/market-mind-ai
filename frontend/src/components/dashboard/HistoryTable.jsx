@@ -35,10 +35,17 @@ export default function HistoryTable({
   onView,
   onDelete,
   className,
+  initialQuery = '',
 }) {
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState(initialQuery)
   const [statusFilter, setStatusFilter] = useState('all')
   const [page, setPage] = useState(1)
+
+  // Keep the external search term (from the top-bar) in sync.
+  useEffect(() => {
+    setQuery(initialQuery)
+    setPage(1)
+  }, [initialQuery])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()

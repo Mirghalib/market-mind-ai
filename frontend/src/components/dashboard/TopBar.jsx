@@ -15,26 +15,7 @@ import ThemeSwitcher from '@/components/common/ThemeSwitcher'
 import { useAuth } from '@/context/AuthContext'
 import { cn } from '@/utils/cn'
 
-const notifications = [
-  {
-    id: 1,
-    title: 'Strategy ready',
-    message: 'Your Q3 email campaign is ready to review.',
-    time: '2m ago',
-  },
-  {
-    id: 2,
-    title: 'New insight',
-    message: 'Competitor pricing shift detected in your market.',
-    time: '1h ago',
-  },
-  {
-    id: 3,
-    title: 'Weekly report',
-    message: 'Your weekly performance report is available.',
-    time: '1d ago',
-  },
-]
+const notifications = []
 
 /**
  * App-shell top bar: search, notifications, theme toggle, profile menu.
@@ -141,10 +122,12 @@ export default function TopBar({
             className={iconButton}
           >
             <Bell size={19} />
-            <span className="absolute top-2 right-2.5 flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-indigo-500" />
-            </span>
+            {notifications.length > 0 && (
+              <span className="absolute top-2 right-2.5 flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-indigo-500" />
+              </span>
+            )}
           </button>
 
           <AnimatePresence>
@@ -165,25 +148,31 @@ export default function TopBar({
                   </span>
                 </div>
                 <ul className="max-h-72 overflow-y-auto">
-                  {notifications.map((notification) => (
-                    <li key={notification.id}>
-                      <button
-                        type="button"
-                        onClick={() => setOpenMenu(null)}
-                        className="flex w-full flex-col gap-0.5 px-5 py-3.5 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/60"
-                      >
-                        <span className="text-sm font-medium text-foreground dark:text-white">
-                          {notification.title}
-                        </span>
-                        <span className="text-sm text-muted-foreground dark:text-zinc-400">
-                          {notification.message}
-                        </span>
-                        <span className="mt-0.5 text-xs text-muted-foreground dark:text-zinc-500">
-                          {notification.time}
-                        </span>
-                      </button>
+                  {notifications.length === 0 ? (
+                    <li className="px-5 py-8 text-center text-sm text-muted-foreground dark:text-zinc-400">
+                      You're all caught up — no new notifications.
                     </li>
-                  ))}
+                  ) : (
+                    notifications.map((notification) => (
+                      <li key={notification.id}>
+                        <button
+                          type="button"
+                          onClick={() => setOpenMenu(null)}
+                          className="flex w-full flex-col gap-0.5 px-5 py-3.5 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/60"
+                        >
+                          <span className="text-sm font-medium text-foreground dark:text-white">
+                            {notification.title}
+                          </span>
+                          <span className="text-sm text-muted-foreground dark:text-zinc-400">
+                            {notification.message}
+                          </span>
+                          <span className="mt-0.5 text-xs text-muted-foreground dark:text-zinc-500">
+                            {notification.time}
+                          </span>
+                        </button>
+                      </li>
+                    ))
+                  )}
                 </ul>
               </motion.div>
             )}

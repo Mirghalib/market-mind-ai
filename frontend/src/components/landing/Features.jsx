@@ -121,16 +121,16 @@ export default function Features() {
     <section
       id="features"
       aria-label="Features"
-      className="relative overflow-hidden bg-zinc-950 py-24"
+      className="relative overflow-hidden bg-landing-bg py-24"
     >
       {/* Subtle top border glow */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent-500/50 to-transparent"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute top-0 left-1/2 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-indigo-500/10 blur-3xl"
+        className="pointer-events-none absolute top-0 left-1/2 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-accent-500/10 blur-3xl"
       />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -154,7 +154,7 @@ export default function Features() {
               <motion.article
                 key={title}
                 variants={cardVariants}
-                className="group relative overflow-hidden rounded-2xl border border-zinc-800 bg-white/[0.03] p-6 shadow-lg shadow-black/20 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 hover:border-white/20 hover:shadow-xl hover:shadow-indigo-500/10"
+                className="group relative overflow-hidden rounded-2xl border border-landing-border bg-landing-card p-6 shadow-lg shadow-black/20 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 hover:border-landing-border-strong hover:shadow-xl hover:shadow-accent-500/10"
               >
                 {/* Hover glow */}
                 <div
@@ -174,10 +174,10 @@ export default function Features() {
                   <Icon size={22} strokeWidth={1.75} />
                 </span>
 
-                <h3 className="relative mt-5 text-base font-semibold tracking-tight text-white">
+                <h3 className="relative mt-5 text-base font-semibold tracking-tight text-landing-text">
                   {title}
                 </h3>
-                <p className="relative mt-2 text-sm leading-relaxed text-zinc-400">
+                <p className="relative mt-2 text-sm leading-relaxed text-landing-muted">
                   {description}
                 </p>
               </motion.article>

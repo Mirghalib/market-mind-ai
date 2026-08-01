@@ -28,6 +28,15 @@ export const dashboardService = {
 
   /** POST /export/{id}/email — email a report link to a recipient. */
   emailExport: (id, payload) => api.post(`/export/${id}/email`, payload),
+
+  /** POST /export/{id}/share — create a secure share link. */
+  shareExport: (id, params) => api.post(`/export/${id}/share`, null, { params }),
+
+  /** GET /export/{id}/shares — list share links for an export. */
+  getShares: (id) => api.get(`/export/${id}/shares`),
+
+  /** DELETE /export/{id}/shares/{shareId} — revoke a share link. */
+  revokeShare: (id, shareId) => api.delete(`/export/${id}/shares/${shareId}`),
 }
 
 export default dashboardService

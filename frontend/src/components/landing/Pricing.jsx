@@ -68,8 +68,8 @@ function TierCard({ tier, index }) {
       className={cn(
         'group relative flex flex-col overflow-hidden rounded-2xl border p-8 backdrop-blur transition-all duration-300',
         tier.featured
-          ? 'border-indigo-400/40 bg-gradient-to-b from-indigo-500/[0.12] to-white/[0.03] shadow-2xl shadow-indigo-500/20 hover:-translate-y-2 hover:shadow-indigo-500/30 lg:scale-105'
-          : 'border-white/10 bg-white/[0.03] shadow-lg shadow-black/20 hover:-translate-y-1.5 hover:border-white/20 hover:shadow-xl hover:shadow-indigo-500/10'
+          ? 'border-accent-400/40 bg-gradient-to-b from-accent-500/[0.12] to-landing-card shadow-2xl shadow-accent-500/20 hover:-translate-y-2 hover:shadow-accent-500/30 lg:scale-105'
+          : 'border-landing-border bg-landing-card shadow-lg shadow-black/20 hover:-translate-y-1.5 hover:border-landing-border-strong hover:shadow-xl hover:shadow-accent-500/10'
       )}
     >
       {tier.featured && (
@@ -79,11 +79,11 @@ function TierCard({ tier, index }) {
             aria-hidden
             className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
           >
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-400/80 to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent-400/80 to-transparent" />
           </div>
           {/* Badge */}
-          <span className="absolute top-0 right-0 flex items-center gap-1.5 rounded-bl-2xl border border-l-0 border-t-0 border-indigo-400/30 bg-indigo-500/20 px-4 py-2 text-xs font-semibold text-indigo-200 backdrop-blur">
-            <Sparkles size={13} className="text-indigo-300" />
+          <span className="absolute top-0 right-0 flex items-center gap-1.5 rounded-bl-2xl border border-l-0 border-t-0 border-accent-400/30 bg-accent-500/20 px-4 py-2 text-xs font-semibold text-accent-200 backdrop-blur">
+            <Sparkles size={13} className="text-accent-300" />
             Most Popular
           </span>
         </>
@@ -92,22 +92,22 @@ function TierCard({ tier, index }) {
       <h3
         className={cn(
           'text-lg font-semibold tracking-tight',
-          tier.featured ? 'text-white' : 'text-zinc-200'
+          tier.featured ? 'text-landing-text' : 'text-landing-text'
         )}
       >
         {tier.name}
       </h3>
 
       <div className="mt-5 flex items-baseline gap-1.5">
-        <span className="text-4xl font-bold tracking-tight text-white">
+        <span className="text-4xl font-bold tracking-tight text-landing-text">
           {tier.price}
         </span>
         {tier.period && (
-          <span className="text-sm text-zinc-400">{tier.period}</span>
+          <span className="text-sm text-landing-muted">{tier.period}</span>
         )}
       </div>
 
-      <p className="mt-3 text-sm leading-relaxed text-zinc-400">{tier.tagline}</p>
+      <p className="mt-3 text-sm leading-relaxed text-landing-muted">{tier.tagline}</p>
 
       <ul className="mt-8 flex-1 space-y-3.5">
         {tier.features.map((feature) => (
@@ -116,13 +116,13 @@ function TierCard({ tier, index }) {
               className={cn(
                 'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full',
                 tier.featured
-                  ? 'bg-indigo-500/25 text-indigo-300'
-                  : 'bg-white/[0.06] text-zinc-300'
+                  ? 'bg-accent-500/25 text-accent-300'
+                  : 'bg-landing-card text-landing-muted'
               )}
             >
               <Check size={12} strokeWidth={3} />
             </span>
-            <span className="text-sm text-zinc-400">{feature}</span>
+            <span className="text-sm text-landing-muted">{feature}</span>
           </li>
         ))}
       </ul>
@@ -133,7 +133,7 @@ function TierCard({ tier, index }) {
         size="lg"
         className={cn(
           'mt-8 w-full',
-          tier.featured && 'shadow-lg shadow-indigo-500/25'
+          tier.featured && 'shadow-lg shadow-accent-500/25'
         )}
       >
         {tier.cta.label}
@@ -147,15 +147,15 @@ export default function Pricing() {
     <section
       id="pricing"
       aria-label="Pricing"
-      className="relative overflow-hidden bg-zinc-950 py-24"
+      className="relative overflow-hidden bg-landing-bg py-24"
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent-500/50 to-transparent"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute top-0 left-1/2 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-indigo-500/10 blur-3xl"
+        className="pointer-events-none absolute top-0 left-1/2 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-accent-500/10 blur-3xl"
       />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -178,7 +178,7 @@ export default function Pricing() {
           ))}
         </motion.div>
 
-        <p className="mt-10 text-center text-xs text-zinc-400">
+        <p className="mt-10 text-center text-xs text-landing-muted">
           All plans include secure billing via our partners. No payment is
           required to get started.
         </p>

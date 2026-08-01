@@ -29,14 +29,30 @@
   --color-primary: #6366f1;
   --color-primary-foreground: #ffffff;
 
-  /* Always-dark surface (landing page design) — same in every theme */
+  /* Landing page surface (theme-aware) */
   --color-surface-dark: #09090b;
+  --color-landing-bg: #09090b;
+  --color-landing-card: rgba(255, 255, 255, 0.03);
+  --color-landing-card-hover: rgba(255, 255, 255, 0.06);
+  --color-landing-text: #ffffff;
+  --color-landing-muted: #a1a1aa;
+  --color-landing-border: rgba(63, 63, 70, 0.8);
+  --color-landing-border-strong: rgba(255, 255, 255, 0.2);
 }
 
 /* ===== Light theme ===== */
 :root,
 [data-theme='light'] {
   color-scheme: light;
+
+  /* Landing tokens for light theme (light surfaces, dark text) */
+  --color-landing-bg: #fafafa;
+  --color-landing-card: rgba(255, 255, 255, 0.7);
+  --color-landing-card-hover: rgba(255, 255, 255, 0.95);
+  --color-landing-text: #18181b;
+  --color-landing-muted: #52525b;
+  --color-landing-border: rgba(24, 24, 27, 0.12);
+  --color-landing-border-strong: rgba(24, 24, 27, 0.25);
 }
 
 /* ===== Dark (zinc) ===== */
@@ -77,6 +93,15 @@
   --color-accent-700: #1d4ed8;
   --color-primary: #3b82f6;
   --color-primary-foreground: #ffffff;
+
+  /* Landing tokens for midnight */
+  --color-landing-bg: #070c1d;
+  --color-landing-card: rgba(148, 163, 200, 0.06);
+  --color-landing-card-hover: rgba(148, 163, 200, 0.1);
+  --color-landing-text: #e7ecf8;
+  --color-landing-muted: #94a3c8;
+  --color-landing-border: rgba(30, 42, 74, 0.9);
+  --color-landing-border-strong: rgba(148, 163, 200, 0.35);
 }
 
 /* ===== Emerald (deep green, green accent) ===== */
@@ -99,6 +124,15 @@
   --color-accent-700: #047857;
   --color-primary: #10b981;
   --color-primary-foreground: #ffffff;
+
+  /* Landing tokens for emerald */
+  --color-landing-bg: #04140d;
+  --color-landing-card: rgba(127, 199, 168, 0.06);
+  --color-landing-card-hover: rgba(127, 199, 168, 0.1);
+  --color-landing-text: #e2f5ec;
+  --color-landing-muted: #7fc7a8;
+  --color-landing-border: rgba(20, 80, 59, 0.9);
+  --color-landing-border-strong: rgba(127, 199, 168, 0.35);
 }
 
 html {

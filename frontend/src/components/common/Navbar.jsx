@@ -66,7 +66,7 @@ export default function Navbar({ transparent = true }) {
         'fixed inset-x-0 top-0 z-50',
         'transition-all duration-300',
         solid
-          ? 'border-b border-zinc-800/60 bg-zinc-950/80 backdrop-blur-md'
+          ? 'border-b border-landing-border bg-landing-bg/80 backdrop-blur-md'
           : 'border-b border-transparent bg-transparent'
       )}
     >
@@ -79,7 +79,7 @@ export default function Navbar({ transparent = true }) {
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500">
             <Sparkles size={16} className="text-white" />
           </span>
-          <span className="text-sm font-semibold tracking-tight text-white">
+          <span className="text-sm font-semibold tracking-tight text-landing-text">
             {APP_NAME}
           </span>
         </Link>
@@ -96,8 +96,8 @@ export default function Navbar({ transparent = true }) {
               className={cn(
                 'rounded-lg px-3.5 py-2 text-sm font-medium transition-colors duration-200',
                 isHome && activeSection === link.href.slice(1)
-                  ? 'text-white'
-                  : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                  ? 'text-landing-text'
+                  : 'text-landing-muted hover:bg-landing-card hover:text-landing-text'
               )}
             >
               {link.label}
@@ -120,7 +120,7 @@ export default function Navbar({ transparent = true }) {
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
           aria-expanded={open}
-          className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-white/5 hover:text-white md:hidden"
+          className="flex h-10 w-10 items-center justify-center rounded-lg text-landing-muted transition-colors hover:bg-landing-card hover:text-landing-text md:hidden"
         >
           <motion.div
             animate={{ rotate: open ? 90 : 0 }}
@@ -150,7 +150,7 @@ export default function Navbar({ transparent = true }) {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="overflow-hidden border-t border-zinc-800/60 bg-background/95 backdrop-blur-md md:hidden"
+            className="overflow-hidden border-t border-landing-border bg-background/95 backdrop-blur-md md:hidden"
           >
             <div className="space-y-1 px-4 py-4">
               {NAV_LINKS.map((link, i) => (
@@ -169,8 +169,8 @@ export default function Navbar({ transparent = true }) {
                     className={cn(
                       'block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                       isHome && activeSection === link.href.slice(1)
-                        ? 'bg-white/5 text-white'
-                        : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                        ? 'bg-landing-card text-landing-text'
+                        : 'text-landing-muted hover:bg-landing-card hover:text-landing-text'
                     )}
                   >
                     {link.label}
@@ -182,7 +182,7 @@ export default function Navbar({ transparent = true }) {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.2 }}
-                className="flex flex-col gap-2 border-t border-zinc-800/60 pt-4"
+                className="flex flex-col gap-2 border-t border-landing-border pt-4"
               >
                 <Button to="/login" variant="outline" className="w-full">
                   Login

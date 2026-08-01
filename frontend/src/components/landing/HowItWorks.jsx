@@ -102,7 +102,7 @@ function StepCard({ step, index, isLast }) {
           )}
         >
           <Icon size={22} strokeWidth={1.75} className="lg:size-6" />
-          <span className="absolute -top-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900 text-xs font-semibold text-white shadow-md">
+          <span className="absolute -top-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full border border-landing-border bg-landing-bg text-xs font-semibold text-landing-text shadow-md">
             {index + 1}
           </span>
         </motion.div>
@@ -110,7 +110,7 @@ function StepCard({ step, index, isLast }) {
 
       <motion.article
         variants={cardVariants}
-        className="group relative flex-1 overflow-hidden rounded-2xl border border-zinc-800 bg-white/[0.03] p-6 shadow-lg shadow-black/20 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 hover:border-white/20 hover:shadow-xl lg:mt-8 hover:shadow-indigo-500/10"
+        className="group relative flex-1 overflow-hidden rounded-2xl border border-landing-border bg-landing-card p-6 shadow-lg shadow-black/20 backdrop-blur transition-all duration-300 hover:-translate-y-1.5 hover:border-landing-border-strong hover:shadow-xl lg:mt-8 hover:shadow-accent-500/10"
       >
         <div
           aria-hidden
@@ -128,10 +128,10 @@ function StepCard({ step, index, isLast }) {
         })}>
           Step {index + 1}
         </p>
-        <h3 className="relative mt-2 text-lg font-semibold tracking-tight text-white">
+        <h3 className="relative mt-2 text-lg font-semibold tracking-tight text-landing-text">
           {title}
         </h3>
-        <p className="relative mt-2 text-sm leading-relaxed text-zinc-400">
+        <p className="relative mt-2 text-sm leading-relaxed text-landing-muted">
           {description}
         </p>
       </motion.article>
@@ -144,15 +144,15 @@ export default function HowItWorks() {
     <section
       id="how-it-works"
       aria-label="How it works"
-      className="relative overflow-hidden bg-zinc-950 py-24"
+      className="relative overflow-hidden bg-landing-bg py-24"
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent-500/50 to-transparent"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute top-0 left-1/2 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-purple-500/10 blur-3xl"
+        className="pointer-events-none absolute top-0 left-1/2 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-accent-500/10 blur-3xl"
       />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

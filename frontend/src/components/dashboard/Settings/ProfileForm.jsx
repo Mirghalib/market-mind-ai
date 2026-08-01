@@ -2,13 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Camera, CheckCircle2, Image, Loader2, Save, Trash2, Upload, User, XCircle } from 'lucide-react'
 import Input from '@/components/ui/Input'
-import Select from '@/components/ui/Select'
 import Button from '@/components/ui/Button'
 import { useAuth } from '@/context/AuthContext'
 import { profileService } from '@/services/profile'
 import { cn } from '@/utils/cn'
-
-const ROLES = ['Marketing Lead', 'Founder', 'Marketer', 'Agency Owner', 'Other']
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const ACCEPTED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp']
@@ -47,8 +44,6 @@ export default function ProfileForm() {
   const [values, setValues] = useState({
     name: user?.name ?? '',
     email: user?.email ?? '',
-    company: '',
-    role: '',
   })
 
   const [avatarUrl, setAvatarUrl] = useState(user?.profileImage ?? user?.avatar ?? '')
@@ -296,28 +291,6 @@ export default function ProfileForm() {
           onChange={handleChange}
           disabled
         />
-        <Input
-          id="profile-company"
-          name="company"
-          label="Company"
-          placeholder="Acme Inc."
-          value={values.company}
-          onChange={handleChange}
-        />
-        <Select
-          id="profile-role"
-          name="role"
-          label="Role"
-          value={values.role}
-          onChange={handleChange}
-        >
-          <option value="">Select role</option>
-          {ROLES.map((role) => (
-            <option key={role} value={role}>
-              {role}
-            </option>
-          ))}
-        </Select>
       </div>
 
       <div className="mt-6">

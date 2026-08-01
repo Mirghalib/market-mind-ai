@@ -1,14 +1,16 @@
 import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 import Sidebar from '@/components/dashboard/Sidebar'
 import TopBar from '@/components/dashboard/TopBar'
 
 export default function DashboardLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const navigate = useNavigate()
 
   const handleSearch = (query) => {
-    // Local UI search — results are filtered client-side where relevant.
-    if (query) return
+    if (!query) return
+    // Global search jumps to History with the query pre-filled.
+    navigate(`/history?q=${encodeURIComponent(query)}`)
   }
 
   return (

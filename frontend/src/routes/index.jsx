@@ -8,6 +8,7 @@ import Loader from '@/components/ui/Loader'
 const Landing = lazy(() => import('@/pages/Landing/Landing'))
 const Login = lazy(() => import('@/pages/Login/Login'))
 const Register = lazy(() => import('@/pages/Register/Register'))
+const AcceptInvite = lazy(() => import('@/pages/AcceptInvite/AcceptInvite'))
 const Dashboard = lazy(() => import('@/pages/Dashboard/Dashboard'))
 const History = lazy(() => import('@/pages/History/History'))
 const Settings = lazy(() => import('@/pages/Settings/Settings'))
@@ -28,6 +29,7 @@ export default function AppRoutes() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/accept-invite" element={<AcceptInvite />} />
 
         {/* Authenticated user routes */}
         <Route element={<ProtectedRoute />}>

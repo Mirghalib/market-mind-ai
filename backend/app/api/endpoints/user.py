@@ -241,11 +241,17 @@ async def user_export(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Unsupported export format: {payload.format.value}",
         )
+    except RuntimeError as exc:
+        logger.exception("Renderer error exporting strategy=%s", payload.strategy_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exc) or "Export failed",
+        )
     except Exception:
         logger.exception("Unexpected error exporting strategy=%s", payload.strategy_id)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Export failed",
+            detail="Export failed. Please try again or contact support.",
         )
 
     filename = f"strategy-{export.id}.{rendered.file_extension}"

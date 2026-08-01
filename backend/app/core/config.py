@@ -75,6 +75,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_FROM: str = ""
     SMTP_USE_TLS: bool = True
+    SMTP_TLS: bool | None = None  # alias read from .env (SMTP_TLS=true)
     REPORT_FROM_NAME: str = "Market Mind AI"
 
     # --- AI (LLM provider) ---
@@ -103,6 +104,13 @@ class Settings(BaseSettings):
     @property
     def ENV(self) -> str:
         return self.APP_ENV
+
+    @property
+    def smtp_use_tls(self) -> bool:
+        """Effective STARTTLS flag: SMTP_TLS wins when set, else SMTP_USE_TLS."""
+        if self.SMTP_TLS is not None:
+            return self.SMTP_TLS
+        return self.SMTP_USE_TLS
 
     # Aliases matching common conventions
     @property

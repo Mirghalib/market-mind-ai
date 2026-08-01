@@ -13,6 +13,7 @@ from app.api.endpoints.export import router as export_router
 from app.api.endpoints.generate import router as generate_router
 from app.api.endpoints.generation_history import router as generation_history_router
 from app.api.endpoints.health import router as health_router
+from app.api.endpoints.invitation import router as invitation_router
 from app.api.endpoints.user import router as user_router
 
 api_router = APIRouter()
@@ -26,5 +27,6 @@ api_router.include_router(
     prefix="/generation-history",
     tags=["generation-history"],
 )
+api_router.include_router(invitation_router, prefix="/invitations", tags=["invitations"])
 api_router.include_router(admin_router, prefix="/admin", tags=["admin"])
 api_router.include_router(user_router, prefix="/dashboard", tags=["dashboard"])

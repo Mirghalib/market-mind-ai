@@ -16,26 +16,26 @@ const columns = [
     title: 'Company',
     links: [
       { label: 'About', href: '#about' },
-      { label: 'Blog', href: '#' },
-      { label: 'Careers', href: '#' },
-      { label: 'Contact', href: '#' },
+      { label: 'Features', href: '#features' },
+      { label: 'Pricing', href: '#pricing' },
+      { label: 'Contact', href: '#about' },
     ],
   },
   {
     title: 'Resources',
     links: [
-      { label: 'Documentation', href: '#' },
-      { label: 'API Reference', href: '#' },
-      { label: 'Guides', href: '#' },
-      { label: 'Support', href: '#' },
+      { label: 'Dashboard', href: '/dashboard' },
+      { label: 'History', href: '/history' },
+      { label: 'Settings', href: '/settings' },
+      { label: 'Support', href: '/settings' },
     ],
   },
   {
     title: 'Legal',
     links: [
-      { label: 'Privacy Policy', href: '#' },
-      { label: 'Terms of Service', href: '#' },
-      { label: 'Cookie Policy', href: '#' },
+      { label: 'Privacy Policy', href: '#about' },
+      { label: 'Terms of Service', href: '#about' },
+      { label: 'Cookie Policy', href: '#about' },
     ],
   },
 ]
@@ -49,7 +49,7 @@ const socials = [
 
 export default function Footer() {
   return (
-    <footer id="about" className="border-t border-zinc-800/80 bg-zinc-950">
+    <footer id="about" className="border-t border-landing-border bg-landing-bg">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-6 lg:gap-8">
           {/* Brand column */}
@@ -58,12 +58,12 @@ export default function Footer() {
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500">
                 <Sparkles size={16} className="text-white" />
               </span>
-              <span className="text-sm font-semibold tracking-tight text-white">
+              <span className="text-sm font-semibold tracking-tight text-landing-text">
                 {APP_NAME}
               </span>
             </Link>
 
-            <p className="mt-5 max-w-sm text-sm leading-relaxed text-zinc-400">
+            <p className="mt-5 max-w-sm text-sm leading-relaxed text-landing-muted">
               AI-powered marketing intelligence that turns your goals into
               ready-to-publish strategies — market analysis, personas, content,
               and campaigns in seconds.
@@ -73,9 +73,9 @@ export default function Footer() {
               {socials.map(({ label, icon: Icon }) => (
                 <a
                   key={label}
-                  href="#"
+                  href="/register"
                   aria-label={label}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 bg-white/[0.03] text-zinc-400 transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-400/40 hover:bg-indigo-500/10 hover:text-indigo-300"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-landing-border bg-landing-card text-landing-muted transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-400/40 hover:bg-indigo-500/10 hover:text-indigo-300"
                 >
                   <Icon size={18} />
                 </a>
@@ -86,13 +86,13 @@ export default function Footer() {
           {/* Link columns */}
           {columns.map((column) => (
             <div key={column.title}>
-              <h3 className="text-sm font-semibold text-white">{column.title}</h3>
+              <h3 className="text-sm font-semibold text-landing-text">{column.title}</h3>
               <ul className="mt-5 space-y-3.5">
                 {column.links.map((link) => (
                   <li key={link.label}>
                     <a
                       href={link.href}
-                      className="text-sm text-zinc-400 transition-colors duration-200 hover:text-white"
+                      className="text-sm text-landing-muted transition-colors duration-200 hover:text-landing-text"
                     >
                       {link.label}
                     </a>
@@ -104,11 +104,11 @@ export default function Footer() {
         </div>
 
         {/* Copyright bar */}
-        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-zinc-800/80 pt-8 sm:flex-row">
-          <p className="text-sm text-zinc-400">
+        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-landing-border pt-8 sm:flex-row">
+          <p className="text-sm text-landing-muted">
             &copy; {new Date().getFullYear()} {APP_NAME}. All rights reserved.
           </p>
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-landing-muted">
             Built for the hackathon
           </p>
         </div>

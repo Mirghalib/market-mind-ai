@@ -2,7 +2,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, ForeignKey, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
@@ -31,12 +31,30 @@ class User(UUIDPrimaryKeyTimestampMixin, SoftDeleteMixin, Base):
         nullable=True,
         comment="Relative path of the profile image, e.g. uploads/profile_images/<uuid>.jpg",
     )
+    last_login_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        default=None,
+        comment="Last successful login timestamp",
+    )
+    is_email_verified: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    email_verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
 
     role: Mapped["Role | None"] = relationship(back_populates="users")
 
     projects: Mapped[list["Project"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
+    invitations: Mapped[list["Invitation"]] = relationship(
+        back_populates="inviter",
+        foreign_keys="Invitation.invited_by",
         passive_deletes=True,
     )
 
@@ -49,5 +67,6 @@ class User(UUIDPrimaryKeyTimestampMixin, SoftDeleteMixin, Base):
         return f"<User id={self.id} email={self.email!r}>"
 
 
+from app.models.invitation import Invitation  # noqa: E402  (typing only)
 from app.models.project import Project  # noqa: E402  (typing only)
 from app.models.role import Role  # noqa: E402  (typing only)
