@@ -14,6 +14,14 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+  // Let the browser set the correct multipart/form-data boundary when
+  // the payload is a FormData (e.g. profile image upload). Keeping the
+  // global application/json default here would make the server ignore
+  // the file field entirely.
+  if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+    delete config.headers['Content-Type']
+    delete config.headers['content-type']
+  }
   return config
 })
 
