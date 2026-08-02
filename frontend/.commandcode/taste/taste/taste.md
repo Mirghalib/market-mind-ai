@@ -1,0 +1,19 @@
+# Taste
+- Prefers a clean, feature-based folder structure: components grouped by concern (common/landing/dashboard/forms/ui), a separate layouts/ folder, one folder per route under pages/, plus services/, hooks/, utils/, constants/, context/, routes/, styles/, animations/. Confidence: 0.9
+- Prefers starter/scaffold files only — no business logic, no backend, no unnecessary files; wants minimal clean architecture over premature implementation. Confidence: 0.9
+- Prefers an architecture-first workflow: when asked to scaffold, delivers skeletons for all sections in one pass (semantic sections, anchor ids, spacing rhythm, placeholder comments) with content explicitly deferred to later requests ("Do not generate the content yet. Only generate the architecture"). Confidence: 0.85
+- Requires each component in its own file with a proper default export — one component per file, never multiple components sharing a file. Confidence: 0.9
+- Prefers a modern, dark, minimal SaaS UI aesthetic similar to Linear, Vercel, Stripe, and Notion. Confidence: 0.8
+- Prefers a Vite + React + Tailwind CSS + React Router + Axios + Framer Motion + Lucide React frontend stack. Confidence: 0.8
+- Prefers reusable components that compose from the shared design system — built on existing primitives (ui/ components, cn utility) and driven by centralized constants (e.g., NAV_LINKS) rather than hard-coded one-off markup. Confidence: 0.8
+- Wants the folder structure and architecture explained before code is generated, including where each file belongs. Confidence: 0.95
+- Prefers to build the landing page incrementally, one section at a time — each request delivers a single reusable section component (Navbar, then Hero, etc.) with precise specs, wired into the page rather than written as one giant file. Confidence: 0.75
+- Standard landing-page section order: Hero → TrustedBy → Features → HowItWorks → Capabilities → Testimonials → Pricing → FAQ → CTA → Footer, with each section as a semantic `<section>` carrying a scroll-anchor `id`. Confidence: 0.75
+- Wants complete, ready-to-use React code output for every request (explicitly asks for "Output complete React code") — full components, not partial snippets or stubs. Confidence: 0.8
+- Wants premium visual depth in landing sections: animated gradient-blur background blobs, scroll-triggered stat counters, and a floating mock-UI/illustration placeholder with motion effects. Confidence: 0.8
+- Prefers glassmorphism material for premium cards/panels — translucent blurred surfaces (backdrop-blur, border-white/low-opacity, bg-white/low-opacity) for dashboard mock-ups, stat cards, and badges. Confidence: 0.85
+- Explicitly forbids external images in UI components; all visuals must be built with CSS gradients, glass effects, and Lucide icons. Confidence: 0.9
+- When a section calls for logos/branding, prefers placeholder logos — Lucide icon marks paired with wordmark-style names — rather than real brand assets or external images. Confidence: 0.8
+- Requires strictly scoped restyling: when changing colors, change only colors — layout, spacing, typography, fonts, icons, animations, components, copy/text, and button names must stay exactly as they are. Confidence: 0.95
+- Wants colors defined once as centralized tokens (CSS variables in :root / @theme) and referenced everywhere, never hardcoded hex values scattered across components. Confidence: 0.95
+- Prefers color palettes specified and applied by semantic role (primary brand, accent, background, muted text, borders, card backgrounds, etc.) rather than by arbitrary color-family names, preserving existing contrast and readability. Confidence: 0.9

@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(python -c \"import ast, pathlib; [ast.parse(p.read_text(encoding='utf-8')) for p in pathlib.Path('app/services/ai').rglob('*.py')]; print('all files parse OK')\")",
+      "Shell(python -c \"from app.services.ai.ai_service import AIService; from app.services.ai.prompt_builder import PromptBuilder; from app.services.ai.parsers.response_parser import ResponseParser; from app.services.ai.validators.json_validator import JSONValidator; import app.services.ai.prompts, app.services.ai.models; print('imports OK')\")",
+      "Shell(python -m pytest tests/test_prompt_builder.py -q)",
+      "Shell(python -m pip install asyncpg==0.31.0)",
+      "Shell(python -c  import json, urllib.request from jsonschema import Draft7Validator with open('app/services/ai/schemas/marketing_strategist_output.schema.json', encoding='utf-8') as f: schema = json.load(f) # 1. Valid JSON + draft-07 metaschema conformance Draft7Validator.check_schema(schema) print('schema is valid draft-07') # 2. Round-trip all required section titles for React display titles = [schema['properties'][k].get('title') for k in schema['required']] print('titles:', titles) # 3. Validate a minimal instance against the schema Draft7Validator(schema).validate({k: _min_instance(schema['properties'][k]) for k in schema['required']}) print('minimal instance validates')  2 >& 1)",
+      "Shell(python -c  import json with open('app/services/ai/schemas/marketing_strategist_output.schema.json', encoding='utf-8') as f: schema = json.load(f) sections = {k: v.get('title') for k, v in schema['properties'].items()} print('sections:', sections) print('required count:', len(schema['required'])) )",
+      "Shell(python \"C:\\Users\\NewMoon\\AppData\\Local\\Temp\\commandcode\\C--Users-NewMoon-Desktop-market-mind-ai-backend\\055cb377-938a-4d76-a566-204b7dbb1f88\\scratchpad\\validate_schema.py\")",
+      "Shell(python -m pip install openai anthropic jsonschema)",
+      "Shell(python -c \"import anthropic; print('anthropic', anthropic.__version__)\")",
+      "Shell(python -c \" import app.services.ai as ai print('package imports OK') print('exports:', ai.__all__) # Missing-key handling must raise a clear, non-retryable ProviderError from app.services.ai.providers.factory import get_llm_provider from app.services.ai.exceptions import ProviderError from app.core.config import settings try: get_llm_provider(settings) print('ERROR: expected ProviderError') except ProviderError as e: print('missing key ->', e) print('retryable =', e.retryable) \")",
+      "Shell(python -c \"import app.services.ai as ai; print('exports:', ', '.join(ai.__all__)); from app.core.config import settings; from app.services.ai.providers.factory import get_llm_provider; from app.services.ai.exceptions import ProviderError; import os; os.environ.pop('OPENAI_API_KEY', None); os.environ.pop('ANTHROPIC_API_KEY', None); settings.AI_PROVIDER='openai'; try: get_llm_provider(settings); print('ERROR: expected ProviderError') except ProviderError as e: print('missing key ->', e, '| retryable =', e.retryable)\")",
+      "Shell(python -c \"import os; os.environ.pop('OPENAI_API_KEY', None); os.environ.pop('ANTHROPIC_API_KEY', None); from app.core.config import settings; settings.AI_PROVIDER='openai'; from app.services.ai.providers.factory import get_llm_provider; from app.services.ai.exceptions import ProviderError; try: get_llm_provider(settings); print('ERROR: expected ProviderError') except ProviderError as e: print('missing key ->', e); print('retryable =', e.retryable)\")",
+      "Shell(python -m pytest tests/ -q 2 >& 1)",
+      "Shell(findstr:*)",
+      "Shell(python -c \"import re, pathlib; p = pathlib.Path('tests/test_ai_service.py'); s = p.read_text(encoding='utf-8'); s = s.replace('_VALID_JSON', 'VALID_MARKETING_STRATEGY_JSON'); p.write_text(s, encoding='utf-8'); print('replaced', s.count('VALID_MARKETING_STRATEGY_JSON'), 'refs')\")",
+      "Shell(python -m pytest tests/test_json_validator.py::test_unexpected_field_is_reported -q 2 >& 1)",
+      "Shell(python \"C:\\Users\\NewMoon\\AppData\\Local\\Temp\\commandcode\\C--Users-NewMoon-Desktop-market-mind-ai-backend\\055cb377-938a-4d76-a566-204b7dbb1f88\\scratchpad\\probe_extra_field.py\")",
+      "Shell(python probe_extra_field.py)",
+      "Shell(del probe_extra_field.py 2>nul & python -m pytest tests/ -q 2>&1 | findstr /C:\"passed\" /C:\"failed\")",
+      "Shell(dir:*)"
+      "Shell(.venvScriptspython.exe:*)",
+      "Shell(cd /d D:\\market-mind-ai\\backend && set PYTHONPATH=D:\\market-mind-ai\\backend && .venv\\Scripts\\python.exe -c \"import asyncio; from sqlalchemy import text; from app.database.session import engine; asyncio.run(_probe())\" 2>nul || echo FALLBACK)",
+      "Shell(.venv\\Scripts\\python.exe scripts\\db_probe.py 2>nul)",
+      "Shell(.venv\\Scripts\\python.exe -c \"import asyncio, sys; sys.path.insert(0, 'D:/market-mind-ai/backend'); from sqlalchemy import text; from app.database.session import engine; asyncio.run(_run())\" 2>nul)",
+      "Shell(findstr:*)"
+    ],
+    "deny": [],
+    "defaultMode": "default"
+  }
+}
