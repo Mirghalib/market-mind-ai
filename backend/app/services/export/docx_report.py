@@ -86,16 +86,27 @@ def _style_base(document: Document) -> None:
     normal.font.size = Pt(10.5)
     normal.font.color.rgb = _rgb(BRAND["dark"])
     normal.paragraph_format.space_after = Pt(6)
-    normal.paragraph_format.line_spacing = 1.25
+    normal.paragraph_format.line_spacing = 1.5
 
 
-def _add_heading(document: Document, text: str, level: int = 1, color: str = BRAND["primary_dark"]) -> None:
+def _add_heading(document: Document, text: str, level: int = 1, color: str = BRAND["primary"]) -> None:
     heading = document.add_heading(text, level=level)
     for run in heading.runs:
         run.font.color.rgb = _rgb(color)
         run.font.name = "Calibri"
     heading.paragraph_format.space_before = Pt(14 if level == 1 else 10)
     heading.paragraph_format.space_after = Pt(6)
+    # Gold underline under level-1 headings (wine title + gold rule).
+    if level == 1:
+        pPr = heading._p.get_or_add_pPr()
+        pBdr = OxmlElement("w:pBdr")
+        bottom = OxmlElement("w:bottom")
+        bottom.set(qn("w:val"), "single")
+        bottom.set(qn("w:sz"), "12")
+        bottom.set(qn("w:space"), "4")
+        bottom.set(qn("w:color"), BRAND["secondary"].lstrip("#"))
+        pBdr.append(bottom)
+        pPr.append(pBdr)
     return heading
 
 
@@ -178,10 +189,10 @@ def _add_styled_table(document: Document, header: list[str], rows: list[list[str
     table.style = "Table Grid"
     table.autofit = True
 
-    # Header row.
+    # Header row — Wine fill, white uppercase text.
     for j, label in enumerate(header):
         cell = table.cell(0, j)
-        cell.text = label
+        cell.text = label.upper()
         cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
         _shade_cell(cell, BRAND["primary"])
         for r in cell.paragraphs[0].runs:
@@ -189,7 +200,7 @@ def _add_styled_table(document: Document, header: list[str], rows: list[list[str
             r.font.size = Pt(9.5)
             r.font.color.rgb = _rgb(BRAND["white"])
 
-    # Body rows.
+    # Body rows — alternating cream stripes.
     for i, row in enumerate(rows, start=1):
         for j, value in enumerate(row):
             cell = table.cell(i, j)
@@ -200,6 +211,14 @@ def _add_styled_table(document: Document, header: list[str], rows: list[list[str
                 r.font.color.rgb = _rgb(BRAND["dark"])
             if i % 2 == 0:
                 _shade_cell(cell, BRAND["panel"])
+
+    # Auto-fit column widths to the longest header word so no header
+    # like "Threat" ever wraps mid-word.
+    if col_widths is None:
+        col_widths = [max(len(w) for w in header[j].split()) * 0.22 + 0.4 for j in range(len(header))]
+        total = sum(col_widths)
+        scale = 6.5 / total
+        col_widths = [w * scale for w in col_widths]
 
     if col_widths:
         for j, width in enumerate(col_widths):

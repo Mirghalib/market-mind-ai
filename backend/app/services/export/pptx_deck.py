@@ -21,27 +21,15 @@ import logging
 from typing import Any
 
 from app.models.marketing_strategy import MarketingStrategy
+from app.services.export.report_data import BRAND
 
 logger = logging.getLogger("market_mind_ai.pptx")
-
-BRAND = {
-    "primary": "4F46E5",   # indigo-600
-    "secondary": "7C3AED",  # violet-600
-    "accent": "06B6D4",     # cyan-500
-    "dark": "0F172A",       # slate-900
-    "muted": "64748B",      # slate-500
-    "light": "F8FAFC",      # slate-50
-    "white": "FFFFFF",
-    "emerald": "10B981",
-    "amber": "F59E0B",
-    "rose": "F43F5E",
-}
 
 
 def _rgb(hex_color: str):
     from pptx.dml.color import RGBColor
 
-    return RGBColor.from_string(hex_color)
+    return RGBColor.from_string(hex_color.lstrip("#"))
 
 
 def _sections_map(strategy: MarketingStrategy) -> dict[str, str]:
@@ -149,7 +137,7 @@ class DeckBuilder:
                 p.alignment = PP_ALIGN[align]
         return box
 
-    def add_bullets(self, slide, x, y, w, h, items, *, size=14, color="334155"):
+    def add_bullets(self, slide, x, y, w, h, items, *, size=14, color=BRAND["dark"]):
         box = slide.shapes.add_textbox(
             self.Inches(x), self.Inches(y), self.Inches(w), self.Inches(h)
         )
@@ -164,7 +152,20 @@ class DeckBuilder:
             p.space_after = _pt(4)
         return box
 
-    def add_kicker(self, slide, x, y, text, color="4F46E5"):
+    def est_lines(self, text: str, width: float, size: float) -> int:
+        """Estimate how many visual lines ``text`` wraps to in a box.
+
+        Rough but reliable: Arial at ``size`` pt averages ~0.5 * size pt
+        per character. Returns at least 1.
+        """
+        if not text:
+            return 1
+        chars_per_line = max(1, int((width * 72) / (size * 0.5)))
+        if chars_per_line <= 0:
+            return 1
+        return max(1, (len(text) + chars_per_line - 1) // chars_per_line)
+
+    def add_kicker(self, slide, x, y, text, color=BRAND["primary"]):
         return self.add_text(
             slide, x, y, 8, 0.4,
             [(text.upper(), 12, True, color)],
@@ -176,20 +177,22 @@ class DeckBuilder:
             slide, 0.7, 0.35, 11, 0.8,
             [(title, 28, True, BRAND["dark"])],
         )
+        # Gold underline beneath the title.
+        self.add_rect(slide, 0.72, 1.0, 2.2, 0.05, BRAND["secondary"])
         if subtitle:
             self.add_text(
-                slide, 0.7, 1.05, 11, 0.4,
+                slide, 0.7, 1.1, 11, 0.4,
                 [(subtitle, 13, False, BRAND["muted"])],
             )
 
     def footer(self, slide, page_num: int, total: int):
         self.add_text(
             slide, 0.7, 7.05, 8, 0.3,
-            [(f"Market Mind AI  ·  {self.strategy.name}", 9, False, "94A3B8")],
+            [(f"Market Mind AI  ·  {self.strategy.name}", 9, False, BRAND["muted"])],
         )
         self.add_text(
             slide, 11.9, 7.05, 0.9, 0.3,
-            [(f"{page_num} / {total}", 9, False, "94A3B8")],
+            [(f"{page_num} / {total}", 9, False, BRAND["muted"])],
             align="RIGHT",
         )
 
@@ -246,15 +249,15 @@ class DeckBuilder:
 
         data = ReportData(self.strategy)
         slide = self.add_slide()
-        self.add_rect(slide, 0, 0, 13.333, 7.5, "111827")
-        self.add_rect(slide, 0, 0, 13.333, 0.35, BRAND["primary"])
+        self.add_rect(slide, 0, 0, 13.333, 7.5, BRAND["primary_dark"])
+        self.add_rect(slide, 0, 0, 13.333, 0.35, BRAND["secondary"])
         self.add_text(
             slide, 0.9, 2.0, 11.5, 1.6,
             [(self.strategy.name, 44, True, BRAND["white"])],
         )
         self.add_text(
             slide, 0.9, 3.4, 11.5, 0.6,
-            [("Marketing Strategy Report", 24, False, "C7D2FE")],
+            [("Marketing Strategy Report", 24, False, BRAND["secondary"])],
         )
         budget_line = (
             f"Budget: {data.budget_label}"
@@ -271,7 +274,7 @@ class DeckBuilder:
         cover_meta.append(_date_line(self.strategy))
         self.add_text(
             slide, 0.9, 4.6, 11.5, 1.6,
-            [(line, 14, False, "94A3B8") for line in cover_meta],
+            [(line, 14, False, BRAND["secondary"]) for line in cover_meta],
         )
         return 1
 
@@ -313,12 +316,18 @@ class DeckBuilder:
         blocks = self._nested_blocks(content, max_blocks=5)
         y = 1.7
         for label, lines in blocks[:5]:
+            if y > 6.5:
+                break
             if label:
                 self.add_text(slide, 0.9, y, 11.5, 0.4, [(label, 15, True, BRAND["primary"])])
                 y += 0.5
             for line in lines[:6]:
-                self.add_bullets(slide, 0.9, y, 11.5, 0.4, [line], size=13)
-                y += 0.35
+                # Height accounts for wrapped lines so nothing overlaps
+                # the next block below (fix: exec summary text overlap).
+                est = self.est_lines(str(line), 11.5, 13)
+                h = 0.4 + 0.24 * (est - 1)
+                self.add_bullets(slide, 0.9, y, 11.5, h, [line], size=13)
+                y += h + 0.08
             y += 0.25
         return 1
 
@@ -439,7 +448,7 @@ class DeckBuilder:
         slide = self.add_slide()
         self.slide_header(slide, "Marketing Score")
         overall = score.get("overall")
-        self.add_rect(slide, 0.9, 1.6, 4.2, 2.6, "EEF2FF")
+        self.add_rect(slide, 0.9, 1.6, 4.2, 2.6, BRAND["light"])
         self.add_text(
             slide, 0.9, 1.9, 4.2, 0.5,
             [(f"{overall}", 60, True, BRAND["primary"])],
@@ -450,11 +459,13 @@ class DeckBuilder:
             [("OVERALL SCORE / 100", 12, True, BRAND["muted"])],
             align="CENTER",
         )
-        # Score bar.
+        # Score bar — Gold→Wine gradient (Gold base + Wine overlay).
         pct = min(max(int(overall or 0), 0), 100) / 100
         bar_y = 4.6
-        self.add_rect(slide, 0.9, bar_y, 11.5, 0.3, "E2E8F0")
-        self.add_rect(slide, 0.9, bar_y, 11.5 * pct, 0.3, BRAND["primary"])
+        self.add_rect(slide, 0.9, bar_y, 11.5, 0.3, BRAND["line"])
+        self.add_rect(slide, 0.9, bar_y, 11.5 * pct, 0.3, BRAND["secondary"])
+        if 11.5 * pct > 0.6:
+            self.add_rect(slide, 0.9, bar_y, 11.5 * pct * 0.5, 0.3, BRAND["primary"])
 
         breakdown = score.get("breakdown") or []
         y = 1.6
@@ -463,7 +474,7 @@ class DeckBuilder:
             val = b.get("score")
             if area and val is not None:
                 self.add_text(slide, 6.0, y, 3.5, 0.35, [(str(area), 13, True, BRAND["dark"])])
-                self.add_rect(slide, 9.6, y + 0.04, 3.2, 0.28, "E2E8F0")
+                self.add_rect(slide, 9.6, y + 0.04, 3.2, 0.28, BRAND["line"])
                 try:
                     width = 3.2 * min(max(int(val), 0), 100) / 100
                 except (TypeError, ValueError):
@@ -493,8 +504,11 @@ class DeckBuilder:
                 self.add_text(slide, 0.9, y, 11.5, 0.4, [(label, 15, True, BRAND["primary"])])
                 y += 0.5
             for line in lines[:5]:
-                self.add_bullets(slide, 0.9, y, 11.5, 0.4, [line], size=13)
-                y += 0.34
+                # Height accounts for wrapped lines so nothing overlaps.
+                est = self.est_lines(str(line), 11.5, 13)
+                h = 0.4 + 0.24 * (est - 1)
+                self.add_bullets(slide, 0.9, y, 11.5, h, [line], size=13)
+                y += h + 0.08
             y += 0.2
         return 1
 
@@ -505,10 +519,11 @@ class DeckBuilder:
             return 0
         slide = self.add_slide()
         self.slide_header(slide, "Implementation Roadmap (90 Days)")
-        # Timeline bar.
-        self.add_rect(slide, 0.9, 1.7, 11.5, 0.06, "CBD5E1")
+        # Timeline bar — widen each phase box so full names render.
+        self.add_rect(slide, 0.9, 1.7, 11.5, 0.06, BRAND["line"])
         n = len(phases[:4])
-        step = 11.5 / max(n, 1)
+        # At least 3.2" per box so "Optimization & Retention" fits in full.
+        step = max(11.5 / max(n, 1), 3.2)
         colors = [BRAND["primary"], BRAND["secondary"], BRAND["accent"], BRAND["emerald"]]
         for i, phase in enumerate(phases[:4]):
             x = 0.9 + step * i
@@ -548,18 +563,18 @@ class DeckBuilder:
         base_y = 5.3
         bar_w = min(0.9, chart_w / max(len(chart_data), 1) - 0.3)
         # Axes.
-        self.add_rect(slide, chart_x, base_y - chart_h, 0.03, chart_h, "CBD5E1")
-        self.add_rect(slide, chart_x, base_y, chart_w, 0.03, "CBD5E1")
+        self.add_rect(slide, chart_x, base_y - chart_h, 0.03, chart_h, BRAND["line"])
+        self.add_rect(slide, chart_x, base_y, chart_w, 0.03, BRAND["line"])
         for i, (period, val) in enumerate(chart_data):
             x = chart_x + 0.6 + i * ((chart_w - 0.9) / max(len(chart_data), 1))
             height = max((abs(val) / max_val) * chart_h * 0.85, 0.05)
-            color = BRAND["emerald"] if val >= 0 else BRAND["rose"]
+            color = BRAND["accent"] if val >= 0 else BRAND["rose"]
             bar_y = base_y - height
             self.add_rect(slide, x, bar_y, bar_w, height, color)
             self.add_text(slide, x - 0.2, bar_y - 0.4, bar_w + 0.4, 0.35, [(f"{val:+.0f}%", 11, True, BRAND["dark"])], align="CENTER")
             self.add_text(slide, x - 0.2, base_y + 0.12, bar_w + 0.4, 0.35, [(str(period), 11, False, BRAND["muted"])], align="CENTER")
-        # Summary panel.
-        self.add_rect(slide, 8.4, 1.8, 4.0, 4.6, "F8FAFC")
+        # Summary panel — cream card.
+        self.add_rect(slide, 8.4, 1.8, 4.0, 4.6, BRAND["light"])
         self.add_text(slide, 8.7, 2.0, 3.4, 0.4, [("ROI Summary", 15, True, BRAND["primary"])])
         y = 2.6
         summary = roi.get("summary")
@@ -634,14 +649,14 @@ class DeckBuilder:
 
         slide = self.add_slide()
         self.slide_header(slide, "Key Performance Indicators")
-        # Table header.
-        cols = [(0.9, 4.5, "Metric"), (5.6, 2.5, "Target"), (8.2, 2.0, "Timeframe"), (10.3, 2.0, "Owner")]
+        # Table header — Wine fill, white uppercase text.
+        cols = [(0.9, 4.5, "METRIC"), (5.6, 2.5, "TARGET"), (8.2, 2.0, "TIMEFRAME"), (10.3, 2.0, "OWNER")]
         for x, w, label in cols:
             self.add_rect(slide, x, 1.7, w, 0.5, BRAND["primary"])
             self.add_text(slide, x + 0.15, 1.78, w - 0.3, 0.35, [(label, 12, True, BRAND["white"])])
         y = 2.25
         for i, kpi in enumerate(kpis[:8]):
-            bg = "F8FAFC" if i % 2 == 0 else "FFFFFF"
+            bg = BRAND["light"] if i % 2 == 0 else "FFFFFF"
             for x, w, _ in cols:
                 self.add_rect(slide, x, y, w, 0.55, bg)
             self.add_text(slide, 0.9 + 0.15, y + 0.1, 4.2, 0.35, [(str(kpi.get("metric", "")), 12, True, BRAND["dark"])])
@@ -680,7 +695,7 @@ class DeckBuilder:
                 except (TypeError, ValueError):
                     pct = 0
                 self.add_text(slide, 0.9, y, 4.5, 0.35, [(str(a.get("channel", "")), 13, True, BRAND["dark"])])
-                self.add_rect(slide, 5.6, y + 0.04, 6.0, 0.28, "E2E8F0")
+                self.add_rect(slide, 5.6, y + 0.04, 6.0, 0.28, BRAND["line"])
                 if pct:
                     self.add_rect(slide, 5.6, y + 0.04, min(6.0 * pct / 100, 6.0), 0.28, BRAND["accent"])
                 self.add_text(slide, 11.8, y, 0.9, 0.35, [(f"{pct:.0f}%", 12, True, BRAND["dark"])])
@@ -714,8 +729,8 @@ class DeckBuilder:
 
     def closing(self) -> int:
         slide = self.add_slide()
-        self.add_rect(slide, 0, 0, 13.333, 7.5, "111827")
-        self.add_rect(slide, 0, 0, 13.333, 0.35, BRAND["primary"])
+        self.add_rect(slide, 0, 0, 13.333, 7.5, BRAND["primary_dark"])
+        self.add_rect(slide, 0, 0, 13.333, 0.35, BRAND["secondary"])
         self.add_text(
             slide, 0.9, 2.6, 11.5, 1.0,
             [("Thank you", 44, True, BRAND["white"])],
@@ -726,9 +741,9 @@ class DeckBuilder:
                 (
                     "This strategy was generated by Market Mind AI — AI-powered "
                     "marketing intelligence.",
-                    16, False, "94A3B8",
+                    16, False, BRAND["secondary"],
                 ),
-                (f"{self.strategy.name}  ·  {_date_line(self.strategy)}", 13, False, "64748B"),
+                (f"{self.strategy.name}  ·  {_date_line(self.strategy)}", 13, False, BRAND["muted"]),
             ],
         )
         return 1

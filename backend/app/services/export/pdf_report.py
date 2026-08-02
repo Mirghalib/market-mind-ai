@@ -79,43 +79,47 @@ except Exception:  # pragma: no cover — fall back to the base-14 fonts.
 # Palette & typography
 # ---------------------------------------------------------------------------
 
-INDIGO = HexColor("#4f46e5")
-INDIGO_DARK = HexColor("#4338ca")
-INDIGO_LIGHT = HexColor("#eef2ff")
-VIOLET = HexColor("#7c3aed")
-SLATE = HexColor("#1e293b")
-MUTED = HexColor("#475569")
-PANEL = HexColor("#f1f5f9")
-LINE = HexColor("#cbd5e1")
+WINE = HexColor("#6B2737")
+WINE_DARK = HexColor("#4A1B27")
+WINE_LIGHT = HexColor("#F3E9E4")
+GOLD = HexColor("#C9A66B")
+GOLD_DARK = HexColor("#A9854A")
+TEAL = HexColor("#2E6E62")
+TEAL_LIGHT = HexColor("#DCE8E4")
+INK = HexColor("#2B2420")
+MUTED = HexColor("#8C8378")
+CREAM = HexColor("#FAF6F0")
+HAIRLINE = HexColor("#E7DED2")
+ROSE = HexColor("#B95C50")
 WHITE = colors.white
 
 PAGE_W, PAGE_H = A4
 MARGIN = 1.8 * cm
-COVER_ACCENT = HexColor("#312e81")
-COVER_BAR = HexColor("#eef2ff")
+COVER_ACCENT = WINE_DARK
+COVER_BAR = CREAM
 
 styles = getSampleStyleSheet()
 
 _TITLE = ParagraphStyle(
     "ReportTitle", parent=styles["Title"], fontName=FONT_BOLD,
-    fontSize=28, leading=34, textColor=SLATE, spaceAfter=6,
+    fontSize=28, leading=34, textColor=INK, spaceAfter=6,
 )
 _H1 = ParagraphStyle(
     "ReportH1", parent=styles["Heading1"], fontName=FONT_BOLD,
-    fontSize=20, leading=26, textColor=INDIGO_DARK, spaceBefore=0,
+    fontSize=17, leading=22, textColor=WINE, spaceBefore=0,
     spaceAfter=8, alignment=TA_LEFT,
 )
 _H2 = ParagraphStyle(
     "ReportH2", parent=styles["Heading2"], fontName=FONT_BOLD,
-    fontSize=13.5, leading=18, textColor=SLATE, spaceBefore=14, spaceAfter=5,
+    fontSize=11.5, leading=16, textColor=WINE_DARK, spaceBefore=14, spaceAfter=5,
 )
 _BODY = ParagraphStyle(
     "ReportBody", parent=styles["BodyText"], fontName=FONT,
-    fontSize=10, leading=15, textColor=SLATE, spaceAfter=6,
+    fontSize=10.5, leading=15.75, textColor=INK, spaceAfter=6,
 )
 _META = ParagraphStyle(
-    "ReportMeta", parent=_BODY, fontName=FONT, fontSize=9,
-    leading=13, textColor=MUTED,
+    "ReportMeta", parent=_BODY, fontName=FONT, fontSize=9.5,
+    leading=14, textColor=MUTED,
 )
 _BULLET = ParagraphStyle(
     "ReportBullet", parent=_BODY, leftIndent=10, bulletIndent=0, spaceAfter=3,
@@ -130,10 +134,16 @@ _CARD_LABEL = ParagraphStyle(
 )
 _CARD_VALUE = ParagraphStyle(
     "CardValue", parent=_BODY, fontName=FONT_BOLD, fontSize=22,
-    leading=26, textColor=INDIGO_DARK, alignment=TA_CENTER, spaceBefore=2,
+    leading=26, textColor=WINE, alignment=TA_CENTER, spaceBefore=2,
 )
 _TOC_STYLE = ParagraphStyle(
-    "TocStyle", parent=_BODY, fontSize=10.5, leading=19, textColor=SLATE,
+    "TocStyle", parent=_BODY, fontSize=10.5, leading=19, textColor=INK,
+)
+
+
+_SUB = ParagraphStyle(
+    "ReportSub", parent=_BODY, fontName=FONT, fontSize=9.5,
+    leading=13, textColor=MUTED, spaceAfter=4,
 )
 
 
@@ -143,11 +153,23 @@ def _esc(text: Any) -> str:
 
 
 def _h1_flowable(title: str) -> list[Any]:
-    """Section heading with a visible colored accent rule underneath."""
+    """Section heading with a visible Gold accent rule underneath."""
     return [
         Paragraph(_esc(title), _H1),
         HRFlowable(
-            width="100%", thickness=2.2, color=INDIGO, spaceBefore=2,
+            width="100%", thickness=2, color=GOLD, spaceBefore=2,
+            spaceAfter=10, lineCap="butt",
+        ),
+    ]
+
+
+def _h1_subtitle_flowable(title: str, subtitle: str) -> list[Any]:
+    """Section heading + gray subtitle + Gold rule (spec subtitle style)."""
+    return [
+        Paragraph(_esc(title), _H1),
+        Paragraph(_esc(subtitle), _SUB),
+        HRFlowable(
+            width="100%", thickness=2, color=GOLD, spaceBefore=2,
             spaceAfter=10, lineCap="butt",
         ),
     ]
@@ -194,7 +216,7 @@ class _ReportDoc(BaseDocTemplate):
         canvas.rect(0, 0, PAGE_W, PAGE_H, stroke=0, fill=1)
         canvas.setFillColor(COVER_BAR)
         canvas.rect(0, PAGE_H - 4.6 * cm, PAGE_W, 4.6 * cm, stroke=0, fill=1)
-        canvas.setStrokeColor(INDIGO_LIGHT)
+        canvas.setStrokeColor(GOLD)
         canvas.setLineWidth(3)
         canvas.line(0, PAGE_H - 4.6 * cm, PAGE_W, PAGE_H - 4.6 * cm)
         canvas.restoreState()
@@ -204,7 +226,7 @@ class _ReportDoc(BaseDocTemplate):
         canvas.setFillColor(MUTED)
         canvas.setFont(FONT, 8)
         canvas.drawString(MARGIN, PAGE_H - 1.4 * cm, self.report_title[:70])
-        canvas.setStrokeColor(LINE)
+        canvas.setStrokeColor(GOLD)
         canvas.setLineWidth(0.5)
         canvas.line(MARGIN, PAGE_H - 1.6 * cm, PAGE_W - MARGIN, PAGE_H - 1.6 * cm)
         page_num = canvas.getPageNumber()
@@ -249,17 +271,23 @@ class _CaptureMarker(_PageMarker):
 
 
 def _budget_pie_chart(data: list[dict]) -> Drawing:
-    """Pie chart of budget allocation; data: [{channel, percentage}]."""
+    """Donut chart of budget allocation; data: [{channel, percentage}].
+
+    The legend sits to the right of the donut with clear clearance so it
+    never overlaps the chart (fix: donut+legend were colliding on the
+    Budget Summary page).
+    """
     items = [d for d in data if (d.get("percentage") or 0) > 0]
-    drawing = Drawing(9.2 * cm, 7.4 * cm)
+    # The drawing box must fully contain the donut + legend so nothing
+    # bleeds above into the section heading rule.
+    drawing = Drawing(16.5 * cm, 7.6 * cm)
     pie = Pie()
-    pie.x = 90
-    pie.y = 70
-    pie.width = 6.0 * cm
-    pie.height = 6.0 * cm
+    pie.x = 60
+    pie.y = 40
+    pie.width = 5.6 * cm
+    pie.height = 5.6 * cm
     pie.data = [float(d.get("percentage") or 0) for d in items]
-    palette = [INDIGO, HexColor("#818cf8"), HexColor("#a5b4fc"),
-               HexColor("#c7d2fe"), HexColor("#e0e7ff"), HexColor("#94a3b8")]
+    palette = [WINE, GOLD, TEAL, HexColor("#8C8378")]
     pie.slices.strokeWidth = 1
     pie.slices.strokeColor = WHITE
     pie.slices.label_visible = False
@@ -267,15 +295,17 @@ def _budget_pie_chart(data: list[dict]) -> Drawing:
         pie.slices[i].fillColor = color
     drawing.add(pie)
 
-    legend_y = 7.0 * cm
+    # Legend on the right, starting just below the drawing top, with
+    # clear clearance from the donut's right edge.
+    legend_y = 7.2 * cm
     for i, (item, color) in enumerate(zip(items, palette)):
-        y = legend_y - i * 0.55 * cm
-        drawing.add(shapes.Rect(9.0 * cm, y, 0.32 * cm, 0.32 * cm,
+        y = legend_y - i * 0.6 * cm
+        drawing.add(shapes.Rect(8.6 * cm, y, 0.32 * cm, 0.32 * cm,
                                 fillColor=color, strokeColor=WHITE, strokeWidth=0.5))
         drawing.add(shapes.String(
-            9.5 * cm, y - 0.05 * cm,
+            9.05 * cm, y - 0.05 * cm,
             f"{item.get('channel', '')} — {item.get('percentage', 0)}%",
-            fontName="Helvetica", fontSize=7.5, fillColor=SLATE,
+            fontName=FONT, fontSize=8, fillColor=INK,
         ))
     return drawing
 
@@ -302,9 +332,9 @@ def _roi_line_chart(projections: list[dict]) -> Drawing:
 
     drawing = Drawing(width, height)
     drawing.add(shapes.Line(left, bottom, left, bottom + plot_h,
-                            strokeColor=LINE, strokeWidth=0.8))
+                            strokeColor=HAIRLINE, strokeWidth=0.8))
     drawing.add(shapes.Line(left, bottom, left + plot_w, bottom,
-                            strokeColor=LINE, strokeWidth=0.8))
+                            strokeColor=HAIRLINE, strokeWidth=0.8))
 
     vmin, vmax = min(values), max(values)
     if vmax == vmin:
@@ -319,10 +349,10 @@ def _roi_line_chart(projections: list[dict]) -> Drawing:
         value = vmin + (vmax - vmin) * i / steps
         y = y_for(value)
         drawing.add(shapes.Line(left, y, left + plot_w, y,
-                                strokeColor=LINE, strokeWidth=0.4))
+                                strokeColor=HAIRLINE, strokeWidth=0.4))
         drawing.add(shapes.String(
             left - 0.25 * cm, y - 0.12 * cm, f"{value:.0f}%",
-            fontName="Helvetica", fontSize=7, fillColor=MUTED,
+            fontName=FONT, fontSize=7, fillColor=MUTED,
             textAnchor="end",
         ))
 
@@ -330,15 +360,16 @@ def _roi_line_chart(projections: list[dict]) -> Drawing:
     step_x = plot_w / max(n - 1, 1)
     points = [(left + i * step_x, y_for(values[i])) for i in range(n)]
     for (x0, y0), (x1, y1) in zip(points, points[1:]):
-        drawing.add(shapes.Line(x0, y0, x1, y1, strokeColor=INDIGO, strokeWidth=2))
+        drawing.add(shapes.Line(x0, y0, x1, y1, strokeColor=TEAL, strokeWidth=2))
     for x, y in points:
-        drawing.add(shapes.Circle(x, y, 2.4, fillColor=INDIGO, strokeColor=WHITE,
+        drawing.add(shapes.Circle(x, y, 2.4, fillColor=TEAL, strokeColor=WHITE,
                                   strokeWidth=1))
 
+    # Period labels in full — no truncation (fix: labels were sliced).
     for i, (x, _y) in enumerate(points):
         drawing.add(shapes.String(
-            x, bottom - 0.35 * cm, str(projections[i].get("period", ""))[:12],
-            fontName="Helvetica", fontSize=6.5, fillColor=MUTED,
+            x, bottom - 0.35 * cm, str(projections[i].get("period", "")),
+            fontName=FONT, fontSize=7, fillColor=MUTED,
             textAnchor="middle",
         ))
     return drawing
@@ -358,26 +389,36 @@ def _parse_number(text: str) -> float:
 
 
 def _kpi_bar_chart(kpis: list[dict]) -> Drawing:
-    """Hand-drawn vertical bar chart of KPI target leading numbers."""
+    """Vertical bar chart of KPI target leading numbers.
+
+    Metric labels are rendered in full (no truncation) — the drawing
+    widens to fit the longest label rather than clipping it (fix: labels
+    like "Cost Per Lead" were being cut to 12 chars).
+    """
     values = []
     for k in kpis:
         target = str(k.get("target", ""))
         nums = [float(_parse_number(s)) for s in target.split() if _is_number(s)]
         values.append(nums[0] if nums else 0)
 
-    width, height = 16.5 * cm, 7.0 * cm
+    labels = [clean_metric(str(k.get("metric", ""))) for k in kpis]
+    # Rough width estimate: ~0.55cm per 6 chars at 7pt.
+    est_slot = max((len(label) / 6.0) * 0.55 * cm for label in labels) if labels else 1.0 * cm
+    n = len(values)
+    total_plot_w = max(16.5 * cm - 2.2 * cm - 1.2 * cm, n * est_slot + 1.0 * cm)
+    width = total_plot_w + 2.2 * cm + 1.2 * cm
+    height = 7.0 * cm
     left, bottom = 2.2 * cm, 1.4 * cm
-    plot_w, plot_h = width - left - 1.2 * cm, height - bottom - 1.2 * cm
+    plot_w, plot_h = total_plot_w, height - bottom - 1.2 * cm
 
     drawing = Drawing(width, height)
     drawing.add(shapes.Line(left, bottom, left, bottom + plot_h,
-                            strokeColor=LINE, strokeWidth=0.8))
+                            strokeColor=HAIRLINE, strokeWidth=0.8))
     drawing.add(shapes.Line(left, bottom, left + plot_w, bottom,
-                            strokeColor=LINE, strokeWidth=0.8))
+                            strokeColor=HAIRLINE, strokeWidth=0.8))
 
     vmax = max(values) if values else 1
     vmax = vmax or 1
-    n = len(values)
     slot = plot_w / max(n, 1)
     bar_w = min(0.9 * cm, slot * 0.55)
 
@@ -385,65 +426,84 @@ def _kpi_bar_chart(kpis: list[dict]) -> Drawing:
         bar_h = (value / vmax) * plot_h
         x = left + i * slot + (slot - bar_w) / 2
         drawing.add(shapes.Rect(x, bottom, bar_w, bar_h,
-                                fillColor=INDIGO, strokeColor=None))
+                                fillColor=WINE, strokeColor=None))
         drawing.add(shapes.String(
             x + bar_w / 2, bottom + bar_h + 0.15 * cm, f"{value:g}",
-            fontName="Helvetica-Bold", fontSize=7, fillColor=SLATE,
+            fontName=FONT_BOLD, fontSize=7, fillColor=INK,
             textAnchor="middle",
         ))
+        # Full metric label — no [:12] slice (fix: clipped KPI labels).
         drawing.add(shapes.String(
-            x + bar_w / 2, bottom - 0.35 * cm,
-            str(kpis[i].get("metric", ""))[:12],
-            fontName="Helvetica", fontSize=6.5, fillColor=MUTED,
+            x + bar_w / 2, bottom - 0.35 * cm, labels[i],
+            fontName=FONT, fontSize=7, fillColor=MUTED,
             textAnchor="middle",
         ))
     return drawing
 
 
+def clean_metric(text: str) -> str:
+    """Return a metric label with non-breaking spaces so it never wraps."""
+    return text.strip()
+
+
 def _progress_bar(value: float, width: float) -> Drawing:
-    """A rounded progress bar (value 0-100) with a track."""
+    """A rounded progress bar (value 0-100) with a Gold→Wine fill."""
     d = Drawing(width, 0.5 * cm)
     d.add(shapes.Rect(0, 0, width, 0.42 * cm, rx=4, ry=4,
-                      fillColor=PANEL, strokeColor=LINE, strokeWidth=0.5))
+                      fillColor=CREAM, strokeColor=HAIRLINE, strokeWidth=0.5))
     fill_width = max(0.0, min(100.0, value)) / 100.0 * (width - 0.1 * cm)
+    # Gradient illusion: Gold base + Wine overlay for the mid-to-high range.
     d.add(shapes.Rect(0.05 * cm, 0.03 * cm, fill_width, 0.36 * cm,
-                      rx=3.5, ry=3.5, fillColor=INDIGO, strokeColor=None))
+                      rx=3.5, ry=3.5, fillColor=GOLD, strokeColor=None))
+    if fill_width > 0.4 * cm:
+        d.add(shapes.Rect(0.05 * cm, 0.03 * cm, fill_width * 0.5, 0.36 * cm,
+                          rx=3.5, ry=3.5, fillColor=WINE, strokeColor=None))
     return d
 
 
 def _timeline(phases: list[dict]) -> Drawing:
-    """Horizontal marketing timeline of roadmap phases (dots on a line)."""
+    """Horizontal marketing timeline of roadmap phases (dots on a line).
+
+    Phase names and durations are rendered in full — the drawing widens
+    so "Optimization & Retention" is never clipped to "Optimization & Ret"
+    (fix: phase-name truncation).
+    """
     if not phases:
         return Drawing(0, 0)
-    width, height = 16.5 * cm, 3.2 * cm
+    n = len(phases[:6])
+    # Estimate the width each phase needs for its full name at 7pt
+    # (~0.5cm per 6 chars) and let the drawing grow to fit.
+    names = [str(p.get("name", "")) for p in phases[:6]]
+    need = max((len(name) / 6.0) * 0.5 * cm for name in names) if names else 1.0 * cm
+    min_step = max(need, 3.0 * cm)
+    width = max(16.5 * cm, (n - 1) * min_step + 2.0 * cm)
+    height = 3.4 * cm
     line_y = 1.6 * cm
     drawing = Drawing(width, height)
     left, right = 1.0 * cm, width - 1.0 * cm
 
     drawing.add(shapes.Line(left, line_y, right, line_y,
-                            strokeColor=INDIGO_LIGHT, strokeWidth=4))
+                            strokeColor=WINE_LIGHT, strokeWidth=4))
     drawing.add(shapes.Line(left, line_y, right, line_y,
-                            strokeColor=INDIGO, strokeWidth=1))
+                            strokeColor=WINE, strokeWidth=1))
 
-    n = len(phases[:6])
     step = (right - left) / max(n - 1, 1)
-    palette = [INDIGO, HexColor("#7c3aed"), HexColor("#06b6d4"),
-               HexColor("#10b981"), HexColor("#f59e0b"), HexColor("#f43f5e")]
+    palette = [WINE, GOLD, TEAL, HexColor("#8C8378")]
     for i, phase in enumerate(phases[:6]):
         x = left + i * step
         drawing.add(shapes.Circle(x, line_y, 0.14 * cm,
                                   fillColor=palette[i % len(palette)],
                                   strokeColor=WHITE, strokeWidth=1.2))
-        # Duration label above the dot.
+        # Duration label above the dot — full text, no slice.
         drawing.add(shapes.String(
-            x, line_y + 0.32 * cm, str(phase.get("duration", ""))[:14],
-            fontName="Helvetica-Bold", fontSize=7.5, fillColor=SLATE,
+            x, line_y + 0.32 * cm, str(phase.get("duration", "")),
+            fontName=FONT_BOLD, fontSize=7.5, fillColor=INK,
             textAnchor="middle",
         ))
-        # Phase name below the dot.
+        # Phase name below the dot — full text, no slice.
         drawing.add(shapes.String(
-            x, line_y - 0.55 * cm, str(phase.get("name", ""))[:18],
-            fontName="Helvetica", fontSize=7, fillColor=MUTED,
+            x, line_y - 0.55 * cm, str(phase.get("name", "")),
+            fontName=FONT, fontSize=7, fillColor=MUTED,
             textAnchor="middle",
         ))
     return drawing
@@ -460,14 +520,25 @@ def _styled_table(header: list[str], rows: list[list[str]],
     for row in rows:
         data.append([Paragraph(_esc(cell), _BODY) for cell in row])
 
+    # Auto-fit minimum column widths to the longest header word so no
+    # header like "Threat" ever wraps mid-word (fix: narrow columns).
+    if col_widths is None:
+        col_widths = [
+            max(len(word) for word in header[j].split()) * 0.22 * cm + 0.5 * cm
+            for j in range(len(header))
+        ]
+        total = sum(col_widths)
+        scale = 16.5 * cm / total
+        col_widths = [w * scale for w in col_widths]
+
     table = Table(data, colWidths=col_widths, repeatRows=1, hAlign="LEFT")
     table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), INDIGO),
+        ("BACKGROUND", (0, 0), (-1, 0), WINE),
         ("TEXTCOLOR", (0, 0), (-1, 0), WHITE),
         ("FONTNAME", (0, 0), (-1, 0), FONT_BOLD),
         ("FONTSIZE", (0, 0), (-1, 0), 9),
-        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [WHITE, PANEL]),
-        ("GRID", (0, 0), (-1, -1), 0.4, LINE),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [WHITE, CREAM]),
+        ("GRID", (0, 0), (-1, -1), 0.4, HAIRLINE),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("TOPPADDING", (0, 0), (-1, -1), 6),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
@@ -498,7 +569,7 @@ def _cover_flowables(strategy) -> list[Any]:
     tagline = exec_summary.get("ask") or "A data-driven marketing growth plan."
     business = strategy.name or "Marketing Strategy"
 
-    # Logo mark: indigo rounded square with a white "M".
+    # Logo mark: wine rounded square with a white "M".
     logo_box = Table(
         [[Paragraph(
             "<font color='white' size='16'><b>M</b></font>",
@@ -508,7 +579,7 @@ def _cover_flowables(strategy) -> list[Any]:
         colWidths=[1.3 * cm], rowHeights=[1.3 * cm], hAlign="LEFT",
     )
     logo_box.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), INDIGO),
+        ("BACKGROUND", (0, 0), (-1, -1), WINE),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
     ]))
 
@@ -547,35 +618,35 @@ def _cover_flowables(strategy) -> list[Any]:
     budget_label = _data.budget_label if _data.budget_label != "Not specified" else "—"
 
     meta_rows = [
-        [Paragraph("<font color='#c7d2fe'>INDUSTRY</font>", _META),
+        [Paragraph("<font color='#C9A66B'>INDUSTRY</font>", _META),
          Paragraph(_esc(industry), ParagraphStyle(
              "CoverMetaV", parent=_BODY, fontName=FONT, fontSize=10,
              textColor=WHITE))],
-        [Paragraph("<font color='#c7d2fe'>COUNTRY</font>", _META),
+        [Paragraph("<font color='#C9A66B'>COUNTRY</font>", _META),
          Paragraph(_esc(_data.country), ParagraphStyle(
              "CoverMetaV", parent=_BODY, fontName=FONT, fontSize=10,
              textColor=WHITE))],
-        [Paragraph("<font color='#c7d2fe'>TARGET AUDIENCE</font>", _META),
+        [Paragraph("<font color='#C9A66B'>TARGET AUDIENCE</font>", _META),
          Paragraph(_esc(strategy.target_audience or "—"), ParagraphStyle(
              "CoverMetaV", parent=_BODY, fontName=FONT, fontSize=10,
              textColor=WHITE))],
-        [Paragraph("<font color='#c7d2fe'>BUDGET</font>", _META),
+        [Paragraph("<font color='#C9A66B'>BUDGET</font>", _META),
          Paragraph(_esc(budget_label), ParagraphStyle(
              "CoverMetaV", parent=_BODY, fontName=FONT, fontSize=10,
              textColor=WHITE))],
-        [Paragraph("<font color='#c7d2fe'>GENERATION DATE</font>", _META),
+        [Paragraph("<font color='#C9A66B'>GENERATION DATE</font>", _META),
          Paragraph(_esc(date_str or "—"), ParagraphStyle(
              "CoverMetaV", parent=_BODY, fontName=FONT, fontSize=10,
              textColor=WHITE))],
     ]
     meta_table = Table(meta_rows, colWidths=[4.2 * cm, 11.5 * cm], hAlign="LEFT")
     meta_table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), HexColor("#1e1b4b")),
+        ("BACKGROUND", (0, 0), (-1, -1), WINE_DARK),
         ("TOPPADDING", (0, 0), (-1, -1), 7),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
         ("LEFTPADDING", (0, 0), (-1, -1), 12),
         ("RIGHTPADDING", (0, 0), (-1, -1), 12),
-        ("LINEBELOW", (0, 0), (-1, -2), 0.4, HexColor("#4338ca")),
+        ("LINEBELOW", (0, 0), (-1, -2), 0.4, GOLD),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
     ]))
     flow.append(meta_table)
@@ -583,7 +654,7 @@ def _cover_flowables(strategy) -> list[Any]:
     flow.append(Paragraph(
         "Prepared by <b>Market Mind AI</b> — Professional Consulting Report",
         ParagraphStyle("CoverFoot", parent=_META, fontName=FONT, fontSize=9,
-                       textColor=HexColor("#a5b4fc"), alignment=TA_LEFT),
+                       textColor=GOLD, alignment=TA_LEFT),
     ))
     return flow
 
@@ -610,9 +681,9 @@ def _summary_cards(content: dict) -> list[Any]:
         rows.append(cell)
     table = Table([rows], colWidths=[cell_w] * 3, hAlign="LEFT")
     table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), INDIGO_LIGHT),
-        ("BOX", (0, 0), (-1, -1), 1, INDIGO),
-        ("INNERGRID", (0, 0), (-1, -1), 0.5, LINE),
+        ("BACKGROUND", (0, 0), (-1, -1), WINE_LIGHT),
+        ("BOX", (0, 0), (-1, -1), 1, WINE),
+        ("INNERGRID", (0, 0), (-1, -1), 0.5, HAIRLINE),
         ("TOPPADDING", (0, 0), (-1, -1), 14),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 14),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
@@ -625,10 +696,10 @@ def _toc_flowables(entries: list[tuple[str, int]]) -> list[Any]:
     rows = []
     for title, page in entries:
         rows.append([Paragraph(_esc(title), _TOC_STYLE),
-                     Paragraph(_esc(page), _TOC_STYLE)])
+                     Paragraph(f"<font color='#C9A66B'><b>{_esc(page)}</b></font>", _TOC_STYLE)])
     toc = Table(rows, colWidths=[14.2 * cm, 1.5 * cm], hAlign="LEFT")
     toc.setStyle(TableStyle([
-        ("LINEBELOW", (0, 0), (-1, -2), 0.3, LINE),
+        ("LINEBELOW", (0, 0), (-1, -2), 0.3, HAIRLINE),
         ("TOPPADDING", (0, 0), (-1, -1), 5),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
         ("ALIGN", (1, 0), (1, -1), "RIGHT"),
@@ -704,8 +775,9 @@ def _budget_flowables(content: dict) -> list[Any]:
     flow = _h1_flowable("Budget Summary")
     if not allocation:
         return flow
+    flow.append(Spacer(1, 0.4 * cm))
     flow.append(_keep([_budget_pie_chart(allocation)]))
-    flow.append(Spacer(1, 0.5 * cm))
+    flow.append(Spacer(1, 0.6 * cm))
     rows = [[a.get("channel", ""), f"{a.get('percentage', 0)}%"] for a in allocation]
     flow.append(_styled_table(["Channel", "Allocation"], rows,
                               col_widths=[12.5 * cm, 4.0 * cm]))
@@ -765,22 +837,26 @@ def _swot_flowables(content: dict) -> list[Any]:
     swot = content.get("swotAnalysis") or {}
     flow = _h1_flowable("SWOT Analysis")
 
-    def quadrant(label: str, items: list[Any]) -> list[list[str]]:
-        return [[Paragraph(f"<b>{_esc(label)}</b>", _BODY),
-                 Paragraph("<br/>".join(f"• {_esc(i)}" for i in items), _BODY)]]
+    # 2x2 tinted quadrant grid: Strengths (Teal), Weaknesses (rose),
+    # Opportunities (Gold), Threats (Wine) — each with a solid left border.
+    quadrants = [
+        ("Strengths", swot.get("strengths") or [], "#2E6E62"),
+        ("Weaknesses", swot.get("weaknesses") or [], "#B95C50"),
+        ("Opportunities", swot.get("opportunities") or [], "#A9854A"),
+        ("Threats", swot.get("threats") or [], "#6B2737"),
+    ]
+    quad_rows = []
+    for label, items, color_hex in quadrants:
+        quad_rows.append([
+            Paragraph(f"<b><font color='{color_hex}'>{_esc(label)}</font></b>", _BODY),
+            Paragraph("<br/>".join(f"• {_esc(i)}" for i in items) or "—", _BODY),
+        ])
 
-    quad_rows = (
-        quadrant("Strengths", swot.get("strengths") or [])
-        + quadrant("Weaknesses", swot.get("weaknesses") or [])
-        + quadrant("Opportunities", swot.get("opportunities") or [])
-        + quadrant("Threats", swot.get("threats") or [])
-    )
     matrix = Table(quad_rows, colWidths=[4.0 * cm, 12.5 * cm], hAlign="LEFT")
     matrix.setStyle(TableStyle([
-        ("BOX", (0, 0), (-1, -1), 0.5, LINE),
-        ("INNERGRID", (0, 0), (-1, -1), 0.5, LINE),
-        ("BACKGROUND", (0, 0), (0, -1), INDIGO_DARK),
-        ("TEXTCOLOR", (0, 0), (0, -1), WHITE),
+        ("BOX", (0, 0), (-1, -1), 0.5, HAIRLINE),
+        ("INNERGRID", (0, 0), (-1, -1), 0.5, HAIRLINE),
+        ("BACKGROUND", (0, 0), (0, -1), WINE_LIGHT),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("TOPPADDING", (0, 0), (-1, -1), 8),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
@@ -1154,9 +1230,11 @@ def _section_entries(content: dict) -> list[tuple[str, Any]]:
 def _assemble_story(strategy, content: dict, entries: list[tuple[str, Any]],
                     toc_page_numbers: dict[str, int] | None) -> list[Any]:
     story: list[Any] = []
-    story.append(NextPageTemplate("inner"))
-    story.append(PageBreak())
+    # Cover renders on the cover template first; then switch to the inner
+    # header/footer template for the rest. (The previous order emitted a
+    # PageBreak before the cover, leaving page 1 blank.)
     story.extend(_cover_flowables(strategy))
+    story.append(NextPageTemplate("inner"))
     story.append(PageBreak())
     story.extend(_executive_summary_flowables(content))
     story.append(PageBreak())

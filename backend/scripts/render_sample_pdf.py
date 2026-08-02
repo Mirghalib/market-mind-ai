@@ -159,6 +159,8 @@ CONTENT = {
 
 
 def main() -> None:
+    from app.services.export.renderers import DocxRenderer, PdfRenderer, PptxRenderer
+
     strategy = MarketingStrategy(
         id=uuid4(),
         project_id=uuid4(),
@@ -170,10 +172,16 @@ def main() -> None:
         created_at=datetime.now(timezone.utc),
         updated_at=datetime.now(timezone.utc),
     )
-    data = PdfRenderer().render(strategy)
-    out = Path(__file__).resolve().parent / "sample_report.pdf"
-    out.write_bytes(data.content)
-    print(f"wrote {out} ({len(data.content)} bytes)")
+    out_dir = Path(__file__).resolve().parent
+    renders = [
+        ("sample_report.pdf", PdfRenderer().render(strategy).content),
+        ("sample_report.docx", DocxRenderer().render(strategy).content),
+        ("sample_report.pptx", PptxRenderer().render(strategy).content),
+    ]
+    for filename, content in renders:
+        out = out_dir / filename
+        out.write_bytes(content)
+        print(f"wrote {out} ({len(content)} bytes)")
 
 
 main()

@@ -17,21 +17,21 @@ from typing import Any
 # ---------------------------------------------------------------------------
 
 BRAND = {
-    "primary": "#4F46E5",      # indigo-600
-    "primary_dark": "#4338CA",  # indigo-700
-    "secondary": "#7C3AED",     # violet-600
-    "accent": "#06B6D4",        # cyan-500
-    "dark": "#1E293B",          # slate-800 ink
-    "slate": "#0F172A",         # slate-900
-    "muted": "#64748B",         # slate-500
-    "light": "#EEF2FF",         # indigo-50
-    "panel": "#F8FAFC",         # slate-50
-    "line": "#E2E8F0",          # slate-200
+    "primary": "#6B2737",      # wine
+    "primary_dark": "#4A1B27", # wine dark
+    "secondary": "#C9A66B",    # gold
+    "accent": "#2E6E62",       # teal
+    "dark": "#2B2420",         # ink
+    "slate": "#2B2420",        # ink (alias)
+    "muted": "#8C8378",        # neutral gray
+    "light": "#FAF6F0",        # cream
+    "panel": "#FAF6F0",        # cream (alias)
+    "line": "#E7DED2",         # hairline
     "white": "#FFFFFF",
-    "emerald": "#10B981",
-    "amber": "#F59E0B",
-    "rose": "#F43F5E",
-    "chart": ["#4F46E5", "#818CF8", "#A5B4FC", "#C7D2FE", "#E0E7FF", "#7C3AED"],
+    "emerald": "#2E6E62",      # teal
+    "amber": "#C9A66B",        # gold
+    "rose": "#B95C50",         # muted rose (SWOT weaknesses)
+    "chart": ["#6B2737", "#C9A66B", "#2E6E62", "#8C8378", "#4A1B27", "#B95C50"],
 }
 
 APP_NAME = "Market Mind AI"
