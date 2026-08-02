@@ -8,7 +8,6 @@ const columns = [
     links: [
       { label: 'Features', href: '#features' },
       { label: 'How it works', href: '#how-it-works' },
-      { label: 'Pricing', href: '#pricing' },
       { label: 'FAQ', href: '#faq' },
     ],
   },
@@ -17,7 +16,6 @@ const columns = [
     links: [
       { label: 'About', href: '#about' },
       { label: 'Features', href: '#features' },
-      { label: 'Pricing', href: '#pricing' },
       { label: 'Contact', href: '#about' },
     ],
   },
@@ -55,7 +53,7 @@ export default function Footer() {
           {/* Brand column */}
           <div className="lg:col-span-2">
             <Link to="/" className="flex items-center gap-2" aria-label={`${APP_NAME} home`}>
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-accent-500 to-accent-700">
                 <Sparkles size={16} className="text-white" />
               </span>
               <span className="text-sm font-semibold tracking-tight text-landing-text">
@@ -75,7 +73,7 @@ export default function Footer() {
                   key={label}
                   href="/register"
                   aria-label={label}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-landing-border bg-landing-card text-landing-muted transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-400/40 hover:bg-indigo-500/10 hover:text-indigo-300"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-landing-border bg-landing-card text-landing-muted transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-400/40 hover:bg-accent-500/10 hover:text-accent-300"
                 >
                   <Icon size={18} />
                 </a>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 import { APP_NAME } from '@/constants'
 import { useAuth } from '@/context/AuthContext'
 import Button from '@/components/ui/Button'
@@ -35,6 +35,13 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
+      <Link
+        to="/"
+        aria-label="Back to home"
+        className="fixed top-5 left-5 flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground"
+      >
+        <ArrowLeft size={18} />
+      </Link>
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}

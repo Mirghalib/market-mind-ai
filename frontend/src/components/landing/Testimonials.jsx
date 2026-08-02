@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion'
 import { Quote, Star } from 'lucide-react'
 import SectionTitle from '@/components/ui/SectionTitle'
-import { cn } from '@/utils/cn'
 
 const testimonials = [
   {
@@ -9,24 +8,24 @@ const testimonials = [
     role: 'Marketing Lead, NovaTech',
     quote:
       'We went from blank page to a full campaign strategy in minutes. Market Mind AI understands our brand better than most agencies we have worked with.',
-    initials: 'JD',
-    avatar: 'from-indigo-500 to-purple-500',
+    photo:
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=96&h=96&fit=crop&crop=faces',
   },
   {
     name: 'Alex Kim',
     role: 'Founder, Stackly',
     quote:
       'The competitor intel alone pays for itself. We spotted a pricing shift a week before it hit the market and repositioned before anyone else.',
-    initials: 'AK',
-    avatar: 'from-purple-500 to-cyan-500',
+    photo:
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=faces',
   },
   {
     name: 'Sara Mitchell',
     role: 'CMO, Vertex',
     quote:
       'Our content calendar has never been this consistent. It generates on-brand ideas our team actually wants to publish — every single week.',
-    initials: 'SM',
-    avatar: 'from-cyan-500 to-emerald-500',
+    photo:
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=96&h=96&fit=crop&crop=faces',
   },
 ]
 
@@ -113,12 +112,14 @@ export default function Testimonials() {
               <figcaption className="relative mt-7 flex items-center gap-4 border-t border-landing-border pt-6">
                 <span
                   aria-hidden
-                  className={cn(
-                    'flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-sm font-semibold text-white shadow-lg',
-                    t.avatar
-                  )}
+                  className="h-11 w-11 shrink-0 overflow-hidden rounded-full ring-2 ring-accent-500/50 shadow-lg"
                 >
-                  {t.initials}
+                  <img
+                    src={t.photo}
+                    alt={t.name}
+                    loading="lazy"
+                    className="h-full w-full object-cover"
+                  />
                 </span>
                 <div>
                   <p className="text-sm font-semibold text-landing-text">{t.name}</p>

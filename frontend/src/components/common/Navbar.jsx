@@ -76,7 +76,7 @@ export default function Navbar({ transparent = true }) {
           className="flex items-center gap-2"
           aria-label={`${APP_NAME} home`}
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-accent-500 to-accent-700">
             <Sparkles size={16} className="text-white" />
           </span>
           <span className="text-sm font-semibold tracking-tight text-landing-text">

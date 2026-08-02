@@ -5,7 +5,6 @@ import Features from '@/components/landing/Features'
 import HowItWorks from '@/components/landing/HowItWorks'
 import Capabilities from '@/components/landing/Capabilities'
 import Testimonials from '@/components/landing/Testimonials'
-import Pricing from '@/components/landing/Pricing'
 import FAQ from '@/components/landing/FAQ'
 import CTA from '@/components/landing/CTA'
 import Footer from '@/components/common/Footer'
@@ -21,7 +20,6 @@ export default function Landing() {
         <HowItWorks />
         <Capabilities />
         <Testimonials />
-        <Pricing />
         <FAQ />
         <CTA />
       </main>
