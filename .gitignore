@@ -1,0 +1,61 @@
+# =====================
+# Dependencies
+# =====================
+node_modules/
+frontend/node_modules/
+
+# =====================
+# Build outputs
+# =====================
+dist/
+frontend/dist/
+build/
+*.tsbuildinfo
+
+# =====================
+# Python
+# =====================
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# =====================
+# Environment files
+# =====================
+.env
+.env.local
+.env.*.local
+
+# =====================
+# Test / coverage
+# =====================
+.pytest_cache/
+.coverage
+htmlcov/
+
+# =====================
+# User uploads (never commit)
+# =====================
+uploads/
+backend/uploads/
+
+# =====================
+# IDE / OS
+# =====================
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# =====================
+# Logs
+# =====================
+*.log
+
+# =====================
+# AI tooling / local config
+# =====================
+.commandcode/

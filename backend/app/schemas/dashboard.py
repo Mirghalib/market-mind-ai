@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Pydantic schemas for admin and user dashboards."""
 import uuid
 from datetime import datetime
