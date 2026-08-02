@@ -2,10 +2,10 @@ import { motion } from 'framer-motion'
 import { cn } from '@/utils/cn'
 
 const defaultChannels = [
-  { label: 'Organic Search', value: 42, color: '#818cf8' },
-  { label: 'Social Media', value: 28, color: '#c084fc' },
-  { label: 'Email', value: 18, color: '#22d3ee' },
-  { label: 'Direct', value: 12, color: '#34d399' },
+  { label: 'Organic Search', value: 42, color: '#16394A' },
+  { label: 'Social Media', value: 28, color: '#C89B3C' },
+  { label: 'Email', value: 18, color: '#5F8B7F' },
+  { label: 'Direct', value: 12, color: '#E4C171' },
 ]
 
 /**

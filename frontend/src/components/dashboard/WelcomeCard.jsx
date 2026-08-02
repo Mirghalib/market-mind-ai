@@ -51,7 +51,7 @@ export default function WelcomeCard({
       {/* Gradient background */}
       <div
         aria-hidden
-        className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(99,102,241,0.14),transparent_55%),radial-gradient(ellipse_at_bottom_right,rgba(168,85,247,0.14),transparent_55%),linear-gradient(to_bottom_right,rgba(255,255,255,0),rgba(34,211,238,0.05))] dark:bg-[radial-gradient(ellipse_at_top_left,rgba(99,102,241,0.32),transparent_55%),radial-gradient(ellipse_at_bottom_right,rgba(168,85,247,0.32),transparent_55%),linear-gradient(to_bottom_right,rgba(255,255,255,0),rgba(34,211,238,0.08))]"
+        className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(22,57,74,0.14),transparent_55%),radial-gradient(ellipse_at_bottom_right,rgba(200,155,60,0.14),transparent_55%),linear-gradient(to_bottom_right,rgba(255,255,255,0),rgba(95,139,127,0.05))] dark:bg-[radial-gradient(ellipse_at_top_left,rgba(22,57,74,0.32),transparent_55%),radial-gradient(ellipse_at_bottom_right,rgba(200,155,60,0.32),transparent_55%),linear-gradient(to_bottom_right,rgba(255,255,255,0),rgba(95,139,127,0.08))]"
       />
 
       {/* Animated glows */}

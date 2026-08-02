@@ -5,38 +5,231 @@
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
 
+  /* ===== Brand palette =====
+     Primary text / near-black: #12151B
+     Main background:           #F4F5F1
+     Secondary / alt bg:        #ECEDE6
+     Primary brand:             #16394A  (buttons, links, dark accents)
+     Darker brand:              #0E2732  (hover, dark sections, footer)
+     Accent:                    #C89B3C  (highlights, badges, active)
+     Lighter accent:            #E4C171  (hover states, gradients)
+     Secondary accent:          #5F8B7F  (icons, secondary buttons, data visuals)
+     Borders / hairlines:       #DEDDD3
+     Muted text:                #63666D
+     Card background:           #FFFFFF
+  */
+
   /* ===== Semantic tokens (light defaults) ===== */
-  --color-background: #fafafa;
-  --color-foreground: #18181b;
-  --color-card: #ffffff;
-  --color-card-foreground: #18181b;
-  --color-muted: #f4f4f5;
-  --color-muted-foreground: #71717a;
-  --color-border: #e4e4e7;
-  --color-input: #e4e4e7;
-  --color-subtle: rgba(255, 255, 255, 0.05);
+  --color-background: #F4F5F1;
+  --color-foreground: #12151B;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #12151B;
+  --color-muted: #ECEDE6;
+  --color-muted-foreground: #63666D;
+  --color-border: #DEDDD3;
+  --color-input: #DEDDD3;
+  --color-subtle: rgba(244, 245, 241, 0.05);
 
-  /* Accent palette (indigo by default) */
-  --color-accent-50: #eef2ff;
-  --color-accent-100: #e0e7ff;
-  --color-accent-200: #c7d2fe;
-  --color-accent-300: #a5b4fc;
-  --color-accent-400: #818cf8;
-  --color-accent-500: #6366f1;
-  --color-accent-600: #4f46e5;
-  --color-accent-700: #4338ca;
+  /* Brand */
+  --color-primary: #16394A;
+  --color-primary-foreground: #FFFFFF;
+  --color-primary-hover: #0E2732;
 
-  --color-primary: #6366f1;
-  --color-primary-foreground: #ffffff;
+  /* Accent (gold) */
+  --color-accent-50: #FBF3E2;
+  --color-accent-100: #F6E7C4;
+  --color-accent-200: #EED99A;
+  --color-accent-300: #E4C171;
+  --color-accent-400: #D6AC4F;
+  --color-accent-500: #C89B3C;
+  --color-accent-600: #A97F2E;
+  --color-accent-700: #86642A;
+
+  /* Secondary accent (sage) — data visuals, icons, secondary buttons */
+  --color-secondary: #5F8B7F;
+  --color-secondary-50: #EFF5F2;
+  --color-secondary-100: #DFEAE4;
+  --color-secondary-200: #C0D5CC;
+  --color-secondary-300: #96B8AC;
+  --color-secondary-400: #6F9C8E;
+  --color-secondary-500: #5F8B7F;
+  --color-secondary-600: #4B7268;
+  --color-secondary-700: #3C5C54;
+
+  /* Map the old indigo scale → new brand (deep teal) */
+  --color-indigo-50: #EEF3F5;
+  --color-indigo-100: #DCE7EA;
+  --color-indigo-200: #B9CFD5;
+  --color-indigo-300: #8FB0BA;
+  --color-indigo-400: #5F8B9C;
+  --color-indigo-500: #16394A;
+  --color-indigo-600: #123141;
+  --color-indigo-700: #0E2732;
+  --color-indigo-800: #0A1E27;
+  --color-indigo-900: #07161D;
+  --color-indigo-950: #040E13;
+
+  /* Map the old purple scale → muted violet-teal blend (keeps icon variety) */
+  --color-purple-50: #F3F2F4;
+  --color-purple-100: #E6E4E9;
+  --color-purple-200: #CDC9D3;
+  --color-purple-300: #ADA7B5;
+  --color-purple-400: #8A8394;
+  --color-purple-500: #6B6474;
+  --color-purple-600: #565060;
+  --color-purple-700: #423E4B;
+  --color-purple-800: #2F2C36;
+  --color-purple-900: #1E1C23;
+  --color-purple-950: #100F13;
+
+  /* Map the old cyan/blue scales → secondary sage */
+  --color-cyan-50: #EFF5F2;
+  --color-cyan-100: #DFEAE4;
+  --color-cyan-200: #C0D5CC;
+  --color-cyan-300: #96B8AC;
+  --color-cyan-400: #6F9C8E;
+  --color-cyan-500: #5F8B7F;
+  --color-cyan-600: #4B7268;
+  --color-cyan-700: #3C5C54;
+  --color-cyan-800: #2E4842;
+  --color-cyan-900: #1F312D;
+  --color-cyan-950: #101A17;
+
+  --color-blue-50: #EFF5F2;
+  --color-blue-100: #DFEAE4;
+  --color-blue-200: #C0D5CC;
+  --color-blue-300: #96B8AC;
+  --color-blue-400: #6F9C8E;
+  --color-blue-500: #5F8B7F;
+  --color-blue-600: #4B7268;
+  --color-blue-700: #3C5C54;
+  --color-blue-800: #2E4842;
+  --color-blue-900: #1F312D;
+  --color-blue-950: #101A17;
+
+  /* Map the old amber/orange scales → gold accent */
+  --color-amber-50: #FBF3E2;
+  --color-amber-100: #F6E7C4;
+  --color-amber-200: #EED99A;
+  --color-amber-300: #E4C171;
+  --color-amber-400: #D6AC4F;
+  --color-amber-500: #C89B3C;
+  --color-amber-600: #A97F2E;
+  --color-amber-700: #86642A;
+  --color-amber-800: #6B4F24;
+  --color-amber-900: #4E3A1C;
+  --color-amber-950: #2B2010;
+
+  --color-orange-50: #FBF3E2;
+  --color-orange-100: #F6E7C4;
+  --color-orange-200: #EED99A;
+  --color-orange-300: #E4C171;
+  --color-orange-400: #D6AC4F;
+  --color-orange-500: #C89B3C;
+  --color-orange-600: #A97F2E;
+  --color-orange-700: #86642A;
+  --color-orange-800: #6B4F24;
+  --color-orange-900: #4E3A1C;
+  --color-orange-950: #2B2010;
+
+  /* Emerald/teal → keep success green but shift to sage-green for data visuals */
+  --color-emerald-50: #EFF5F2;
+  --color-emerald-100: #DFEAE4;
+  --color-emerald-200: #C0D5CC;
+  --color-emerald-300: #96B8AC;
+  --color-emerald-400: #6F9C8E;
+  --color-emerald-500: #5F8B7F;
+  --color-emerald-600: #4B7268;
+  --color-emerald-700: #3C5C54;
+  --color-emerald-800: #2E4842;
+  --color-emerald-900: #1F312D;
+  --color-emerald-950: #101A17;
+
+  --color-teal-50: #EFF5F2;
+  --color-teal-100: #DFEAE4;
+  --color-teal-200: #C0D5CC;
+  --color-teal-300: #96B8AC;
+  --color-teal-400: #6F9C8E;
+  --color-teal-500: #5F8B7F;
+  --color-teal-600: #4B7268;
+  --color-teal-700: #3C5C54;
+  --color-teal-800: #2E4842;
+  --color-teal-900: #1F312D;
+  --color-teal-950: #101A17;
+
+  /* Rose → soft clay red (keeps destructive semantics) */
+  --color-rose-50: #F8ECEA;
+  --color-rose-100: #F0D9D5;
+  --color-rose-200: #E0B3AC;
+  --color-rose-300: #CB8A80;
+  --color-rose-400: #B5675C;
+  --color-rose-500: #9E4B40;
+  --color-rose-600: #833C33;
+  --color-rose-700: #683029;
+  --color-rose-800: #4D2520;
+  --color-rose-900: #331A16;
+  --color-rose-950: #1A0D0B;
+
+  /* Red (destructive) */
+  --color-red-50: #F8ECEA;
+  --color-red-100: #F0D9D5;
+  --color-red-200: #E0B3AC;
+  --color-red-300: #CB8A80;
+  --color-red-400: #B5675C;
+  --color-red-500: #9E4B40;
+  --color-red-600: #833C33;
+  --color-red-700: #683029;
+  --color-red-800: #4D2520;
+  --color-red-900: #331A16;
+  --color-red-950: #1A0D0B;
+
+  /* Fuchsia → muted rose-violet */
+  --color-fuchsia-50: #F7F0F3;
+  --color-fuchsia-100: #EDE0E6;
+  --color-fuchsia-200: #DCC2CD;
+  --color-fuchsia-300: #C29CAC;
+  --color-fuchsia-400: #A5768A;
+  --color-fuchsia-500: #8A5B6F;
+  --color-fuchsia-600: #72495B;
+  --color-fuchsia-700: #583948;
+  --color-fuchsia-800: #402A35;
+  --color-fuchsia-900: #281B21;
+  --color-fuchsia-950: #140E11;
+
+  /* Zinc (grays) → new neutral scale */
+  --color-zinc-50: #F7F8F4;
+  --color-zinc-100: #EFF0EA;
+  --color-zinc-200: #E4E5DD;
+  --color-zinc-300: #D2D3CB;
+  --color-zinc-400: #AEB0A8;
+  --color-zinc-500: #878A83;
+  --color-zinc-600: #63666D;
+  --color-zinc-700: #4C4F56;
+  --color-zinc-800: #33363D;
+  --color-zinc-900: #22252B;
+  --color-zinc-950: #12151B;
+
+  /* Slate → neutral (used sparingly) */
+  --color-slate-50: #F7F8F4;
+  --color-slate-100: #EFF0EA;
+  --color-slate-200: #E4E5DD;
+  --color-slate-300: #D2D3CB;
+  --color-slate-400: #AEB0A8;
+  --color-slate-500: #878A83;
+  --color-slate-600: #63666D;
+  --color-slate-700: #4C4F56;
+  --color-slate-800: #33363D;
+  --color-slate-900: #22252B;
+  --color-slate-950: #12151B;
 
   /* Landing page surface (theme-aware) */
-  --color-surface-dark: #09090b;
-  --color-landing-bg: #09090b;
+  --color-surface-dark: #0E2732;
+  --color-landing-bg: #0E2732;
   --color-landing-card: rgba(255, 255, 255, 0.03);
   --color-landing-card-hover: rgba(255, 255, 255, 0.06);
-  --color-landing-text: #ffffff;
-  --color-landing-muted: #a1a1aa;
-  --color-landing-border: rgba(63, 63, 70, 0.8);
+  --color-landing-text: #FFFFFF;
+  --color-landing-muted: #AEB0A8;
+  --color-landing-border: rgba(222, 221, 211, 0.14);
   --color-landing-border-strong: rgba(255, 255, 255, 0.2);
 }
 
@@ -46,92 +239,97 @@
   color-scheme: light;
 
   /* Landing tokens for light theme (light surfaces, dark text) */
-  --color-landing-bg: #fafafa;
+  --color-landing-bg: #F4F5F1;
   --color-landing-card: rgba(255, 255, 255, 0.7);
   --color-landing-card-hover: rgba(255, 255, 255, 0.95);
-  --color-landing-text: #18181b;
-  --color-landing-muted: #52525b;
-  --color-landing-border: rgba(24, 24, 27, 0.12);
-  --color-landing-border-strong: rgba(24, 24, 27, 0.25);
+  --color-landing-text: #12151B;
+  --color-landing-muted: #63666D;
+  --color-landing-border: rgba(18, 21, 27, 0.12);
+  --color-landing-border-strong: rgba(18, 21, 27, 0.25);
 }
 
-/* ===== Dark (zinc) ===== */
+/* ===== Dark (brand) ===== */
 [data-theme='dark'] {
   color-scheme: dark;
-  --color-background: #09090b;
-  --color-foreground: #f4f4f5;
-  --color-card: #ffffff;
-  --color-card-foreground: #18181b;
-  --color-muted: #27272a;
-  --color-muted-foreground: #a1a1aa;
-  --color-border: #3f3f46;
-  --color-input: #3f3f46;
-  --color-subtle: rgba(255, 255, 255, 0.03);
-  --color-primary: #6366f1;
-  --color-primary-foreground: #ffffff;
+  --color-background: #0E2732;
+  --color-foreground: #F4F5F1;
+  --color-card: #16394A;
+  --color-card-foreground: #F4F5F1;
+  --color-muted: #16394A;
+  --color-muted-foreground: #AEB0A8;
+  --color-border: rgba(222, 221, 211, 0.14);
+  --color-input: rgba(222, 221, 211, 0.14);
+  --color-subtle: rgba(244, 245, 241, 0.03);
+  --color-primary: #C89B3C;
+  --color-primary-foreground: #12151B;
+  --color-primary-hover: #E4C171;
 }
 
-/* ===== Midnight (deep navy, blue accent) ===== */
+/* ===== Midnight (deep navy, gold accent) ===== */
 [data-theme='midnight'] {
   color-scheme: dark;
-  --color-background: #070c1d;
-  --color-foreground: #e7ecf8;
-  --color-card: #ffffff;
-  --color-card-foreground: #18181b;
-  --color-muted: #16203c;
-  --color-muted-foreground: #94a3c8;
-  --color-border: #1e2a4a;
-  --color-input: #1e2a4a;
-  --color-subtle: rgba(255, 255, 255, 0.04);
-  --color-accent-50: #eff6ff;
-  --color-accent-100: #dbeafe;
-  --color-accent-200: #bfdbfe;
-  --color-accent-300: #93c5fd;
-  --color-accent-400: #60a5fa;
-  --color-accent-500: #3b82f6;
-  --color-accent-600: #2563eb;
-  --color-accent-700: #1d4ed8;
-  --color-primary: #3b82f6;
-  --color-primary-foreground: #ffffff;
+  --color-background: #0A1116;
+  --color-foreground: #F4F5F1;
+  --color-card: #16394A;
+  --color-card-foreground: #F4F5F1;
+  --color-muted: #0E2732;
+  --color-muted-foreground: #AEB0A8;
+  --color-border: rgba(222, 221, 211, 0.14);
+  --color-input: rgba(222, 221, 211, 0.14);
+  --color-subtle: rgba(244, 245, 241, 0.04);
+  --color-accent-50: #FBF3E2;
+  --color-accent-100: #F6E7C4;
+  --color-accent-200: #EED99A;
+  --color-accent-300: #E4C171;
+  --color-accent-400: #D6AC4F;
+  --color-accent-500: #C89B3C;
+  --color-accent-600: #A97F2E;
+  --color-accent-700: #86642A;
+  --color-primary: #C89B3C;
+  --color-primary-foreground: #12151B;
+  --color-primary-hover: #E4C171;
 
   /* Landing tokens for midnight */
-  --color-landing-bg: #070c1d;
-  --color-landing-card: rgba(148, 163, 200, 0.06);
-  --color-landing-card-hover: rgba(148, 163, 200, 0.1);
-  --color-landing-text: #e7ecf8;
-  --color-landing-muted: #94a3c8;
-  --color-landing-border: rgba(30, 42, 74, 0.9);
-  --color-landing-border-strong: rgba(148, 163, 200, 0.35);
+  --color-landing-bg: #0A1116;
+  --color-landing-card: rgba(174, 176, 168, 0.06);
+  --color-landing-card-hover: rgba(174, 176, 168, 0.1);
+  --color-landing-text: #F4F5F1;
+  --color-landing-muted: #AEB0A8;
+  --color-landing-border: rgba(222, 221, 211, 0.12);
+  --color-landing-border-strong: rgba(222, 221, 211, 0.3);
 }
 
-/* ===== Emerald (deep green, green accent) ===== */
+/* ===== Emerald (deep green, gold accent) ===== */
 [data-theme='emerald'] {
   color-scheme: dark;
-  --color-background: #04140d;
-  --color-foreground: #e2f5ec;
-  --color-muted: #0d3528;
-  --color-muted-foreground: #7fc7a8;
-  --color-border: #14503b;
-  --color-input: #14503b;
+  --color-background: #04140D;
+  --color-foreground: #E2F5EC;
+  --color-card: #0D3528;
+  --color-card-foreground: #E2F5EC;
+  --color-muted: #0D3528;
+  --color-muted-foreground: #7FC7A8;
+  --color-border: rgba(127, 199, 168, 0.16);
+  --color-input: rgba(127, 199, 168, 0.16);
   --color-subtle: rgba(255, 255, 255, 0.04);
-  --color-accent-50: #ecfdf5;
-  --color-accent-100: #d1fae5;
-  --color-accent-200: #a7f3d0;
-  --color-accent-300: #6ee7b7;
-  --color-accent-400: #34d399;
-  --color-accent-500: #10b981;
-  --color-accent-600: #059669;
-  --color-accent-700: #047857;
-  --color-primary: #10b981;
-  --color-primary-foreground: #ffffff;
+  --color-accent-50: #FBF3E2;
+  --color-accent-100: #F6E7C4;
+  --color-accent-200: #EED99A;
+  --color-accent-300: #E4C171;
+  --color-accent-400: #D6AC4F;
+  --color-accent-500: #C89B3C;
+  --color-accent-600: #A97F2E;
+  --color-accent-700: #86642A;
+  --color-primary: #C89B3C;
+  --color-primary-foreground: #12151B;
+  --color-primary-hover: #E4C171;
 
   /* Landing tokens for emerald */
-  --color-landing-bg: #04140d;
+  --color-landing-bg: #04140D;
   --color-landing-card: rgba(127, 199, 168, 0.06);
   --color-landing-card-hover: rgba(127, 199, 168, 0.1);
-  --color-landing-text: #e2f5ec;
-  --color-landing-muted: #7fc7a8;
-  --color-landing-border: rgba(20, 80, 59, 0.9);
+  --color-landing-text: #E2F5EC;
+  --color-landing-muted: #7FC7A8;
+  --color-landing-border: rgba(127, 199, 168, 0.14);
   --color-landing-border-strong: rgba(127, 199, 168, 0.35);
 }
 

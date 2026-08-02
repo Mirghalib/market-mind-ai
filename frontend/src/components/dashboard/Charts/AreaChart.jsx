@@ -9,8 +9,8 @@ import { cn } from '@/utils/cn'
 export default function AreaChart({
   data,
   height = 220,
-  stroke = '#818cf8',
-  fill = 'rgba(99,102,241,0.15)',
+  stroke = '#16394A',
+  fill = 'rgba(22,57,74,0.15)',
   className,
 }) {
   const gradientId = useId()

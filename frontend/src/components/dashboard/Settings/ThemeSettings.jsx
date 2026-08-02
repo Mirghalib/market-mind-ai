@@ -14,8 +14,8 @@ const ICONS = {
 const PREVIEWS = {
   light: 'bg-zinc-50',
   dark: 'bg-zinc-900',
-  midnight: 'bg-[#0b1226]',
-  emerald: 'bg-[#06231a]',
+  midnight: 'bg-[#0A1116]',
+  emerald: 'bg-[#04140D]',
 }
 
 /**

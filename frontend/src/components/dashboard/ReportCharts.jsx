@@ -1,6 +1,6 @@
 import { AreaChart, BarChart, DonutChart } from '@/components/dashboard/Charts'
 
-const CHART_COLORS = ['#4f46e5', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff', '#94a3b8']
+const CHART_COLORS = ['#16394A', '#C89B3C', '#5F8B7F', '#E4C171', '#0E2732', '#63666D']
 
 function toNumber(value) {
   const n = Number.parseFloat(String(value ?? '').replace(/[^0-9.-]/g, ''))

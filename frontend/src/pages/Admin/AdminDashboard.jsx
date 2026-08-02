@@ -46,12 +46,12 @@ import { cn } from '@/utils/cn'
 const PAGE_SIZE = 10
 
 const CHART_COLORS = {
-  indigo: '#6366f1',
-  purple: '#a855f7',
-  cyan: '#06b6d4',
-  emerald: '#10b981',
-  amber: '#f59e0b',
-  rose: '#f43f5e',
+  indigo: '#16394A',
+  purple: '#6B6474',
+  cyan: '#5F8B7F',
+  emerald: '#4B7268',
+  amber: '#C89B3C',
+  rose: '#9E4B40',
 }
 
 function errorMessage(err, fallback) {

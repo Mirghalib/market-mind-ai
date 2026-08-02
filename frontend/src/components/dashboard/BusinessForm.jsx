@@ -184,8 +184,8 @@ export default function BusinessForm({ onSubmit, loading = false, className, foc
         opacity: 1,
         y: 0,
         boxShadow: highlighted
-          ? '0 0 0 3px var(--color-accent-500), 0 8px 30px -6px rgba(99,102,241,0.35)'
-          : '0 0 0 0px rgba(99,102,241,0)',
+          ? '0 0 0 3px var(--color-accent-500), 0 8px 30px -6px rgba(22,57,74,0.35)'
+          : '0 0 0 0px rgba(22,57,74,0)',
       }}
       transition={{ duration: highlighted ? 0.35 : 0.45, ease: 'easeOut' }}
       className={cn(

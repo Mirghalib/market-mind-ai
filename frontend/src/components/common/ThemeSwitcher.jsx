@@ -15,8 +15,8 @@ const ICONS = {
 const SWATCH_CLASSES = {
   light: 'bg-zinc-50 border-zinc-300',
   dark: 'bg-zinc-900 border-zinc-600',
-  midnight: 'bg-[#0a1128] border-blue-900',
-  emerald: 'bg-[#052e1c] border-emerald-900',
+  midnight: 'bg-[#0A1116] border-indigo-900',
+  emerald: 'bg-[#04140D] border-emerald-900',
 }
 
 /**

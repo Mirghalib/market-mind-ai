@@ -7,37 +7,37 @@ const tones = {
   indigo: {
     icon: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400',
     progress: 'from-indigo-500 to-purple-500',
-    sparkline: '#818cf8',
+    sparkline: '#16394A',
     hover: 'hover:border-indigo-400/40 hover:shadow-indigo-500/10 dark:hover:shadow-indigo-500/10',
   },
   purple: {
     icon: 'bg-purple-500/15 text-purple-600 dark:text-purple-400',
     progress: 'from-purple-500 to-fuchsia-500',
-    sparkline: '#c084fc',
+    sparkline: '#6B6474',
     hover: 'hover:border-purple-400/40 hover:shadow-purple-500/10 dark:hover:shadow-purple-500/10',
   },
   cyan: {
     icon: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400',
     progress: 'from-cyan-500 to-blue-500',
-    sparkline: '#22d3ee',
+    sparkline: '#5F8B7F',
     hover: 'hover:border-cyan-400/40 hover:shadow-cyan-500/10 dark:hover:shadow-cyan-500/10',
   },
   emerald: {
     icon: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
     progress: 'from-emerald-500 to-teal-500',
-    sparkline: '#34d399',
+    sparkline: '#4B7268',
     hover: 'hover:border-emerald-400/40 hover:shadow-emerald-500/10 dark:hover:shadow-emerald-500/10',
   },
   amber: {
     icon: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
     progress: 'from-amber-500 to-orange-500',
-    sparkline: '#fbbf24',
+    sparkline: '#C89B3C',
     hover: 'hover:border-amber-400/40 hover:shadow-amber-500/10 dark:hover:shadow-amber-500/10',
   },
   rose: {
     icon: 'bg-rose-500/15 text-rose-600 dark:text-rose-400',
     progress: 'from-rose-500 to-red-500',
-    sparkline: '#fb7185',
+    sparkline: '#9E4B40',
     hover: 'hover:border-rose-400/40 hover:shadow-rose-500/10 dark:hover:shadow-rose-500/10',
   },
 }

@@ -20,7 +20,7 @@ export default function CTA() {
           {/* Gradient background */}
           <div
             aria-hidden
-            className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(99,102,241,0.35),transparent_55%),radial-gradient(ellipse_at_bottom_right,rgba(168,85,247,0.35),transparent_55%),linear-gradient(to_bottom,var(--color-landing-bg),var(--color-landing-card))]"
+            className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(200,155,60,0.28),transparent_55%),radial-gradient(ellipse_at_bottom_right,rgba(95,139,127,0.28),transparent_55%),linear-gradient(to_bottom,var(--color-landing-bg),var(--color-landing-card))]"
           />
 
           {/* Animated aurora glows */}

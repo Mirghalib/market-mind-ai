@@ -9,7 +9,7 @@ import { cn } from '@/utils/cn'
 export default function LineChart({
   data,
   height = 220,
-  stroke = '#818cf8',
+  stroke = '#16394A',
   className,
 }) {
   const gradientId = useId()

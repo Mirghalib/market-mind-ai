@@ -46,7 +46,7 @@ function Stars() {
         <Star
           key={i}
           size={16}
-          className="fill-amber-400 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.35)]"
+          className="fill-amber-400 text-amber-400 drop-shadow-[0_0_6px_rgba(200,155,60,0.35)]"
         />
       ))}
     </div>

@@ -8,7 +8,7 @@ import { cn } from '@/utils/cn'
 export default function BarChart({
   data,
   height = 220,
-  color = '#818cf8',
+  color = '#16394A',
   className,
 }) {
   const max = Math.max(...data.map((d) => d.value), 1)

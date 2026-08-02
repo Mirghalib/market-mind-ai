@@ -14,3 +14,6 @@
 - Prefers glassmorphism material for premium cards/panels — translucent blurred surfaces (backdrop-blur, border-white/low-opacity, bg-white/low-opacity) for dashboard mock-ups, stat cards, and badges. Confidence: 0.85
 - Explicitly forbids external images in UI components; all visuals must be built with CSS gradients, glass effects, and Lucide icons. Confidence: 0.9
 - When a section calls for logos/branding, prefers placeholder logos — Lucide icon marks paired with wordmark-style names — rather than real brand assets or external images. Confidence: 0.8
+- Requires strictly scoped restyling: when changing colors, change only colors — layout, spacing, typography, fonts, icons, animations, components, copy/text, and button names must stay exactly as they are. Confidence: 0.95
+- Wants colors defined once as centralized tokens (CSS variables in :root / @theme) and referenced everywhere, never hardcoded hex values scattered across components. Confidence: 0.95
+- Prefers color palettes specified and applied by semantic role (primary brand, accent, background, muted text, borders, card backgrounds, etc.) rather than by arbitrary color-family names, preserving existing contrast and readability. Confidence: 0.9
