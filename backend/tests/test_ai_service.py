@@ -147,11 +147,17 @@ async def test_does_not_retry_non_retryable_error(brief: MarketingBrief) -> None
 @pytest.mark.asyncio
 async def test_parse_error_raises_parse_error(brief: MarketingBrief) -> None:
     provider = FakeProvider()
-    provider.responses = ["Here is some prose with no JSON at all."]
-    service = make_service(provider)
+    # Both the initial call and the JSON-only retry return garbage.
+    provider.responses = [
+        "Here is some prose with no JSON at all.",
+        "Still no JSON here.",
+    ]
+    service = make_service(provider, retry_attempts=2)
 
     with pytest.raises(ParseError):
         await service.generate_marketing_strategy(brief)
+
+    assert provider.calls == 2
 
 
 @pytest.mark.asyncio
@@ -181,6 +187,45 @@ async def test_parser_repairs_trailing_commas() -> None:
     result = parser.parse('{"items": [1, 2, 3,]}')
 
     assert result == {"items": [1, 2, 3]}
+
+
+@pytest.mark.asyncio
+async def test_parser_ignores_trailing_prose_and_braces_in_strings() -> None:
+    """Gemini sometimes appends prose after the JSON and includes
+    braces inside string values. The parser must extract only the
+    first balanced JSON value."""
+    parser = ResponseParser()
+
+    # Trailing prose after the object.
+    result = parser.parse(
+        '{"marketingStrategy": {"overview": "x"}, "ok": true}\n\n'
+        "Here are some closing thoughts about this strategy."
+    )
+    assert result == {"marketingStrategy": {"overview": "x"}, "ok": True}
+
+    # A } inside a string value must not end the object early.
+    result = parser.parse('{"key": "brace } here", "arr": [1, 2]}')
+    assert result == {"key": "brace } here", "arr": [1, 2]}
+
+
+@pytest.mark.asyncio
+async def test_retries_with_json_only_prompt_on_parse_failure(brief: MarketingBrief) -> None:
+    """When the first LLM response cannot be parsed (e.g. truncated),
+    the service re-asks once with an explicit JSON-only instruction and
+    uses the retry."""
+    provider = FakeProvider()
+    provider.responses = [
+        # Truncated: the JSON object never closes.
+        '{"marketingStrategy": {"overview": "Test strategy"',
+        VALID_MARKETING_STRATEGY_JSON,
+    ]
+    service = make_service(provider, retry_attempts=2, retry_backoff_seconds=0.0)
+
+    result = await service.generate_marketing_strategy(brief)
+
+    assert provider.calls == 2
+    assert "JSON only" in provider.recorded_prompts[1]
+    assert result["marketingStrategy"]["overview"] == "Test strategy"
 
 
 @pytest.mark.asyncio

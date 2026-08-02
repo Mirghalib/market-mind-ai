@@ -618,7 +618,7 @@
               "name": { "type": "string", "description": "Tool name (e.g. Notion, Ahrefs)." },
               "category": {
                 "type": "string",
-                "enum": ["analytics", "social-media", "seo", "email-marketing", "design", "content", "project-management"],
+                "enum": ["analytics", "social-media", "seo", "email-marketing", "design", "content", "project-management", "ads"],
                 "description": "Functional category of the tool."
               },
               "purpose": { "type": "string", "description": "What the tool is used for." },

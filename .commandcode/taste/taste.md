@@ -1,5 +1,9 @@
 # Taste
 See [taste/taste.md](taste/taste.md)
 
+- When asking how to do something in the project (e.g. add a new AI provider, use a different API), prefers a direct, concise answer stating exactly what's required (config values/files to change) over a lengthy written plan. Confidence: 0.5
+- When asked "what's the actual error" about a failure (with logs pasted), wants a direct, precise root-cause diagnosis naming the exact failing file/logic and the error, with no speculative extras or unrelated changes added on top. Confidence: 0.9
+- Does not want the agent to guess or invent external API/SDK behavior: if official documentation is required to fix something, the user will provide it from the official docs — ask for it rather than improvising code based on assumptions. Confidence: 0.9
 - When a bug persists after a previous fix, expects the engineer to treat prior work as suspect and re-verify the live runtime behavior (inspect the actual network request, the real browser DOM, localStorage, and the on-disk uploads) before concluding — a "save succeeds" UI message is not proof the data was sent; the root cause can hide in infrastructure glue (e.g. the axios client forcing `Content-Type: application/json` on FormData so FastAPI silently drops the file field). Confidence: 0.9
 - Prefers runtime/browser-level verification of bug fixes over static code reading alone: use headless-browser automation against the running app to reproduce the exact reported flow (upload → save → check navbar/sidebar/profile) and confirm the fix, including persistence after refresh and logout/login. Confidence: 0.8
+- Wants a reproduction/verification test of a fixed failure mode added to the existing test suite so the exact bug stays covered (regression tests), not just ad-hoc checks. Confidence: 0.8

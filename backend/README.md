@@ -47,7 +47,7 @@ source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 # 3. Configure environment
-cp .env.example .env             # then edit values (DB URL, GROQ_API_KEY, SECRET_KEY)
+cp .env.example .env             # then edit values (DB URL, AI_API_KEY, SECRET_KEY)
 
 # 4. Run migrations + seed the RBAC baseline
 alembic upgrade head
@@ -71,7 +71,8 @@ Interactive docs are available at `http://localhost:8000/docs` (API under `/api/
 
 ## AI Provider
 
-`AI_PROVIDER` selects the LLM vendor (`groq` default, `openai`, or `anthropic`); the matching
-API key is read from `.env`. When the provider is rate-limited or unavailable,
-`AI_FALLBACK_TO_MOCK=true` (default) degrades to a deterministic mock strategy so demos and
-CI never hard-fail. Set it to `false` in production to surface real errors.
+`AI_BASE_URL`, `AI_MODEL` and `AI_API_KEY` configure the LLM. The OpenAI SDK is the single interface,
+so `AI_BASE_URL` can point at any OpenAI-compatible API (OpenAI, Groq, OpenRouter, local vLLM/Ollama, ...) —
+switching providers is a `.env` change. If the provider is unavailable or errors, the API returns an error
+(502/503) instead of generating a document — a canned strategy would be misleading. To keep offline
+demos and CI working, set `AI_FALLBACK_TO_MOCK=true` to degrade to a deterministic mock strategy.

@@ -17,8 +17,10 @@ registry importable even when reportlab is unavailable.
 """
 from html import escape
 from io import BytesIO
+from pathlib import Path
 from typing import Any
 
+import reportlab
 from reportlab.graphics import shapes
 from reportlab.graphics.charts.piecharts import Pie
 from reportlab.graphics.shapes import Drawing
@@ -28,10 +30,13 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
     BaseDocTemplate,
     Flowable,
     Frame,
+    HRFlowable,
     KeepTogether,
     NextPageTemplate,
     PageBreak,
@@ -43,16 +48,45 @@ from reportlab.platypus import (
 )
 
 # ---------------------------------------------------------------------------
+# Fonts — Bitstream Vera ships with reportlab and renders consistently in
+# every PDF viewer, unlike the base-14 Helvetica which falls back to
+# system fonts and looks different depending on the machine.
+# ---------------------------------------------------------------------------
+
+_FONT_DIR = Path(reportlab.__file__).resolve().parent / "fonts"
+
+try:
+    pdfmetrics.registerFont(TTFont("Vera", str(_FONT_DIR / "Vera.ttf")))
+    pdfmetrics.registerFont(TTFont("Vera-Bold", str(_FONT_DIR / "VeraBd.ttf")))
+    pdfmetrics.registerFont(TTFont("Vera-Italic", str(_FONT_DIR / "VeraIt.ttf")))
+    pdfmetrics.registerFont(TTFont("Vera-BoldItalic", str(_FONT_DIR / "VeraBI.ttf")))
+    pdfmetrics.registerFontFamily(
+        "Vera",
+        normal="Vera",
+        bold="Vera-Bold",
+        italic="Vera-Italic",
+        boldItalic="Vera-BoldItalic",
+    )
+    FONT, FONT_BOLD, FONT_ITALIC, FONT_BOLD_ITALIC = (
+        "Vera", "Vera-Bold", "Vera-Italic", "Vera-BoldItalic",
+    )
+except Exception:  # pragma: no cover — fall back to the base-14 fonts.
+    FONT, FONT_BOLD, FONT_ITALIC, FONT_BOLD_ITALIC = (
+        "Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique",
+    )
+
+# ---------------------------------------------------------------------------
 # Palette & typography
 # ---------------------------------------------------------------------------
 
 INDIGO = HexColor("#4f46e5")
 INDIGO_DARK = HexColor("#4338ca")
 INDIGO_LIGHT = HexColor("#eef2ff")
+VIOLET = HexColor("#7c3aed")
 SLATE = HexColor("#1e293b")
-MUTED = HexColor("#64748b")
+MUTED = HexColor("#475569")
 PANEL = HexColor("#f1f5f9")
-LINE = HexColor("#e2e8f0")
+LINE = HexColor("#cbd5e1")
 WHITE = colors.white
 
 PAGE_W, PAGE_H = A4
@@ -63,49 +97,60 @@ COVER_BAR = HexColor("#eef2ff")
 styles = getSampleStyleSheet()
 
 _TITLE = ParagraphStyle(
-    "ReportTitle", parent=styles["Title"], fontName="Helvetica-Bold",
+    "ReportTitle", parent=styles["Title"], fontName=FONT_BOLD,
     fontSize=28, leading=34, textColor=SLATE, spaceAfter=6,
 )
 _H1 = ParagraphStyle(
-    "ReportH1", parent=styles["Heading1"], fontName="Helvetica-Bold",
+    "ReportH1", parent=styles["Heading1"], fontName=FONT_BOLD,
     fontSize=20, leading=26, textColor=INDIGO_DARK, spaceBefore=0,
     spaceAfter=8, alignment=TA_LEFT,
 )
 _H2 = ParagraphStyle(
-    "ReportH2", parent=styles["Heading2"], fontName="Helvetica-Bold",
-    fontSize=13, leading=17, textColor=SLATE, spaceBefore=12, spaceAfter=4,
+    "ReportH2", parent=styles["Heading2"], fontName=FONT_BOLD,
+    fontSize=13.5, leading=18, textColor=SLATE, spaceBefore=14, spaceAfter=5,
 )
 _BODY = ParagraphStyle(
-    "ReportBody", parent=styles["BodyText"], fontName="Helvetica",
-    fontSize=9.5, leading=14, textColor=SLATE, spaceAfter=6,
+    "ReportBody", parent=styles["BodyText"], fontName=FONT,
+    fontSize=10, leading=15, textColor=SLATE, spaceAfter=6,
 )
 _META = ParagraphStyle(
-    "ReportMeta", parent=_BODY, fontName="Helvetica", fontSize=8.5,
-    leading=12, textColor=MUTED,
+    "ReportMeta", parent=_BODY, fontName=FONT, fontSize=9,
+    leading=13, textColor=MUTED,
 )
 _BULLET = ParagraphStyle(
-    "ReportBullet", parent=_BODY, leftIndent=10, bulletIndent=0, spaceAfter=2,
+    "ReportBullet", parent=_BODY, leftIndent=10, bulletIndent=0, spaceAfter=3,
 )
 _CAPTION = ParagraphStyle(
-    "ReportCaption", parent=_META, fontSize=8, textColor=MUTED,
+    "ReportCaption", parent=_META, fontSize=8.5, textColor=MUTED,
     alignment=TA_CENTER, spaceBefore=2,
 )
 _CARD_LABEL = ParagraphStyle(
-    "CardLabel", parent=_BODY, fontName="Helvetica-Bold", fontSize=8,
-    leading=11, textColor=MUTED, alignment=TA_CENTER,
+    "CardLabel", parent=_BODY, fontName=FONT_BOLD, fontSize=8.5,
+    leading=12, textColor=MUTED, alignment=TA_CENTER,
 )
 _CARD_VALUE = ParagraphStyle(
-    "CardValue", parent=_BODY, fontName="Helvetica-Bold", fontSize=20,
-    leading=24, textColor=INDIGO_DARK, alignment=TA_CENTER, spaceBefore=2,
+    "CardValue", parent=_BODY, fontName=FONT_BOLD, fontSize=22,
+    leading=26, textColor=INDIGO_DARK, alignment=TA_CENTER, spaceBefore=2,
 )
 _TOC_STYLE = ParagraphStyle(
-    "TocStyle", parent=_BODY, fontSize=10, leading=18, textColor=SLATE,
+    "TocStyle", parent=_BODY, fontSize=10.5, leading=19, textColor=SLATE,
 )
 
 
 def _esc(text: Any) -> str:
     """Safe string for ReportLab paragraphs."""
     return escape(str(text)) if text is not None else ""
+
+
+def _h1_flowable(title: str) -> list[Any]:
+    """Section heading with a visible colored accent rule underneath."""
+    return [
+        Paragraph(_esc(title), _H1),
+        HRFlowable(
+            width="100%", thickness=2.2, color=INDIGO, spaceBefore=2,
+            spaceAfter=10, lineCap="butt",
+        ),
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -157,14 +202,14 @@ class _ReportDoc(BaseDocTemplate):
     def _draw_header_footer(self, canvas, doc) -> None:
         canvas.saveState()
         canvas.setFillColor(MUTED)
-        canvas.setFont("Helvetica", 7.5)
+        canvas.setFont(FONT, 8)
         canvas.drawString(MARGIN, PAGE_H - 1.4 * cm, self.report_title[:70])
         canvas.setStrokeColor(LINE)
         canvas.setLineWidth(0.5)
         canvas.line(MARGIN, PAGE_H - 1.6 * cm, PAGE_W - MARGIN, PAGE_H - 1.6 * cm)
         page_num = canvas.getPageNumber()
         if page_num > 1:
-            canvas.setFont("Helvetica", 8)
+            canvas.setFont(FONT, 8.5)
             canvas.drawCentredString(PAGE_W / 2, 1.2 * cm, str(page_num))
         canvas.restoreState()
 
@@ -417,15 +462,15 @@ def _styled_table(header: list[str], rows: list[list[str]],
 
     table = Table(data, colWidths=col_widths, repeatRows=1, hAlign="LEFT")
     table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), INDIGO_DARK),
+        ("BACKGROUND", (0, 0), (-1, 0), INDIGO),
         ("TEXTCOLOR", (0, 0), (-1, 0), WHITE),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, 0), 8.5),
+        ("FONTNAME", (0, 0), (-1, 0), FONT_BOLD),
+        ("FONTSIZE", (0, 0), (-1, 0), 9),
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [WHITE, PANEL]),
         ("GRID", (0, 0), (-1, -1), 0.4, LINE),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("TOPPADDING", (0, 0), (-1, -1), 5),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
         ("LEFTPADDING", (0, 0), (-1, -1), 6),
         ("RIGHTPADDING", (0, 0), (-1, -1), 6),
     ]))
@@ -457,7 +502,8 @@ def _cover_flowables(strategy) -> list[Any]:
     logo_box = Table(
         [[Paragraph(
             "<font color='white' size='16'><b>M</b></font>",
-            ParagraphStyle("Logo", parent=_BODY, alignment=TA_CENTER),
+            ParagraphStyle("Logo", parent=_BODY, fontName=FONT_BOLD,
+                           alignment=TA_CENTER),
         )]],
         colWidths=[1.3 * cm], rowHeights=[1.3 * cm], hAlign="LEFT",
     )
@@ -471,20 +517,20 @@ def _cover_flowables(strategy) -> list[Any]:
         logo_box,
         Spacer(1, 0.8 * cm),
         Paragraph(_esc(business), ParagraphStyle(
-            "CoverTitle", parent=_TITLE, fontName="Helvetica-Bold", fontSize=30,
+            "CoverTitle", parent=_TITLE, fontName=FONT_BOLD, fontSize=30,
             leading=36, textColor=WHITE, alignment=TA_LEFT,
         )),
         Paragraph(
             "Marketing Strategy Report",
             ParagraphStyle(
-                "CoverSub", parent=_TITLE, fontName="Helvetica-Bold",
+                "CoverSub", parent=_TITLE, fontName=FONT_BOLD,
                 fontSize=15, leading=20, textColor=HexColor("#c7d2fe"),
                 alignment=TA_LEFT, spaceBefore=4,
             ),
         ),
         Spacer(1, 1.4 * cm),
         Paragraph(_esc(tagline), ParagraphStyle(
-            "CoverTag", parent=_BODY, fontSize=11, leading=16,
+            "CoverTag", parent=_BODY, fontName=FONT, fontSize=11, leading=16,
             textColor=HexColor("#e0e7ff"), alignment=TA_LEFT,
         )),
         Spacer(1, 2.2 * cm),
@@ -503,19 +549,24 @@ def _cover_flowables(strategy) -> list[Any]:
     meta_rows = [
         [Paragraph("<font color='#c7d2fe'>INDUSTRY</font>", _META),
          Paragraph(_esc(industry), ParagraphStyle(
-             "CoverMetaV", parent=_BODY, fontSize=10, textColor=WHITE))],
+             "CoverMetaV", parent=_BODY, fontName=FONT, fontSize=10,
+             textColor=WHITE))],
         [Paragraph("<font color='#c7d2fe'>COUNTRY</font>", _META),
          Paragraph(_esc(_data.country), ParagraphStyle(
-             "CoverMetaV", parent=_BODY, fontSize=10, textColor=WHITE))],
+             "CoverMetaV", parent=_BODY, fontName=FONT, fontSize=10,
+             textColor=WHITE))],
         [Paragraph("<font color='#c7d2fe'>TARGET AUDIENCE</font>", _META),
          Paragraph(_esc(strategy.target_audience or "—"), ParagraphStyle(
-             "CoverMetaV", parent=_BODY, fontSize=10, textColor=WHITE))],
+             "CoverMetaV", parent=_BODY, fontName=FONT, fontSize=10,
+             textColor=WHITE))],
         [Paragraph("<font color='#c7d2fe'>BUDGET</font>", _META),
          Paragraph(_esc(budget_label), ParagraphStyle(
-             "CoverMetaV", parent=_BODY, fontSize=10, textColor=WHITE))],
+             "CoverMetaV", parent=_BODY, fontName=FONT, fontSize=10,
+             textColor=WHITE))],
         [Paragraph("<font color='#c7d2fe'>GENERATION DATE</font>", _META),
          Paragraph(_esc(date_str or "—"), ParagraphStyle(
-             "CoverMetaV", parent=_BODY, fontSize=10, textColor=WHITE))],
+             "CoverMetaV", parent=_BODY, fontName=FONT, fontSize=10,
+             textColor=WHITE))],
     ]
     meta_table = Table(meta_rows, colWidths=[4.2 * cm, 11.5 * cm], hAlign="LEFT")
     meta_table.setStyle(TableStyle([
@@ -531,7 +582,7 @@ def _cover_flowables(strategy) -> list[Any]:
     flow.append(Spacer(1, 1.4 * cm))
     flow.append(Paragraph(
         "Prepared by <b>Market Mind AI</b> — Professional Consulting Report",
-        ParagraphStyle("CoverFoot", parent=_META, fontSize=9,
+        ParagraphStyle("CoverFoot", parent=_META, fontName=FONT, fontSize=9,
                        textColor=HexColor("#a5b4fc"), alignment=TA_LEFT),
     ))
     return flow
@@ -554,13 +605,13 @@ def _summary_cards(content: dict) -> list[Any]:
         cell = [
             Paragraph(label, _CARD_LABEL),
             Spacer(1, 0.12 * cm),
-            Paragraph(f"{value}<font size='9' color='#64748b'> {suffix}</font>", _CARD_VALUE),
+            Paragraph(f"{value}<font size='10' color='#64748b'> {suffix}</font>", _CARD_VALUE),
         ]
         rows.append(cell)
     table = Table([rows], colWidths=[cell_w] * 3, hAlign="LEFT")
     table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), PANEL),
-        ("BOX", (0, 0), (-1, -1), 0.5, LINE),
+        ("BACKGROUND", (0, 0), (-1, -1), INDIGO_LIGHT),
+        ("BOX", (0, 0), (-1, -1), 1, INDIGO),
         ("INNERGRID", (0, 0), (-1, -1), 0.5, LINE),
         ("TOPPADDING", (0, 0), (-1, -1), 14),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 14),
@@ -570,7 +621,7 @@ def _summary_cards(content: dict) -> list[Any]:
 
 
 def _toc_flowables(entries: list[tuple[str, int]]) -> list[Any]:
-    flow = [Paragraph("Table of Contents", _H1), Spacer(1, 0.4 * cm)]
+    flow = _h1_flowable("Table of Contents") + [Spacer(1, 0.4 * cm)]
     rows = []
     for title, page in entries:
         rows.append([Paragraph(_esc(title), _TOC_STYLE),
@@ -588,7 +639,7 @@ def _toc_flowables(entries: list[tuple[str, int]]) -> list[Any]:
 
 def _executive_summary_flowables(content: dict) -> list[Any]:
     exec_summary = content.get("executiveSummary") or {}
-    flow = [Paragraph("Executive Summary", _H1)]
+    flow = _h1_flowable("Executive Summary")
     if exec_summary.get("summary"):
         flow.append(Paragraph(_esc(exec_summary["summary"]), _BODY))
     highlights = exec_summary.get("highlights") or []
@@ -606,7 +657,7 @@ def _executive_summary_flowables(content: dict) -> list[Any]:
 
 def _marketing_score_flowables(content: dict) -> list[Any]:
     score = content.get("marketingScore") or {}
-    flow = [Paragraph("Marketing Score", _H1)]
+    flow = _h1_flowable("Marketing Score")
     if score.get("overall") is not None:
         flow.append(Paragraph(
             f"Overall readiness: <b>{_esc(score['overall'])}/100</b>", _BODY))
@@ -634,7 +685,7 @@ def _marketing_score_flowables(content: dict) -> list[Any]:
 def _kpi_flowables(content: dict) -> list[Any]:
     strategy = content.get("marketingStrategy") or {}
     kpis = strategy.get("kpis") or []
-    flow = [Paragraph("KPI Summary", _H1)]
+    flow = _h1_flowable("KPI Summary")
     if not kpis:
         return flow
     rows = [[k.get("metric", ""), k.get("target", ""), k.get("timeframe", "")]
@@ -650,7 +701,7 @@ def _kpi_flowables(content: dict) -> list[Any]:
 def _budget_flowables(content: dict) -> list[Any]:
     strategy = content.get("marketingStrategy") or {}
     allocation = strategy.get("budgetAllocation") or []
-    flow = [Paragraph("Budget Summary", _H1)]
+    flow = _h1_flowable("Budget Summary")
     if not allocation:
         return flow
     flow.append(_keep([_budget_pie_chart(allocation)]))
@@ -663,7 +714,7 @@ def _budget_flowables(content: dict) -> list[Any]:
 
 def _market_overview_flowables(content: dict) -> list[Any]:
     market = content.get("marketOverview") or {}
-    flow = [Paragraph("Market Overview", _H1)]
+    flow = _h1_flowable("Market Overview")
     if market.get("summary"):
         flow.append(Paragraph(_esc(market["summary"]), _BODY))
     meta = []
@@ -685,7 +736,7 @@ def _market_overview_flowables(content: dict) -> list[Any]:
 
 def _persona_flowables(content: dict) -> list[Any]:
     persona = content.get("customerPersona") or {}
-    flow = [Paragraph("Customer Persona", _H1)]
+    flow = _h1_flowable("Customer Persona")
     profile = [
         ("Name", persona.get("name")),
         ("Age range", persona.get("ageRange")),
@@ -712,7 +763,7 @@ def _persona_flowables(content: dict) -> list[Any]:
 
 def _swot_flowables(content: dict) -> list[Any]:
     swot = content.get("swotAnalysis") or {}
-    flow = [Paragraph("SWOT Analysis", _H1)]
+    flow = _h1_flowable("SWOT Analysis")
 
     def quadrant(label: str, items: list[Any]) -> list[list[str]]:
         return [[Paragraph(f"<b>{_esc(label)}</b>", _BODY),
@@ -745,7 +796,7 @@ def _swot_flowables(content: dict) -> list[Any]:
 def _channels_flowables(content: dict) -> list[Any]:
     strategy = content.get("marketingStrategy") or {}
     channels = strategy.get("channels") or []
-    flow = [Paragraph("Marketing Channels", _H1)]
+    flow = _h1_flowable("Marketing Channels")
     if not channels:
         return flow
     rows = [[c.get("name", ""), c.get("priority", "").capitalize(),
@@ -757,7 +808,7 @@ def _channels_flowables(content: dict) -> list[Any]:
 
 def _seo_flowables(content: dict) -> list[Any]:
     seo = content.get("seoKeywords") or {}
-    flow = [Paragraph("SEO Strategy", _H1)]
+    flow = _h1_flowable("SEO Strategy")
     primary = seo.get("primaryKeywords") or []
     if primary:
         flow.append(Paragraph("Primary Keywords", _H2))
@@ -784,7 +835,7 @@ def _seo_flowables(content: dict) -> list[Any]:
 
 def _email_flowables(content: dict) -> list[Any]:
     email = content.get("emailCampaign") or {}
-    flow = [Paragraph("Email Marketing Strategy", _H1)]
+    flow = _h1_flowable("Email Marketing Strategy")
     name, goal, audience = (email.get("campaignName"), email.get("goal"),
                             email.get("audience"))
     if name or goal or audience:
@@ -809,7 +860,7 @@ def _email_flowables(content: dict) -> list[Any]:
 
 def _social_flowables(content: dict) -> list[Any]:
     social = content.get("socialMediaStrategy") or {}
-    flow = [Paragraph("Social Media Strategy", _H1)]
+    flow = _h1_flowable("Social Media Strategy")
     if social.get("summary"):
         flow.append(Paragraph(_esc(social["summary"]), _BODY))
     platforms = social.get("platforms") or []
@@ -841,7 +892,7 @@ def _social_flowables(content: dict) -> list[Any]:
 
 def _ads_flowables(content: dict) -> list[Any]:
     ads = content.get("advertisementIdeas") or {}
-    flow = [Paragraph("Google & Meta Ads Plan", _H1)]
+    flow = _h1_flowable("Google & Meta Ads Plan")
     if ads.get("summary"):
         flow.append(Paragraph(_esc(ads["summary"]), _BODY))
     campaigns = ads.get("campaigns") or []
@@ -870,7 +921,7 @@ def _ads_flowables(content: dict) -> list[Any]:
 
 def _calendar_flowables(content: dict) -> list[Any]:
     calendar = content.get("contentCalendar") or {}
-    flow = [Paragraph("Content Calendar", _H1)]
+    flow = _h1_flowable("Content Calendar")
     timeframe, cadence = calendar.get("timeframe"), calendar.get("cadence")
     if timeframe or cadence:
         flow.append(Paragraph(
@@ -889,7 +940,7 @@ def _calendar_flowables(content: dict) -> list[Any]:
 
 def _roadmap_flowables(content: dict) -> list[Any]:
     roadmap = content.get("implementationRoadmap") or {}
-    flow = [Paragraph("90-Day Implementation Roadmap", _H1)]
+    flow = _h1_flowable("90-Day Implementation Roadmap")
     if roadmap.get("summary"):
         flow.append(Paragraph(_esc(roadmap["summary"]), _BODY))
     phases = roadmap.get("phases") or []
@@ -918,7 +969,7 @@ def _action_plan_flowables(content: dict) -> list[Any]:
     """Next 90-day action plan — a combined milestones checklist."""
     milestones = content.get("weeklyMilestones") or {}
     roadmap = content.get("implementationRoadmap") or {}
-    flow = [Paragraph("Next 90-Day Action Plan", _H1)]
+    flow = _h1_flowable("Next 90-Day Action Plan")
     if milestones.get("summary"):
         flow.append(Paragraph(_esc(milestones["summary"]), _BODY))
 
@@ -948,7 +999,7 @@ def _action_plan_flowables(content: dict) -> list[Any]:
 
 def _roi_flowables(content: dict) -> list[Any]:
     roi = content.get("estimatedROI") or {}
-    flow = [Paragraph("Estimated ROI", _H1)]
+    flow = _h1_flowable("Estimated ROI")
     if roi.get("summary"):
         flow.append(Paragraph(_esc(roi["summary"]), _BODY))
     if roi.get("paybackPeriod"):
@@ -979,7 +1030,7 @@ def _roi_flowables(content: dict) -> list[Any]:
 
 def _risks_flowables(content: dict) -> list[Any]:
     risks = content.get("riskMitigation") or {}
-    flow = [Paragraph("Risks and Mitigation", _H1)]
+    flow = _h1_flowable("Risks and Mitigation")
     if risks.get("summary"):
         flow.append(Paragraph(_esc(risks["summary"]), _BODY))
     risk_list = risks.get("risks") or []
@@ -997,7 +1048,7 @@ def _risks_flowables(content: dict) -> list[Any]:
 
 def _recommendations_flowables(content: dict) -> list[Any]:
     recs = content.get("finalRecommendations") or {}
-    flow = [Paragraph("Final Recommendations", _H1)]
+    flow = _h1_flowable("Final Recommendations")
     if recs.get("summary"):
         flow.append(Paragraph(_esc(recs["summary"]), _BODY))
     for label, key in [("Top Priorities", "priorities"),
@@ -1016,7 +1067,7 @@ def _recommendations_flowables(content: dict) -> list[Any]:
 
 def _competitor_flowables(content: dict) -> list[Any]:
     comp = content.get("competitorAnalysis") or {}
-    flow = [Paragraph("Competitor Analysis", _H1)]
+    flow = _h1_flowable("Competitor Analysis")
     competitors = comp.get("competitors") or []
     if competitors:
         rows = [[c.get("name", ""), c.get("marketPosition", ""),

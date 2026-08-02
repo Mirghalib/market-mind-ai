@@ -79,15 +79,12 @@ class Settings(BaseSettings):
     REPORT_FROM_NAME: str = "Market Mind AI"
 
     # --- AI (LLM provider) ---
-    AI_PROVIDER: str = "groq"
-    AI_MODEL: str = "llama-3.3-70b-versatile"
-    # Provider API keys. Declared here so pydantic-settings picks them
-    # up from the .env file; the provider factory reads these fields
-    # (not os.getenv, which would miss .env-only values).
-    GROQ_API_KEY: str = ""
-    OPENAI_API_KEY: str = ""
-    ANTHROPIC_API_KEY: str = ""
-    AI_API_KEY: str = ""  # generic alias, kept for backwards compatibility
+    # OpenAI SDK is the single LLM interface. Point AI_BASE_URL at any
+    # OpenAI-compatible API (OpenAI, Groq, OpenRouter, local vLLM/Ollama,
+    # ...); AI_API_KEY is its key and AI_MODEL the model id.
+    AI_MODEL: str = "gpt-4o-mini"
+    AI_BASE_URL: str = "https://api.openai.com/v1"
+    AI_API_KEY: str = ""
     AI_MAX_TOKENS: int = 4096
     AI_TEMPERATURE: float = 0.2
     AI_RETRY_ATTEMPTS: int = 3
@@ -95,8 +92,9 @@ class Settings(BaseSettings):
     AI_REQUEST_TIMEOUT_SECONDS: float = 60.0
     # When true, a rate-limited or otherwise unavailable LLM provider
     # degrades to the deterministic mock strategy so demos and CI never
-    # hard-fail. Set to false in production to surface real errors.
-    AI_FALLBACK_TO_MOCK: bool = True
+    # hard-fail. Default false: surface real provider errors so users
+    # never get a canned (dummy) strategy instead of a real one.
+    AI_FALLBACK_TO_MOCK: bool = False
 
     # --- Logging ---
     LOG_LEVEL: str = "INFO"

@@ -12,9 +12,14 @@ from app.core.config import settings
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=settings.APP_DEBUG,
-    # Supabase's transaction-mode pooler (pgbouncer) does not support
-    # asyncpg prepared statements nor server-side pings, so both must
-    # be disabled here.
+    # Recycle connections before the transaction-mode pooler (pgbouncer)
+    # drops idle ones (~60s) so we never hand out a closed connection.
+    pool_pre_ping=True,
+    pool_recycle=45,
+    pool_size=10,
+    max_overflow=10,
+    # Supabase's transaction-mode pooler does not support asyncpg
+    # prepared statements, so they must be disabled here.
     connect_args={"statement_cache_size": 0},
 )
 

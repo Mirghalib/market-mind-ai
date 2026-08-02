@@ -57,9 +57,8 @@ class GenerationQuotaExceededError(GenerationError):
 
 
 def _provider_key() -> str:
-    """Return the API key for the configured provider (settings or env)."""
-    name = settings.AI_PROVIDER.lower()
-    return getattr(settings, f"{name.upper()}_API_KEY", "") or ""
+    """Return the configured OpenAI-compatible API key."""
+    return settings.AI_API_KEY or ""
 
 
 def _budget_label(request: StrategyGenerationRequest) -> str:
@@ -139,9 +138,11 @@ class StrategyGenerationService:
             len(request.goals),
         )
 
-        # Fall back to the deterministic mock when no API key is set so
-        # the endpoint keeps working in offline demos and CI.
-        if self._ai_service is None and not _provider_key():
+        # Fall back to the deterministic mock only when explicitly
+        # enabled (AI_FALLBACK_TO_MOCK=true). Otherwise a missing API
+        # key or provider failure must surface as an error rather than
+        # silently returning a canned (dummy) strategy.
+        if settings.AI_FALLBACK_TO_MOCK and self._ai_service is None and not _provider_key():
             logger.info("No AI provider key configured; using mock strategy")
             return await self._generate_mock(request, db=db, user=user)
 
@@ -176,29 +177,21 @@ class StrategyGenerationService:
             # Attach currency/country metadata so exports can render it.
             result.setdefault("metadata", _currency_meta(request))
         except ProviderError as exc:
-            if exc.status_code == 429:
-                if settings.AI_FALLBACK_TO_MOCK:
-                    logger.warning(
-                        "LLM provider rate limit reached for project=%r; "
-                        "falling back to mock strategy (AI_FALLBACK_TO_MOCK=true)",
-                        request.project_name,
-                    )
-                    return await self._generate_mock(request, db=db, user=user)
-                logger.error(
-                    "LLM provider rate limit exceeded for project=%r: %s",
-                    request.project_name,
+            if settings.AI_FALLBACK_TO_MOCK:
+                logger.warning(
+                    "LLM provider error (%s) for project=%r; "
+                    "falling back to mock strategy (AI_FALLBACK_TO_MOCK=true)",
                     exc,
+                    request.project_name,
                 )
+                return await self._generate_mock(request, db=db, user=user)
+            # No fallback: surface the provider error so the client never
+            # receives a canned (dummy) strategy when the real model failed.
+            if exc.status_code == 429:
                 raise GenerationQuotaExceededError(
                     "The AI provider's rate limit was reached. Try again later."
-                ) from None
-            # Temporary provider outage: degrade to the mock so the demo
-            # keeps working instead of surfacing a 500.
-            logger.warning(
-                "LLM provider unavailable (%s), falling back to mock strategy",
-                exc,
-            )
-            return await self._generate_mock(request, db=db, user=user)
+                ) from exc
+            raise GenerationError(f"AI provider error: {exc}") from exc
         except (ValidationError, AIServiceError) as exc:
             logger.exception("Strategy generation failed: %s", exc)
             raise GenerationError("Failed to generate strategy") from None

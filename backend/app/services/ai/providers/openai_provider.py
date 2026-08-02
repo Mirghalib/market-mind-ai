@@ -1,8 +1,11 @@
-"""OpenAI-compatible provider.
+"""OpenAI-compatible LLM provider.
 
-Uses the `openai` Python SDK against any OpenAI-compatible endpoint
-(default: api.openai.com). Errors are mapped to `ProviderError` with a
-`retryable` flag so the caller can decide whether to retry.
+The single LLM interface for the pipeline. Uses the `openai` Python SDK
+against any OpenAI-compatible endpoint (OpenAI, Groq, OpenRouter, local
+vLLM/Ollama, ...). The endpoint is configured via ``base_url`` so adding
+a provider is just a config change. Errors are mapped to
+`ProviderError` with a `retryable` flag so the caller can decide
+whether to retry.
 """
 from typing import Any
 

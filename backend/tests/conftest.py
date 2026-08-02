@@ -20,9 +20,11 @@ from app.database.session import get_db
 from main import create_app
 
 # Never hit a live LLM provider from the endpoint test suite.
-settings.GROQ_API_KEY = ""
-settings.OPENAI_API_KEY = ""
-settings.ANTHROPIC_API_KEY = ""
+settings.AI_API_KEY = ""
+
+# The endpoint tests exercise the deterministic mock generation path
+# (offline/demo behavior), so the fallback must be enabled.
+settings.AI_FALLBACK_TO_MOCK = True
 
 _test_engine = create_async_engine("sqlite+aiosqlite:///:memory:")
 _TestSessionLocal = async_sessionmaker(

@@ -179,10 +179,10 @@ async def user_generate(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="The AI provider's rate limit was reached. Try again later.",
         )
-    except GenerationError:
+    except GenerationError as exc:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Strategy generation failed",
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=str(exc) or "Strategy generation failed",
         )
     except Exception:
         logger.exception("Unexpected error in /dashboard/generate")

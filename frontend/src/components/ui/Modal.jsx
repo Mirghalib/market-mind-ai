@@ -50,7 +50,7 @@ export default function Modal({
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className={cn(
-              'relative w-full max-w-lg rounded-2xl border',
+              'relative flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl border',
               'border-border bg-card p-6 shadow-2xl',
               'dark:border-zinc-800 dark:bg-zinc-900',
               className
@@ -72,7 +72,9 @@ export default function Modal({
               )}
             </div>
 
-            {children}
+            <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+              {children}
+            </div>
           </motion.div>
         </div>
       )}

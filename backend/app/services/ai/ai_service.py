@@ -85,17 +85,35 @@ class AIService:
         # --- 2. Call the provider with retries ---------------------------------
         raw_response = await self._generate_with_retry(prompt, brief.business_name)
 
-        # --- 3. Parse ----------------------------------------------------------
+        # --- 3. Parse, with one model self-correction attempt ------------------
         try:
             parsed = self._parser.parse(raw_response)
+            if not isinstance(parsed, dict):
+                raise ParseError(
+                    f"LLM response parsed to {type(parsed).__name__}, expected an object.",
+                    raw_response=raw_response,
+                )
         except ParseError:
-            logger.exception("Could not parse LLM response for '%s'", brief.business_name)
-            raise
-        if not isinstance(parsed, dict):
-            raise ParseError(
-                f"LLM response parsed to {type(parsed).__name__}, expected an object.",
-                raw_response=raw_response,
+            # Models sometimes wrap the JSON in prose or truncate it. Re-ask
+            # once with an explicit "JSON only" instruction before giving up.
+            logger.warning(
+                "Could not parse LLM response for '%s'; requesting a JSON-only retry",
+                brief.business_name,
             )
+            retry_prompt = (
+                "Your previous response was not valid JSON. "
+                "Respond with the SAME complete strategy document, but as "
+                "raw JSON only — no markdown fences, no prose, no trailing text."
+            )
+            raw_response = await self._generate_with_retry(
+                prompt + "\n\n" + retry_prompt, brief.business_name
+            )
+            parsed = self._parser.parse(raw_response)
+            if not isinstance(parsed, dict):
+                raise ParseError(
+                    f"LLM response parsed to {type(parsed).__name__}, expected an object.",
+                    raw_response=raw_response,
+                )
 
         # --- 3b. Repair common LLM drift (extra keys, enum casing) -------------
         parsed = normalize_llm_output(parsed)
