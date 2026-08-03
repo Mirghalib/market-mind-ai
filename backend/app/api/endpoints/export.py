@@ -171,9 +171,23 @@ async def download_export(
 
     file_path = Path(settings.EXPORT_DIR) / export.file_key
     if not file_path.is_file():
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Export file is missing",
+        # The persisted file is gone (e.g. ephemeral disk on Render was
+        # wiped by a redeploy/restart). Re-render from the stored strategy
+        # so the history download still works.
+        from app.services.export.renderers import get_renderer
+
+        try:
+            rendered = get_renderer(export.format).render(export.strategy)
+        except RuntimeError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=str(exc) or "Export failed",
+            )
+        filename = f"{export.strategy.name or 'strategy'}-{export.format.value}.{rendered.file_extension}"
+        return Response(
+            content=rendered.content,
+            media_type=rendered.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
         )
 
     return FileResponse(

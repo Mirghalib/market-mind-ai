@@ -247,6 +247,54 @@ async def test_export_list_and_download(app_client, db_session) -> None:
 
 
 @pytest.mark.asyncio
+async def test_download_falls_back_to_rerender_when_file_missing(
+    app_client, db_session
+) -> None:
+    """History download still works when the persisted file was wiped
+    (ephemeral disk on Render is cleared on redeploy/restart): the
+    endpoint re-renders from the stored strategy instead of 404ing."""
+    from pathlib import Path
+
+    from sqlalchemy import select
+
+    from app.core.config import settings
+    from app.models.export import Export
+
+    user = await _register_user(db_session)
+    strategy = await _create_strategy(db_session, user)
+
+    login = await app_client.post(
+        "/auth/login",
+        json={"email": USER_PAYLOAD["email"], "password": USER_PAYLOAD["password"]},
+    )
+    token = login.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    created = await app_client.post(
+        "/export",
+        json={"strategy_id": str(strategy.id), "format": "pdf"},
+        headers=headers,
+    )
+    assert created.status_code == 200
+
+    export = (
+        await db_session.execute(select(Export).limit(1))
+    ).scalar_one()
+    export_id = export.id
+
+    # Simulate the Render ephemeral disk wipe: the DB row survives but the
+    # rendered file on disk is gone.
+    file_path = Path(settings.EXPORT_DIR) / export.file_key
+    assert file_path.is_file()
+    file_path.unlink()
+
+    download = await app_client.get(f"/export/{export_id}", headers=headers)
+    assert download.status_code == 200
+    assert download.content[:4] == b"%PDF"
+    assert "attachment" in download.headers.get("content-disposition", "")
+
+
+@pytest.mark.asyncio
 async def test_export_list_scoped_to_user(app_client, db_session) -> None:
     """Another user cannot see or download this user's exports."""
     user = await _register_user(db_session)
